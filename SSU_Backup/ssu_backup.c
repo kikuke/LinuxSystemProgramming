@@ -9,8 +9,9 @@
 
 int main(int argc, char* argv[])
 {
-	char path_buf[SSU_BACKUP_MAX_PATH_SZ];
 	int selectHash;
+	char path_buf[SSU_BACKUP_MAX_PATH_SZ];
+	char shell_buf[SSU_BACKUP_SHELL_MAX_BUF_SZ];
 
 	//Comment: 인자가 2개가 아니거나 인자값이 잘못된 경우 Usage 출력
 	if(argc != 2 || (selectHash = GetSelectHash(argv[1])) == -1){
@@ -33,7 +34,29 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
+	while(1)
+	{
+		ShowShell();
+		scanf("%s", shell_buf);
+		execute_cmd(shell_buf);
+	}
+
 	return 0;
+}
+
+int execute_cmd(char* cmd)
+{
+	int cmd_fd;
+	char* shell_tok;
+	
+	shell_tok = strtok(cmd, " ");
+	if(!strcmp(shell_tok, "add")){
+		strtok(NULL, " ");
+		return 0;
+	} else {
+	}
+
+	return -1;
 }
 
 int GetSelectHash(char* selectHash)
@@ -47,7 +70,12 @@ int GetSelectHash(char* selectHash)
 	return -1;
 }
 
+void ShowShell()
+{
+	printf("%s⟩ ", SSU_BACKUP_SHELL_NAME);
+}
+
 void backup_usage()
 {
-	puts("Usage: ssu_backup <md5 | sha1>");
+	puts("Usage: ssu_backup ⟨md5 | sha1⟩");
 }
