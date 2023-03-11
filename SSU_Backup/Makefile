@@ -1,0 +1,23 @@
+CC = gcc
+
+create_backup:
+	make ssu_backup
+	make ssu_backup_add
+
+ssu_backup: ssu_backup.o
+	$(CC) -o $@ $^
+
+ssu_backup_add: ssu_backup_add.o
+	$(CC) -o $@ $^
+
+ssu_backup.o: ssu_backup.c
+	$(CC) -c $^
+
+ssu_backup_add.o: ssu_backup_add.c
+	$(CC) -c $^
+
+clean: 
+	rm ssu_backup
+	rm ssu_backup.o
+	rm ssu_backup_add
+	rm ssu_backup_add.o
