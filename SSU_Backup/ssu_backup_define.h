@@ -23,8 +23,8 @@
 #define SSU_BACKUP_VI "vi"
 #define SSU_BACKUP_VI_PATH "vi"
 
-#define SSU_BACKUP_VI "vim"
-#define SSU_BACKUP_VI_PATH "vim"
+#define SSU_BACKUP_VIM "vim"
+#define SSU_BACKUP_VIM_PATH "vim"
 
 #define SSU_BACKUP_EXIT "exit"
 

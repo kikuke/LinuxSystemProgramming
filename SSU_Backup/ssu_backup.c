@@ -89,19 +89,19 @@ int execute_cmd(char* cmd)
 
 	StringToArray(cmd, &cmdArr, " ");
 	if(!strcmp(*cmdArr, SSU_BACKUP_ADD)){
-		fork_exec_cmd(SSU_BACKUP_ADD_PATH, (char* const*)(cmdArr + 1));
+		fork_exec_cmd(SSU_BACKUP_ADD_PATH, (char* const*)(cmdArr));
 		free(cmdArr);
 		return 0;
 	} else if(!strcmp(*cmdArr, SSU_BACKUP_LS)){
-		fork_exec_cmd(SSU_BACKUP_LS_PATH, (char* const*)(cmdArr + 1));
+		fork_exec_cmd(SSU_BACKUP_LS_PATH, (char* const*)(cmdArr));
 		free(cmdArr);
 		return 0;
 	} else if(!strcmp(*cmdArr, SSU_BACKUP_VI)){
-		fork_exec_cmd(SSU_BACKUP_VI_PATH, (char* const*)(cmdArr + 1));
+		fork_exec_cmd(SSU_BACKUP_VI_PATH, (char* const*)(cmdArr));
 		free(cmdArr);
 		return 0;
 	} else if(!strcmp(*cmdArr, SSU_BACKUP_VIM)){
-		fork_exec_cmd(SSU_BACKUP_VIM_PATH, (char* const*)(cmdArr + 1));
+		fork_exec_cmd(SSU_BACKUP_VIM_PATH, (char* const*)(cmdArr));
 		free(cmdArr);
 		return 0;
 	} else if(!strcmp(*cmdArr, SSU_BACKUP_EXIT)){
