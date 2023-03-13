@@ -81,6 +81,7 @@ int StringToArray(char* srcStr, char*** destArr, const char* parser)
 
 int execute_cmd(char* cmd)
 {
+	const char* p_name = NULL;
 	char** cmdArr = NULL;
 
 	if(!strcmp(cmd, "")){
@@ -89,28 +90,23 @@ int execute_cmd(char* cmd)
 
 	StringToArray(cmd, &cmdArr, " ");
 	if(!strcmp(*cmdArr, SSU_BACKUP_ADD)){
-		fork_exec_cmd(SSU_BACKUP_ADD_PATH, (char* const*)(cmdArr));
-		free(cmdArr);
-		return 0;
+		p_name = SSU_BACKUP_ADD_PATH;
 	} else if(!strcmp(*cmdArr, SSU_BACKUP_LS)){
-		fork_exec_cmd(SSU_BACKUP_LS_PATH, (char* const*)(cmdArr));
-		free(cmdArr);
-		return 0;
+		p_name = SSU_BACKUP_LS_PATH;
 	} else if(!strcmp(*cmdArr, SSU_BACKUP_VI)){
-		fork_exec_cmd(SSU_BACKUP_VI_PATH, (char* const*)(cmdArr));
-		free(cmdArr);
-		return 0;
+		p_name = SSU_BACKUP_VI_PATH;
 	} else if(!strcmp(*cmdArr, SSU_BACKUP_VIM)){
-		fork_exec_cmd(SSU_BACKUP_VIM_PATH, (char* const*)(cmdArr));
-		free(cmdArr);
-		return 0;
+		p_name = SSU_BACKUP_VIM_PATH;
 	} else if(!strcmp(*cmdArr, SSU_BACKUP_EXIT)){
 		free(cmdArr);
 		return 1;
+	} else {
+		//Todo: help넣고 이거 빼기
+		puts("헬프 넣기");
+		p_name = SSU_BACKUP_HELP_PATH;
 	}
 	
-	//Todo: help넣기
-	puts("헬프 넣기");
+	fork_exec_cmd(p_name, (char* const*)(cmdArr));
 	free(cmdArr);
 	return 0;
 }

@@ -15,7 +15,7 @@
 
 //##### Define Command #####
 #define SSU_BACKUP_ADD "add"
-#define SSU_BACKUP_ADD_PATH ""
+#define SSU_BACKUP_ADD_PATH "add"
 
 #define SSU_BACKUP_LS "ls"
 #define SSU_BACKUP_LS_PATH "ls"
@@ -26,9 +26,20 @@
 #define SSU_BACKUP_VIM "vim"
 #define SSU_BACKUP_VIM_PATH "vim"
 
+#define SSU_BACKUP_HELP "help"
+#define SSU_BACKUP_HELP_PATH "help"
+
 #define SSU_BACKUP_EXIT "exit"
 
 typedef enum SSU_Backup_Idx {
+	USAGEIDX_ADD,
+	USAGEIDX_REMOVE,
+	USAGEIDX_RECOVER,
+	USAGEIDX_LS,
+	USAGEIDX_VI,
+	USAGEIDX_VIM,
+	USAGEIDX_HELP,
+	USAGEIDX_EXIT,
 	USAGEIDX_MAX
 } SSU_BACKUP_IDX;
 
