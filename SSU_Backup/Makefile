@@ -1,7 +1,7 @@
 UTILITY = ssu_backup_util.o
 CC = gcc
 
-init: setting create_backup
+init: create_backup
 
 setting:
 	sh ssu_backup_setting.sh

@@ -13,8 +13,18 @@
 #define SSU_BACKUP_HASH_MD5 1
 #define SSU_BACKUP_HASH_SHA1 2
 
+//##### Define Command #####
 #define SSU_BACKUP_ADD "add"
 #define SSU_BACKUP_ADD_PATH ""
+
+#define SSU_BACKUP_LS "ls"
+#define SSU_BACKUP_LS_PATH "ls"
+
+#define SSU_BACKUP_VI "vi"
+#define SSU_BACKUP_VI_PATH "vi"
+
+#define SSU_BACKUP_VI "vim"
+#define SSU_BACKUP_VI_PATH "vim"
 
 #define SSU_BACKUP_EXIT "exit"
 
