@@ -1,6 +1,8 @@
 UTILITY = ssu_backup_util.o
 CC = gcc
 
+init: create_backup
+
 create_backup:
 	make ssu_backup
 	make ssu_backup_add

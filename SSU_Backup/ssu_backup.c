@@ -10,6 +10,7 @@
 int main(int argc, char* argv[])
 {
 	int selectHash;
+	int endFlag;
 	char path_buf[SSU_BACKUP_MAX_PATH_SZ];
 	char shell_buf[SSU_BACKUP_SHELL_MAX_BUF_SZ];
 
@@ -21,11 +22,15 @@ int main(int argc, char* argv[])
 
 	//Comment: 백업 경로를 구하고, 그 경로의 디렉토리가 없을경우 생성
 	GetBackupPath(path_buf);
-	if(access(path_buf, 0) == -1){
+	if(access(path_buf, F_OK) == -1){
 		if(SetBackupPath(path_buf) == -1){
 			perror("SetBackupPath()");
 			exit(1);
 		}
+	}
+	if(access(path_buf, R_OK | W_OK) == -1){
+		perror("access()");
+		exit(1);
 	}
 	
 	//Comment: 선택한 해쉬 방식을 백업경로의 설정파일에 저장
@@ -33,12 +38,16 @@ int main(int argc, char* argv[])
 		perror("SetHashMode()");
 		exit(1);
 	}
-
-	while(1)
+	
+	endFlag = 0;
+	while(!endFlag)
 	{
 		ShowShell();
-		scanf("%s", shell_buf);
-		execute_cmd(shell_buf);
+
+		fgets(shell_buf, SSU_BACKUP_SHELL_MAX_BUF_SZ, stdin);
+		shell_buf[strlen(shell_buf) - 1] = '\0';
+
+		endFlag = execute_cmd(shell_buf);
 	}
 
 	return 0;
@@ -48,15 +57,48 @@ int execute_cmd(char* cmd)
 {
 	int cmd_fd;
 	char* shell_tok;
-	
-	shell_tok = strtok(cmd, " ");
-	if(!strcmp(shell_tok, "add")){
-		strtok(NULL, " ");
+
+	if(!strcmp(cmd, "")){
 		return 0;
-	} else {
 	}
 
-	return -1;
+	shell_tok = strtok(cmd, " ");
+	if(!strcmp(shell_tok, SSU_BACKUP_ADD)){
+		strtok(NULL, " ");
+		return 0;
+	} else if(!strcmp(shell_tok, SSU_BACKUP_EXIT)){
+		return 1;
+	}
+	
+	//Todo: help넣기
+	puts("헬프 넣기");
+	return 0;
+}
+
+void fork_exec_cmd(const char* p_name, const char* cmd)
+{
+	pid_t pid;
+
+	pid = fork();
+	switch(pid){
+		//Comment: 프로세스 복제에 실패했을 경우
+		case -1:
+			perror("fork()");
+			exit(1);
+			break;
+		//Comment: fork()로 복제된 프로세스일 경우
+		case 0:
+			execl(p_name, cmd);
+			break;
+		//Comment: fork()를 호출한 프로세스일경우
+		default:
+			//Comment: 상태정보에 따른 처리는 하지 않아 wsatus = NULL
+			if(waitpid(pid, NULL, 0) == -1){
+				perror("waitpid()");
+				exit(1);
+			}
+			break;
+	}
 }
 
 int GetSelectHash(char* selectHash)
