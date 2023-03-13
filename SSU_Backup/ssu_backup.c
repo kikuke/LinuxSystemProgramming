@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <sys/wait.h>
 
 #include "ssu_backup_define.h"
 #include "ssu_backup_util.h"
@@ -53,29 +54,56 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
+int StringToArray(char* srcStr, char*** destArr, const char* parser)
+{
+	int arrSz=1;
+	char* tok_ptr;
+
+	tok_ptr = strtok(srcStr, parser);
+	while(tok_ptr != NULL)
+	{
+		arrSz++;
+		tok_ptr = strtok(NULL, parser);
+	}
+	(*destArr) = (char**)malloc(sizeof(char*) * arrSz);
+	tok_ptr = srcStr;
+	for(int i=0; i < (arrSz - 1); i++){
+		(*destArr)[i] = tok_ptr;
+		while((*tok_ptr) != '\0'){
+			tok_ptr++;
+		}
+		tok_ptr++;
+	}
+	(*destArr)[arrSz-1] = NULL;
+
+	return arrSz;
+}
+
 int execute_cmd(char* cmd)
 {
-	int cmd_fd;
-	char* shell_tok;
+	char** cmdArr = NULL;
 
 	if(!strcmp(cmd, "")){
 		return 0;
 	}
 
-	shell_tok = strtok(cmd, " ");
-	if(!strcmp(shell_tok, SSU_BACKUP_ADD)){
-		strtok(NULL, " ");
+	StringToArray(cmd, &cmdArr, " ");
+	if(!strcmp(*cmdArr, SSU_BACKUP_ADD)){
+		fork_exec_cmd(SSU_BACKUP_ADD_PATH, (char* const*)(cmdArr + 1));
+		free(cmdArr);
 		return 0;
-	} else if(!strcmp(shell_tok, SSU_BACKUP_EXIT)){
+	} else if(!strcmp(*cmdArr, SSU_BACKUP_EXIT)){
+		free(cmdArr);
 		return 1;
 	}
 	
 	//Todo: help넣기
 	puts("헬프 넣기");
+	free(cmdArr);
 	return 0;
 }
 
-void fork_exec_cmd(const char* p_name, const char* cmd)
+void fork_exec_cmd(const char* p_name, char* const* cmd)
 {
 	pid_t pid;
 
@@ -88,7 +116,10 @@ void fork_exec_cmd(const char* p_name, const char* cmd)
 			break;
 		//Comment: fork()로 복제된 프로세스일 경우
 		case 0:
-			execl(p_name, cmd);
+			if(execvp(p_name, cmd) == -1){
+				perror("execl()");
+				exit(1);
+			}
 			break;
 		//Comment: fork()를 호출한 프로세스일경우
 		default:
