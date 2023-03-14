@@ -10,9 +10,10 @@
 int main(int argc, char* argv[])
 {
 	int hashMode = -1;
-	int isDir = 0;
+	int addType = SSU_BACKUP_TYPE_REG;
 	char addPath[SSU_BACKUP_MAX_PATH_SZ];
 	char opt;
+	int checkType;
 
 	if(argc < 2 || argc > 3){
 		Usage(USAGEIDX_ADD);
@@ -22,7 +23,7 @@ int main(int argc, char* argv[])
 	while((opt = getopt(argc, argv, "d")) != -1){
 		switch(opt){
 			case 'd':
-				isDir = 1;
+				addType = SSU_BACKUP_TYPE_DIR;
 				break;
 			
 			default:
@@ -34,6 +35,15 @@ int main(int argc, char* argv[])
 
 	//Comment: add 경로 값에 따른 에러 핸들링을 합니다.
 	if(GetRealpathAndHandle(argv[1], addPath, USAGEIDX_ADD) == NULL){
+		exit(1);
+	}
+
+	if((checkType = CheckFileTypeByPath(addPath)) == -1){
+		perror("CheckFileTypeByPath()");
+		exit(1);
+	}
+	if((checkType == SSU_BACKUP_TYPE_DIR) && checkType != addType){
+		fputs("Use -d option", stderr);
 		exit(1);
 	}
 

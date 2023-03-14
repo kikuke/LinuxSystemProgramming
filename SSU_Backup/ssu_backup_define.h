@@ -13,6 +13,11 @@
 #define SSU_BACKUP_HASH_MD5 1
 #define SSU_BACKUP_HASH_SHA1 2
 
+#define SSU_BACKUP_TYPE_ERROR -1
+#define SSU_BACKUP_TYPE_REG 0
+#define SSU_BACKUP_TYPE_DIR 1
+#define SSU_BACKUP_TYPE_OTHER 2
+
 //##### Define Command #####
 #define SSU_BACKUP_ADD "add"
 #define SSU_BACKUP_ADD_PATH "add"

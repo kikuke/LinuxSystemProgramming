@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
-#include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
@@ -48,6 +47,7 @@ char* GetRealpathAndHandle(const char* path, char* resolved_path, SSU_BACKUP_IDX
 				fputs("Unhandled RealpathError!", stderr);
 				break;
 		}
+		return NULL;
 	}
 
 	if(strncmp(homeDir, resolved_path, strlen(homeDir)) != 0){
@@ -60,8 +60,34 @@ char* GetRealpathAndHandle(const char* path, char* resolved_path, SSU_BACKUP_IDX
 		fprintf(stdout, "<%s> can't be backuped\n", resolved_path);
 		return NULL;
 	}
+
+	if(CheckFileTypeByPath(resolved_path) == SSU_BACKUP_TYPE_OTHER){
+		fputs("일반 파일이나 디렉토리가 아닙니다.", stderr);
+		return NULL;
+	}
 	
 	return resolved_path;
+}
+
+int CheckFileTypeByPath(const char* path)
+{
+	struct stat f_stat;
+	if(stat(path, &f_stat) == -1){
+		return SSU_BACKUP_TYPE_ERROR;
+	}
+
+	return CheckFileType(&f_stat);
+}
+
+int CheckFileType(const struct stat* p_stat)
+{
+	if(S_ISREG((*p_stat).st_mode)){
+		return SSU_BACKUP_TYPE_REG;
+	} else if(S_ISDIR((*p_stat).st_mode)){
+		return SSU_BACKUP_TYPE_DIR;
+	}
+
+	return SSU_BACKUP_TYPE_OTHER;
 }
 
 char* GetBackupPath(char* buf)
