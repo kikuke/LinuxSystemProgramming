@@ -37,7 +37,10 @@ ssu_backup_help.o: ssu_backup_help.c
 
 clean: 
 	rm ssu_backup_util.o
+	rm ssu_backup_usage.o
 	rm ssu_backup
 	rm ssu_backup.o
 	rm ssu_backup_add
 	rm ssu_backup_add.o
+	rm ssu_backup_help
+	rm ssu_backup_help.o

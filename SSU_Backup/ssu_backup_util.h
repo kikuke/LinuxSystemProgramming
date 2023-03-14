@@ -5,6 +5,10 @@
 //	dest의 시작 주소값을 리턴합니다.
 char* ConcatPath(char* dest, const char* target);
 
+//Comment: realpath를 내부적으로 호출 후, 공통된 예외처리를 합니다.
+//예외 발생시 NULL을 리턴합니다.
+char* GetRealpathAndHandle(const char* path, char* resolved_path, SSU_BACKUP_IDX thisUsage);
+
 //Comment: 인자로 백업 경로를 저장할 버퍼를 받습니다.
 // 버퍼의 시작 주소값을 리턴합니다.
 char* GetBackupPath(char* buf);
