@@ -51,4 +51,16 @@ int main(int argc, char* argv[])
 		fputs("GetHashMode() Failed!\n", stderr);
 		exit(1);
 	}
+
+	return 0;
+}
+
+int AddBackupPath(const char* path, int isDir, int hashMode)
+{
+	if(!isDir){
+		
+		return 0;
+	}
+
+	return 0;
 }

@@ -151,10 +151,10 @@ int GetSelectHash(char* selectHash)
 
 void ShowShell()
 {
-	printf("%s⟩ ", SSU_BACKUP_SHELL_NAME);
+	printf("%s ", SSU_BACKUP_SHELL_NAME);
 }
 
 void backup_usage()
 {
-	puts("Usage: ssu_backup ⟨md5 | sha1⟩");
+	puts("Usage: ssu_backup <md5 | sha1>");
 }

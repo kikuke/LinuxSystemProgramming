@@ -4,10 +4,105 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
+#include <openssl/md5.h>
+#include <openssl/sha.h>
 
 #include "ssu_backup_define.h"
 #include "ssu_backup_usage.h"
 #include "ssu_backup_util.h"
+
+struct filetree* PathToFileTree(const char* path, int hashMode)
+{
+	struct filetree* ftree = NULL;
+	int fileType;
+
+	fileType = CheckFileTypeByPath(path);
+	switch(fileType){
+		case SSU_BACKUP_TYPE_ERROR:
+			ftree = NULL;
+			break;
+		case SSU_BACKUP_TYPE_REG:
+			//Todo: FileToFileTree 이용해서 ftree값 채워주기
+			break;
+		case SSU_BACKUP_TYPE_DIR:
+			//Todo: FileToFileTree 이용해서 ftree값 채워주기
+			//	재귀해서 다 채워주기
+			break;
+		default:
+			ftree = NULL;
+			break;
+	}
+
+	return ftree;
+}
+
+struct filetree* FileToFileTree(const char* path, int hashMode)
+{
+	struct filetree* ftree = NULL;
+	char* fileName = NULL;
+	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+	char hashBuf[SSU_BACKUP_HASH_MAX_LEN];
+
+	strcpy(pathBuf, path);
+	if((fileName = GetFileNameByPath(pathBuf)) == NULL){
+		return NULL;
+	}
+	//Todo: 해시값 넣는 함수 만들고, CreateFileTree하기
+
+	return ftree;
+}
+
+char* GetFileNameByPath(char* path)
+{
+	char* fileName = NULL;
+	char* fptr = strtok(path, "/");
+	
+	while(fptr != NULL)
+	{
+		fileName = fptr;
+		fptr = strtok(NULL, "/");
+	}
+
+	return fileName;
+}
+
+int GetMd5HashByPath(const char* path, char* hashBuf)
+{
+	MD5_CTX c;
+	int fd;
+	unsigned char buf[SSU_BACKUP_HASH_BUF_SZ];
+	size_t readLen;
+
+	MD5_Init(&c);
+	if((fd = open(path, O_RDONLY)) == -1){
+		return -1;
+	}
+	while((readLen = read(fd, buf, SSU_BACKUP_HASH_BUF_SZ)) > 0){
+		MD5_Update(&c, buf, readLen);
+	}
+	MD5_Final(hashBuf, &c);
+
+	return 0;
+}
+
+int GetSha1HashByPath(const char* path, char* hashBuf)
+{
+	SHA_CTX c;
+	int fd;
+	unsigned char buf[SSU_BACKUP_HASH_BUF_SZ];
+	size_t readLen;
+
+	SHA1_Init(&c);
+	if((fd = open(path, O_RDONLY)) == -1){
+		return -1;
+	}
+	while((readLen = read(fd, buf, SSU_BACKUP_HASH_BUF_SZ)) > 0){
+		SHA1_Update(&c, buf, readLen);
+	}
+	SHA1_Final(hashBuf, &c);
+
+	return 0;
+}
 
 char* ConcatPath(char* dest, const char* target)
 {
@@ -49,8 +144,6 @@ char* GetRealpathAndHandle(const char* path, char* resolved_path, SSU_BACKUP_IDX
 		}
 		return NULL;
 	}
-	//test
-			puts(resolved_path);
 
 	if(strncmp(homeDir, resolved_path, strlen(homeDir)) != 0){
 		fprintf(stdout, "<%s> can't be backuped\n", resolved_path);

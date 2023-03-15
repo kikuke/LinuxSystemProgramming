@@ -3,6 +3,29 @@
 
 #include <sys/stat.h>
 
+#include "ssu_backup_filetree.h"
+
+//Comment: 해당 경로와 하위의 모든 파일들을 filetree화 합니다.
+//	실패시 NULL리턴.
+struct filetree* PathToFileTree(const char* path, int hashMode);
+
+//Comment: 해당 경로의 파일을 파일트리로 바꿔줍니다.
+// 실패시 NULL을 리턴합니다.
+struct filetree* FileToFileTree(const char* path, int hashMode);
+
+//Comment: 경로의 마지막 파일 이름을 반환합니다.
+//	실패시 NULL을 리턴합니다.
+//	path의 문자열의 변경이 있습니다.
+char* GetFileNameByPath(const char* path);
+
+//성공시 0, 실패시 -1리턴
+//	hashBuf에 해시값을 채워서 줍니다.
+int GetMd5HashByPath(const char* path, char* hashBuf);
+
+//성공시 0, 실패시 -1리턴
+//	hashBuf에 해시값을 채워서 줍니다.
+int GetSha1HashByPath(const char* path, char* hashBuf);
+
 //Comment: dest에 target문자열을 붙입니다. 사이에 /가 추가됩니다.
 //	dest의 시작 주소값을 리턴합니다.
 char* ConcatPath(char* dest, const char* target);
