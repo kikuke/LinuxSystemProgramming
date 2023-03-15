@@ -3,9 +3,6 @@ CC = gcc
 
 init: create_backup
 
-setting:
-	sh ssu_backup_setting.sh
-
 create_backup:
 	make ssu_backup
 	make ssu_backup_add

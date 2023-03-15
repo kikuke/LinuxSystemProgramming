@@ -43,12 +43,12 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 	if((checkType == SSU_BACKUP_TYPE_DIR) && checkType != addType){
-		fputs("Use -d option", stderr);
+		fputs("Use -d option\n", stderr);
 		exit(1);
 	}
 
 	if((hashMode = GetHashMode()) == -1){
-		fputs("GetHashMode() Failed!", stderr);
+		fputs("GetHashMode() Failed!\n", stderr);
 		exit(1);
 	}
 }

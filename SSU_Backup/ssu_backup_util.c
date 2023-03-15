@@ -49,8 +49,15 @@ char* GetRealpathAndHandle(const char* path, char* resolved_path, SSU_BACKUP_IDX
 		}
 		return NULL;
 	}
+	//test
+			puts(resolved_path);
 
 	if(strncmp(homeDir, resolved_path, strlen(homeDir)) != 0){
+		fprintf(stdout, "<%s> can't be backuped\n", resolved_path);
+		return NULL;
+	}
+
+	if(strncmp(resolved_path, homeDir, strlen(resolved_path)) == 0){
 		fprintf(stdout, "<%s> can't be backuped\n", resolved_path);
 		return NULL;
 	}

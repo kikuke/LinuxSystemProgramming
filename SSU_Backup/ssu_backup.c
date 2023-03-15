@@ -101,8 +101,6 @@ int execute_cmd(char* cmd)
 		free(cmdArr);
 		return 1;
 	} else {
-		//Todo: help넣고 이거 빼기
-		puts("헬프 넣기");
 		p_name = SSU_BACKUP_HELP_PATH;
 	}
 	
