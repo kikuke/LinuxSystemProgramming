@@ -1,4 +1,5 @@
-UTILITY = ssu_backup_util.o ssu_backup_usage.o
+UTILITY = ssu_backup_filetree.o ssu_backup_usage.o ssu_backup_util.o
+CRYPTO_MACRO = -lssl -lcrypto -DOPENSSL_API_COMPAT=10101
 CC = gcc
 
 init: create_backup
@@ -9,16 +10,19 @@ create_backup:
 	make ssu_backup_help
 
 ssu_backup: ssu_backup.o $(UTILITY)
-	$(CC) -o $@ $^
+	$(CC) -o $@ $^ $(CRYPTO_MACRO)
 
 ssu_backup_add: ssu_backup_add.o $(UTILITY)
-	$(CC) -o $@ $^
+	$(CC) -o $@ $^ $(CRYPTO_MACRO)
 
 ssu_backup_help: ssu_backup_help.o $(UTILITY)
-	$(CC) -o $@ $^
+	$(CC) -o $@ $^ $(CRYPTO_MACRO)
+
+ssu_backup_filetree.o: ssu_backup_filetree.c
+	$(CC) -c $^
 
 ssu_backup_util.o: ssu_backup_util.c
-	$(CC) -c $^
+	$(CC) -c $^ $(CRYPTO_MACRO)
 
 ssu_backup_usage.o: ssu_backup_usage.c
 	$(CC) -c $^
@@ -33,11 +37,7 @@ ssu_backup_help.o: ssu_backup_help.c
 	$(CC) -c $^
 
 clean: 
-	rm ssu_backup_util.o
-	rm ssu_backup_usage.o
+	rm *.o
 	rm ssu_backup
-	rm ssu_backup.o
 	rm ssu_backup_add
-	rm ssu_backup_add.o
 	rm ssu_backup_help
-	rm ssu_backup_help.o

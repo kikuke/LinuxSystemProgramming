@@ -23,7 +23,7 @@ struct filetree* FileToFileTree(const char* path, int hashMode);
 //Comment: 경로의 마지막 파일 이름을 반환합니다.
 //	실패시 NULL을 리턴합니다.
 //	path의 문자열의 변경이 있습니다.
-char* GetFileNameByPath(const char* path);
+char* GetFileNameByPath(char* path);
 
 //성공시 0, 실패시 -1리턴
 //	hashBuf에 해시값을 채워서 줍니다.
