@@ -22,11 +22,10 @@ struct filetree* PathToFileTree(const char* path, int hashMode)
 			ftree = NULL;
 			break;
 		case SSU_BACKUP_TYPE_REG:
-			//Todo: FileToFileTree 이용해서 ftree값 채워주기
+			ftree = FileToFileTree(path, hashMode);
 			break;
 		case SSU_BACKUP_TYPE_DIR:
-			//Todo: FileToFileTree 이용해서 ftree값 채워주기
-			//	재귀해서 다 채워주기
+			ftree = _PathToFileTreeDir(path, hashMode);
 			break;
 		default:
 			ftree = NULL;
@@ -36,18 +35,79 @@ struct filetree* PathToFileTree(const char* path, int hashMode)
 	return ftree;
 }
 
+struct filetree* _PathToFileTreeDir(const char* path, int hashMode)
+{
+	struct filetree* ptree = NULL;
+	struct filetree* ctree = NULL;
+	struct dirent** childList;
+	int childCount;
+	int realChildCnt;
+	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+
+	if((childCount = scandir(path, &childList, filterParentInScanDir, alphasort)) < 1){
+		return NULL;
+	}
+	ptree = FileToFileTree(path, hashMode);
+
+	realChildCnt = 0;
+	for(int i=0; i<childCount; i++){
+		strcpy(pathBuf, path);
+		ConcatPath(pathBuf, childList[i]->d_name);
+		ctree = PathToFileTree(pathBuf, hashMode);
+		free(childList[i]);
+		if(ctree == NULL) continue;
+
+		AddChildFileNode(ptree, ctree);	
+		realChildCnt++;
+	}
+	free(childList);
+
+	if(realChildCnt < 1)
+		return NULL;
+	return ptree;
+}
+
+int filterParentInScanDir(const struct dirent* target)
+{
+	if(!strcmp(target->d_name, ".") || !strcmp(target->d_name, "..")){
+		return 0;
+	}
+	return 1;
+}
+
 struct filetree* FileToFileTree(const char* path, int hashMode)
 {
 	struct filetree* ftree = NULL;
 	char* fileName = NULL;
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 	char hashBuf[SSU_BACKUP_HASH_MAX_LEN];
+	int hashReturnVal;
+	size_t hash_sz = 0;
 
 	strcpy(pathBuf, path);
 	if((fileName = GetFileNameByPath(pathBuf)) == NULL){
 		return NULL;
 	}
-	//Todo: 해시값 넣는 함수 만들고, CreateFileTree하기
+
+	switch(hashMode){
+		case SSU_BACKUP_HASH_MD5:
+			hashReturnVal = GetMd5HashByPath(path, hashBuf);
+			hash_sz = MD5_DIGEST_LENGTH;
+			break;
+		case SSU_BACKUP_HASH_SHA1:
+			hashReturnVal = GetSha1HashByPath(path, hashBuf);
+			hash_sz = SHA_DIGEST_LENGTH;
+			break;
+		default:
+			hashReturnVal = -1;
+			break;
+	}
+	if(hashReturnVal == -1){
+		perror("GetHash()");
+		return NULL;
+	}
+
+	ftree = CreateFileTree(fileName, hashBuf, hash_sz);
 
 	return ftree;
 }

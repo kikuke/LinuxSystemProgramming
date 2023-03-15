@@ -7,8 +7,6 @@
 
 typedef struct filetree
 {
-	//Comment: 뒤에 시간 제거한 값임.
-	//	디렉토리는 시간 안붙음
 	char file[SSU_BACKUP_MAX_FILENAME];
 	char hash[SSU_BACKUP_HASH_MAX_LEN];
 	

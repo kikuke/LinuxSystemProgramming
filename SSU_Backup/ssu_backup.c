@@ -83,12 +83,13 @@ int execute_cmd(char* cmd)
 {
 	const char* p_name = NULL;
 	char** cmdArr = NULL;
+	int cmdArrCnt;
 
 	if(!strcmp(cmd, "")){
 		return 0;
 	}
 
-	StringToArray(cmd, &cmdArr, " ");
+	cmdArrCnt = StringToArray(cmd, &cmdArr, " ");
 	if(!strcmp(*cmdArr, SSU_BACKUP_ADD)){
 		p_name = SSU_BACKUP_ADD_PATH;
 	} else if(!strcmp(*cmdArr, SSU_BACKUP_LS)){
@@ -105,6 +106,10 @@ int execute_cmd(char* cmd)
 	}
 	
 	fork_exec_cmd(p_name, (char* const*)(cmdArr));
+
+	for(int i=0; i<cmdArrCnt; i++){
+		free(cmdArr[i]);
+	}
 	free(cmdArr);
 	return 0;
 }

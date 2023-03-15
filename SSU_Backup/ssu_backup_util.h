@@ -2,12 +2,19 @@
 #define SSU_BACKUP_UTIL_H
 
 #include <sys/stat.h>
+#include <dirent.h>
 
 #include "ssu_backup_filetree.h"
 
 //Comment: 해당 경로와 하위의 모든 파일들을 filetree화 합니다.
-//	실패시 NULL리턴.
+//	실패했거나 디렉토리일 경우, 하위 파일이 없을 때 NULL을 리턴.
 struct filetree* PathToFileTree(const char* path, int hashMode);
+
+//Comment: 디렉토리일때 PathToFileTree에서 내부적으로 사용하는 함수.
+//	실패했거나 하위 파일이 없으면 NULL을 리턴합니다.
+struct filetree* _PathToFileTreeDir(const char* path, int hashMode);
+
+int filterParentInScanDir(const struct dirent* target);
 
 //Comment: 해당 경로의 파일을 파일트리로 바꿔줍니다.
 // 실패시 NULL을 리턴합니다.
