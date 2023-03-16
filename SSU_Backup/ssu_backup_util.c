@@ -69,7 +69,7 @@ int CopyFile(const char* destPath, const char* sourcePath)
 	return 0;
 }
 
-int CreateFileByFileTree(const char* addPath, const struct filetree* addTree, int isRecover);
+int CreateFileByFileTree(const char* addPath, const struct filetree* addTree, int isRecover)
 {
 	char srcFilePath[SSU_BACKUP_MAX_PATH_SZ];
 	char destFilePath[SSU_BACKUP_MAX_PATH_SZ];
@@ -114,7 +114,7 @@ int CreateFileByFileTree(const char* addPath, const struct filetree* addTree, in
 		return -1;
 	}
 	for(int i=0; i < addTree->childNodeNum; i++){
-		if(CreateFileByFileTree(destFilePath, addTree->childNodes[i]) == -1)
+		if(CreateFileByFileTree(destFilePath, addTree->childNodes[i], isRecover) == -1)
 			return -1;
 	}
 

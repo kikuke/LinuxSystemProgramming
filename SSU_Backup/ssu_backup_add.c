@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "ssu_backup_define.h"
 #include "ssu_backup_util.h"
@@ -72,7 +73,7 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
-int AddBackupByFileTree(const char* addPath, const struct filetree* backupTree, const struct filetree* addTree, int hashMode)
+int AddBackupByFileTree(const char* addPath, struct filetree* backupTree, struct filetree* addTree, int hashMode)
 {
 	struct filetree* matchedTree;
 	char addTreePath[SSU_BACKUP_MAX_PATH_SZ];
