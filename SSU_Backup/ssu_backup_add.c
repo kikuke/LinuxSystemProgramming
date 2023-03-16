@@ -64,29 +64,45 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
+	if(AddBackupByFileTree(GetParentPath(addPath, pathBuf), backupTree, addTree, hashMode) == -1){
+		perror("AddBackupByFileTree()");
+		exit(1);
+	}
+
 	return 0;
 }
 
 int AddBackupByFileTree(const char* addPath, const struct filetree* backupTree, const struct filetree* addTree, int hashMode)
 {
 	struct filetree* matchedTree;
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+	char addTreePath[SSU_BACKUP_MAX_PATH_SZ];
 
-	strcpy(pathBuf, addPath);
-	ConcatPath(pathBuf, addTree->file);
-	matchedTree = FindFileTreeInPath(pathBuf, backupTree, 1);
-	//Comment: 일치하는 백업파일이 없는 경우
+	strcpy(addTreePath, addPath);
+	ConcatPath(addTreePath, addTree->file);
+	matchedTree = FindFileTreeInPath(addTreePath, backupTree, 1);
+	//Comment: 일치하는 백업파일이 없는 경우 해당 하위 파일 모두 생성
 	if(matchedTree == NULL){
 		//Todo: 해당 하위 경로 파일 모두 생성하는 함수
-	} else {
-		if(addTree->childNodeNum == 0){
-		//Todo: 부모로 올라가 해당 트리 자식 검색하며 해시값 같은지 비교
-		//Todo: 파일 이름 비교함수, 파일경로 찾기 함수
-		//	재귀 할땐 addTree의 경우 찾은값으로 업데이트해서 넣어주기
-		} else {
-			//Todo: 재귀 호출
-		}
+		return ;
 	}
 
+	//Comment: 해시값이 같은 파일이 있는지 검사후 없으면 생성
+	if(addTree->childNodeNum == 0){
+		struct filetree* pTree = matchedTree->parentNode;
+		for(int i=0; i < pTree->childNodeNum; i++){
+			if(CompareHash(addTree->hash, pTree->childNodes[i]->hash, hashMode)){
+				fprintf(stdout, "<%s> is already backuped\n", addTreePath);
+				return 0;
+			}
+		}
+
+		//Todo: 생성함수
+		return ;
+	}
+
+	//Comment: 폴더의 경우 재귀 호출
+	for(int i=0; i < addTree->childNodeNum; i++)
+		if(AddBackupByFileTree(addTreePath, backupTree, addTree->childNodes[i], hashMode) == -1)
+			return -1;
 	return 0;
 }

@@ -11,6 +11,56 @@
 #include "ssu_backup_usage.h"
 #include "ssu_backup_util.h"
 
+char* GetParentPath(const char* path, char* buf)
+{
+	size_t endLen;
+
+	strcpy(buf, path);
+	endLen = strlen(path);
+	if(path[endLen] == '/'){
+		endLen--;
+	}
+
+	while((endLen > 0) && path[endLen] != '/')
+		endLen--;
+	buf[endLen] = '\0';
+
+	return buf;
+}
+
+int CopyFile(const char* destPath, const char* sourcePath)
+{
+	int srcFd, destFd;
+	size_t readLen;
+	unsigned char* fileBuf[SSU_BACKUP_FILE_BUF_SZ];
+
+	if((srcFd = open(sourcePath, O_RDONLY)) == -1)
+		return -1;
+	if((destFd = open(destPath, O_WRONLY|O_CREAT|O_TRUNC, SSU_BACKUP_MKFILE_AUTH)) == -1)
+		return -1;
+
+	while((readLen = read(srcFd, fileBuf, SSU_BACKUP_FILE_BUF_SZ)) > 0){
+		if(write(destFd, fileBuf, readLen) == -1)
+			return -1;
+	}
+	if(readLen == -1)
+		return -1;
+
+	close(srcFd);
+	close(destFd);
+	return 0;
+}
+
+int CreateFileByFileTree(const char* addPath, const struct filetree* addTree, int isAddTime);
+{
+	if(addTree->childNodeNum == 0){
+		return
+	}
+
+	//Todo: 폴더 만들고 재귀 호출
+	return
+}
+
 struct filetree* FindFileTreeInPath(const char* path, struct filetree* ftree, int isBackup)
 {
 	size_t nextStartPathLen;
@@ -206,7 +256,7 @@ char* GetFileNameByPath(char* path)
 	return fileName;
 }
 
-int CompareHash(const struct filetree* tree1, const struct filetree* tree2, int hashMode)
+int CompareHash(const char* hash1, const char* hash2, int hashMode)
 {
 	size_t cmpLen = 0;
 	if(hashMode == SSU_BACKUP_HASH_MD5){
@@ -215,7 +265,7 @@ int CompareHash(const struct filetree* tree1, const struct filetree* tree2, int 
 		cmpLen = SHA_DIGEST_LENGTH;
 	} else
 		return 0;
-	return !strncmp(tree1->hash, tree2->hash, cmpLen);
+	return !strncmp(hash1, hash2, cmpLen);
 }
 
 int GetMd5HashByPath(const char* path, char* hashBuf)

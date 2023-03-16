@@ -6,6 +6,18 @@
 
 #include "ssu_backup_filetree.h"
 
+//Comment: 부모 경로를 리턴합니다.
+char* GetParentPath(const char* path, char* buf);
+
+//Todo: 버퍼에 시간 형식 해서 집어 넣어주는 함수 만들기
+
+//Comment: destPath의 이름으로 sourcePath의 파일을 복사합니다.
+int CopyFile(const char* destPath, const char* sourcePath);
+
+//Comment: addPath의 경로 아래에 addTree의 하위 파일들을 모두 생성합니다.
+//	isAddTime이 0이 아닐경우 디렉토리가 아닌 파일 뒤에 백업시간이 추가됩니다.
+int CreateFileByFileTree(const char* addPath, const struct filetree* addTree, int isAddTime);
+
 //Comment: 알파벳 순으로 정렬된 파일트리에서 해당 경로의 이름으로 가장 처음으로 경로가 일치한 파일트리를 리턴합니다.
 //	발견하지 못했다면 NULL을 리턴합니다.
 // isBackup이 0이 아니면 ftree를 백업파일 트리로 간주하고 검색합니다.
@@ -40,9 +52,9 @@ struct filetree* FileToFileTree(const char* path, int hashMode);
 //	path의 문자열의 변경이 있습니다.
 char* GetFileNameByPath(char* path);
 
-//Comment: 해쉬모드를 기준으로 두 트리의 해시값을 비교합니다.
-//	일치하지 않으면 0 일치하면 0이아닌 값을 리턴합니다.
-int CompareHash(const struct filetree* tree1, const struct filetree* tree2, int hashMode);
+//Comment: 해쉬모드를 기준으로 두 해시값을 비교합니다.
+//	일치하지 않으면 0 일치하면 1을 리턴합니다.
+int CompareHash(const char* hash1, const char* hash2, int hashMode);
 
 //성공시 0, 실패시 -1리턴
 //	hashBuf에 해시값을 채워서 줍니다.
