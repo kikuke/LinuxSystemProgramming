@@ -67,15 +67,26 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
-int AddBackupByFileTree(const char* addPath, const struct filetree* backupTree, const struct filetree* addTree)
+int AddBackupByFileTree(const char* addPath, const struct filetree* backupTree, const struct filetree* addTree, int hashMode)
 {
+	struct filetree* matchedTree;
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 
-	if(addTree->childNodeNum == 0){
+	strcpy(pathBuf, addPath);
+	ConcatPath(pathBuf, addTree->file);
+	matchedTree = FindFileTreeInPath(pathBuf, backupTree, 1);
+	//Comment: 일치하는 백업파일이 없는 경우
+	if(matchedTree == NULL){
+		//Todo: 해당 하위 경로 파일 모두 생성하는 함수
+	} else {
+		if(addTree->childNodeNum == 0){
+		//Todo: 부모로 올라가 해당 트리 자식 검색하며 해시값 같은지 비교
 		//Todo: 파일 이름 비교함수, 파일경로 찾기 함수
 		//	재귀 할땐 addTree의 경우 찾은값으로 업데이트해서 넣어주기
-		//	BFS로
-	} else {
+		} else {
+			//Todo: 재귀 호출
+		}
 	}
+
 	return 0;
 }

@@ -23,7 +23,7 @@ struct filetree* FindFileTreeInPath(const char* path, struct filetree* ftree, in
 		nextStartPathLen++;
 	}
 
-	ftreeNameLen = strlen(ftree->name);
+	ftreeNameLen = strlen(ftree->file);
 	if(isBackup && ftree->childNodeNum == 0){
 		ftreeNameLen -= SSU_BACKUP_FILE_META_LEN;
 	}
@@ -46,7 +46,7 @@ struct filetree* FindFileTreeInPath(const char* path, struct filetree* ftree, in
 	}
 
 	for(int i=0; i<ftree->childNodeNum; i++){
-		retTree = FindFileTreeInPath(&path[nextStartPathLen], ftree->childNodes[i]);
+		retTree = FindFileTreeInPath(&path[nextStartPathLen], ftree->childNodes[i], isBackup);
 		if(retTree != NULL)
 			return retTree;
 	}
@@ -204,6 +204,18 @@ char* GetFileNameByPath(char* path)
 	}
 
 	return fileName;
+}
+
+int CompareHash(const struct filetree* tree1, const struct filetree* tree2, int hashMode)
+{
+	size_t cmpLen = 0;
+	if(hashMode == SSU_BACKUP_HASH_MD5){
+		cmpLen = MD5_DIGEST_LENGTH;
+	} else if(hashMode == SSU_BACKUP_HASH_SHA1){
+		cmpLen = SHA_DIGEST_LENGTH;
+	} else
+		return 0;
+	return !strncmp(tree1->hash, tree2->hash, cmpLen);
 }
 
 int GetMd5HashByPath(const char* path, char* hashBuf)
