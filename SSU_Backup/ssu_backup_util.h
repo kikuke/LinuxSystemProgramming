@@ -6,6 +6,13 @@
 
 #include "ssu_backup_filetree.h"
 
+//Comment: 알파벳 순으로 정렬된 파일트리에서 해당 경로의 이름으로 가장 처음으로 경로가 일치한 파일트리를 리턴합니다.
+//	발견하지 못했다면 NULL을 리턴합니다.
+// isBackup이 0이 아니면 ftree를 백업파일 트리로 간주하고 검색합니다.
+struct filetree* FindFileTreeInPath(const char* path, struct filetree* ftree, int isBackup);
+
+//Comment: 해당 파일트리의 시간을 제외한 실제이름을 리턴합니다.
+//	반드시 백업경로의 트리어야 합니다.
 char* GetRealNameByFileTree(char* buf, const struct filetree* ftree);
 
 //Comment: 해당 버퍼 뒤로 파일트리의 중간을 부모노드로 거슬로 올라가며 파일의 경로를 찾아줍니다.
@@ -15,6 +22,7 @@ char* GetPathByFileTree(char* buf, struct filetree* ftree, int isBackup);
 
 //Comment: 해당 경로와 하위의 모든 파일들을 filetree화 합니다.
 //	실패했거나 디렉토리일 경우, 하위 파일이 없을 때 NULL을 리턴.
+//	트리들은 알파벳 오름차순으로 정렬됩니다.
 struct filetree* PathToFileTree(const char* path, int hashMode);
 
 //Comment: 디렉토리일때 PathToFileTree에서 내부적으로 사용하는 함수.
@@ -71,7 +79,5 @@ int SetHashMode(int mode);
 //Comment: 인자로 해쉬 매크로의 값을 리턴합니다.
 //	실패시 -1을 리턴합니다.
 int GetHashMode();
-
-//Todo: 파일리스트 가져오는 함수 만들기
 
 #endif

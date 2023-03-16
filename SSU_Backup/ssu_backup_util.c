@@ -11,6 +11,48 @@
 #include "ssu_backup_usage.h"
 #include "ssu_backup_util.h"
 
+struct filetree* FindFileTreeInPath(const char* path, struct filetree* ftree, int isBackup)
+{
+	size_t nextStartPathLen;
+	size_t ftreeNameLen;
+	size_t pathFileLen;
+	struct filetree* retTree = NULL;
+
+	nextStartPathLen = 0;
+	if(path[0] == '/'){
+		nextStartPathLen++;
+	}
+
+	ftreeNameLen = strlen(ftree->name);
+	if(isBackup && ftree->childNodeNum == 0){
+		ftreeNameLen -= SSU_BACKUP_FILE_META_LEN;
+	}
+	pathFileLen = 0;
+	while((path[nextStartPathLen] != '/') && (path[nextStartPathLen] != '\0')){
+		if(ftree->file[pathFileLen] != path[nextStartPathLen]){
+			return NULL;
+		}
+		nextStartPathLen++;
+		pathFileLen++;
+	}
+	if(pathFileLen != ftreeNameLen){
+		return NULL;
+	}
+	if(ftree->childNodeNum == 0){
+		if(path[nextStartPathLen] != '\0')
+			return NULL;
+
+		return ftree;
+	}
+
+	for(int i=0; i<ftree->childNodeNum; i++){
+		retTree = FindFileTreeInPath(&path[nextStartPathLen], ftree->childNodes[i]);
+		if(retTree != NULL)
+			return retTree;
+	}
+	return NULL;
+}
+
 char* GetRealNameByFileTree(char* buf, const struct filetree* ftree)
 {
 	size_t fileLen;
@@ -20,7 +62,7 @@ char* GetRealNameByFileTree(char* buf, const struct filetree* ftree)
 		return buf;
 	}
 
-	fileLen = strlen(ftree->file) - (1 + 12);
+	fileLen = strlen(ftree->file) - SSU_BACKUP_FILE_META_LEN;
 	strncpy(buf, ftree->file, fileLen);
 
 	return buf;
@@ -34,29 +76,16 @@ char* GetPathByFileTree(char* buf, struct filetree* ftree, int isBackup)
 
 	if(isBackup){
 		GetRealNameByFileTree(buf, ptree);
-
-		while(ptree->parentNode != NULL){
-			parentLen = strlen(ptree->parentNode->file);
-			if(ptree->parentNode->childNodeNum == 0){
-				parentLen -= (1 + 12);
-			}
-			strcpy(pathBuf, buf);
-			strncpy(buf, ptree->parentNode->file, parentLen);
-			buf[parentLen] = '/';
-			strcpy(buf + parentLen + 1, pathBuf);
-			ptree = ptree->parentNode;
-		}
 	} else {
 		strcpy(buf, ptree->file);
-
-		while(ptree->parentNode != NULL){
-			parentLen = strlen(ptree->parentNode->file);
-			strcpy(pathBuf, buf);
-			strcpy(buf, ptree->parentNode->file);
-			buf[parentLen] = '/';
-			strcpy(buf + parentLen + 1, pathBuf);
-			ptree = ptree->parentNode;
-		}
+	}
+	while(ptree->parentNode != NULL){
+		parentLen = strlen(ptree->parentNode->file);
+		strcpy(pathBuf, buf);
+		strcpy(buf, ptree->parentNode->file);
+		buf[parentLen] = '/';
+		strcpy(buf + parentLen + 1, pathBuf);
+		ptree = ptree->parentNode;
 	}
 
 	return buf;

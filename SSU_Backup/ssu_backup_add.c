@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 	if((checkType == SSU_BACKUP_TYPE_DIR) && checkType != addType){
-		fputs("Use -d option\n", stderr);
+		fprintf(stderr, "<%s> is a directory file\n", addPath);
 		exit(1);
 	}
 
@@ -73,7 +73,8 @@ int AddBackupByFileTree(const char* addPath, const struct filetree* backupTree, 
 
 	if(addTree->childNodeNum == 0){
 		//Todo: 파일 이름 비교함수, 파일경로 찾기 함수
-		//	재귀 할땐 찾은값으로 업데이트해서 넣어주기
+		//	재귀 할땐 addTree의 경우 찾은값으로 업데이트해서 넣어주기
+		//	BFS로
 	} else {
 	}
 	return 0;
