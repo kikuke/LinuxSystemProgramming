@@ -38,7 +38,7 @@ int main(int argc, char* argv[])
 	}
 
 	//Comment: add 경로 값에 따른 에러 핸들링을 합니다.
-	if(GetRealpathAndHandle(argv[1], addPath, USAGEIDX_ADD) == NULL){
+	if(GetRealpathAndHandle(argv[0], addPath, USAGEIDX_ADD) == NULL){
 		exit(1);
 	}
 
