@@ -30,6 +30,54 @@ char* GetParentPath(const char* path, char* buf)
 	return buf;
 }
 
+int MakeDirPath(const char* path)
+{
+	int fileType;
+	char* dirPtr;
+	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+
+	strcpy(pathBuf, path);
+	pathBuf[SSU_BACKUP_MAX_PATH_SZ-1] = '\0';
+	dirPtr = pathBuf; 
+
+	if(*dirPtr == '/')
+		dirPtr++;
+	while(*dirPtr != '\0'){
+		if(*dirPtr == '/'){
+			*dirPtr = '\0';
+			if((fileType = CheckFileTypeByPath(pathBuf)) != SSU_BACKUP_TYPE_DIR){
+				if(mkdir(pathBuf, SSU_BACKUP_MKDIR_AUTH) == -1)
+					return -1;
+			}
+			*dirPtr = '/';
+		}
+		dirPtr++;
+	}
+	if((fileType = CheckFileTypeByPath(pathBuf)) != SSU_BACKUP_TYPE_DIR){
+		if(mkdir(pathBuf, SSU_BACKUP_MKDIR_AUTH) == -1)
+			return -1;
+	}
+
+	return 0;
+}
+
+char* ExtractHomePath(char* path)
+{
+	char* homeDir = getenv("HOME");
+	char* homePtr = strstr(path, homeDir);
+	size_t homeLen;
+	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+
+	if(homePtr == NULL || homePtr != path){
+		return path;
+	}
+	homeLen = strlen(homeDir);
+	strcpy(pathBuf, path + homeLen + 1);
+	strcpy(path, pathBuf);
+
+	return path;
+}
+
 int GetNowTime(char* buf)
 {
 	struct timeval now;
@@ -74,15 +122,9 @@ int CreateFileByFileTree(const char* addPath, const struct filetree* addTree, in
 	char srcFilePath[SSU_BACKUP_MAX_PATH_SZ];
 	char destFilePath[SSU_BACKUP_MAX_PATH_SZ];
 	size_t srcPathLen = 0;
-	size_t destPathLen = 0;
 
-	if(!isRecover){
-		GetBackupPath(destFilePath);
-		destPathLen = strlen(destFilePath);
-	}
-	strcpy(destFilePath + destPathLen, addPath);
+	strcpy(destFilePath, addPath);
 	ConcatPath(destFilePath, addTree->file);
-
 	if(addTree->childNodeNum == 0){
 		if(isRecover){
 			GetBackupPath(srcFilePath);
@@ -238,7 +280,6 @@ struct filetree* _PathToFileTreeDir(const char* path, int hashMode)
 		return NULL;
 	}
 	ptree = FileToFileTree(path, hashMode);
-
 	realChildCnt = 0;
 	for(int i=0; i<childCount; i++){
 		strcpy(pathBuf, path);
@@ -267,7 +308,6 @@ int filterParentInScanDir(const struct dirent* target)
 
 struct filetree* FileToFileTree(const char* path, int hashMode)
 {
-	struct filetree* ftree = NULL;
 	char* fileName = NULL;
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 	char hashBuf[SSU_BACKUP_HASH_MAX_LEN];
@@ -297,9 +337,7 @@ struct filetree* FileToFileTree(const char* path, int hashMode)
 		return NULL;
 	}
 
-	ftree = CreateFileTree(fileName, hashBuf, hash_sz);
-
-	return ftree;
+	return CreateFileTree(fileName, hashBuf, hash_sz);
 }
 
 char* GetFileNameByPath(char* path)
@@ -333,7 +371,7 @@ int GetMd5HashByPath(const char* path, char* hashBuf)
 	MD5_CTX c;
 	int fd;
 	unsigned char buf[SSU_BACKUP_HASH_BUF_SZ];
-	size_t readLen;
+	int readLen;
 
 	MD5_Init(&c);
 	if((fd = open(path, O_RDONLY)) == -1){
@@ -352,7 +390,7 @@ int GetSha1HashByPath(const char* path, char* hashBuf)
 	SHA_CTX c;
 	int fd;
 	unsigned char buf[SSU_BACKUP_HASH_BUF_SZ];
-	size_t readLen;
+	int readLen;
 
 	SHA1_Init(&c);
 	if((fd = open(path, O_RDONLY)) == -1){

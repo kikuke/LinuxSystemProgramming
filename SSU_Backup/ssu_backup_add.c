@@ -24,6 +24,7 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
+	strcpy(pathBuf, argv[1]);
 	while((opt = getopt(argc, argv, "d")) != -1){
 		switch(opt){
 			case 'd':
@@ -38,7 +39,7 @@ int main(int argc, char* argv[])
 	}
 
 	//Comment: add 경로 값에 따른 에러 핸들링을 합니다.
-	if(GetRealpathAndHandle(argv[0], addPath, USAGEIDX_ADD) == NULL){
+	if(GetRealpathAndHandle(pathBuf, addPath, USAGEIDX_ADD) == NULL){
 		exit(1);
 	}
 
@@ -65,7 +66,13 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	if(AddBackupByFileTree(GetParentPath(addPath, pathBuf), backupTree, addTree, hashMode) == -1){
+	GetParentPath(addPath, pathBuf);
+	ConcatPath(GetBackupPath(addPath), ExtractHomePath(pathBuf));
+	if(MakeDirPath(addPath) == -1){
+		perror("MakeDirPath()");
+		exit(1);
+	}
+	if(AddBackupByFileTree(addPath, backupTree, addTree, hashMode) == -1){
 		perror("AddBackupByFileTree()");
 		exit(1);
 	}
@@ -80,7 +87,14 @@ int AddBackupByFileTree(const char* addPath, struct filetree* backupTree, struct
 
 	strcpy(addTreePath, addPath);
 	ConcatPath(addTreePath, addTree->file);
+
+	//test
+	puts(addTreePath);
 	matchedTree = FindFileTreeInPath(addTreePath, backupTree, 1);
+
+	//test
+	puts("end");
+
 	//Comment: 일치하는 백업파일이 없는 경우 해당 하위 파일 모두 생성
 	if(matchedTree == NULL)
 		return CreateFileByFileTree(addPath, addTree, 0);

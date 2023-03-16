@@ -9,6 +9,14 @@
 //Comment: 부모 경로를 리턴합니다.
 char* GetParentPath(const char* path, char* buf);
 
+//Comment: 해당 경로가 없다면 path로의 디렉토리를 재귀적으로 만들어줍니다.
+//	성공시 0 실패시 -1을 리턴합니다.
+int MakeDirPath(const char* path);
+
+//Comment: Home경로를 지웁니다.
+//	지우고 난 뒤의 경로를 리턴합니다.
+char* ExtractHomePath(char* path);
+
 //Comment: 현재시간을 buf에 _YYMMDDHHMMSS 형식으로 넣어줍니다.
 //	성공시 0 실패시 -1을 리턴합니다.
 int GetNowTime(char* buf);
