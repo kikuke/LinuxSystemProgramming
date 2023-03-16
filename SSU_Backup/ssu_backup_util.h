@@ -19,7 +19,7 @@ int CopyFile(const char* destPath, const char* sourcePath);
 
 //Comment: addPath의 경로 아래에 addTree의 하위 파일들을 모두 생성합니다.
 //	isRecover가 0일 경우 백업 모드로 동작하며 디렉토리가 아닌 파일 뒤에 백업시간이 추가됩니다.
-//	isRecover가 1일 경우 Recover모드로 동작합니다.
+//	isRecover가 0이 아닐 경우 Recover모드로 동작합니다.
 int CreateFileByFileTree(const char* addPath, const struct filetree* addTree, int isRecover);
 
 //Comment: 알파벳 순으로 정렬된 파일트리에서 해당 경로의 이름으로 가장 처음으로 경로가 일치한 파일트리를 리턴합니다.

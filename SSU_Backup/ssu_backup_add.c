@@ -81,10 +81,8 @@ int AddBackupByFileTree(const char* addPath, const struct filetree* backupTree, 
 	ConcatPath(addTreePath, addTree->file);
 	matchedTree = FindFileTreeInPath(addTreePath, backupTree, 1);
 	//Comment: 일치하는 백업파일이 없는 경우 해당 하위 파일 모두 생성
-	if(matchedTree == NULL){
-		//Todo: 해당 하위 경로 파일 모두 생성하는 함수
-		return ;
-	}
+	if(matchedTree == NULL)
+		return CreateFileByFileTree(addPath, addTree, 0);
 
 	//Comment: 해시값이 같은 파일이 있는지 검사후 없으면 생성
 	if(addTree->childNodeNum == 0){
@@ -96,8 +94,7 @@ int AddBackupByFileTree(const char* addPath, const struct filetree* backupTree, 
 			}
 		}
 
-		//Todo: 생성함수
-		return ;
+		return CreateFileByFileTree(addPath, addTree, 0);
 	}
 
 	//Comment: 폴더의 경우 재귀 호출
