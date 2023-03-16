@@ -11,6 +11,57 @@
 #include "ssu_backup_usage.h"
 #include "ssu_backup_util.h"
 
+char* GetRealNameByFileTree(char* buf, const struct filetree* ftree)
+{
+	size_t fileLen;
+
+	if(ftree->childNodeNum > 0){
+		strcpy(buf, ftree->file);
+		return buf;
+	}
+
+	fileLen = strlen(ftree->file) - (1 + 12);
+	strncpy(buf, ftree->file, fileLen);
+
+	return buf;
+}
+
+char* GetPathByFileTree(char* buf, struct filetree* ftree, int isBackup)
+{
+	struct filetree* ptree = ftree;
+	size_t parentLen;
+	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+
+	if(isBackup){
+		GetRealNameByFileTree(buf, ptree);
+
+		while(ptree->parentNode != NULL){
+			parentLen = strlen(ptree->parentNode->file);
+			if(ptree->parentNode->childNodeNum == 0){
+				parentLen -= (1 + 12);
+			}
+			strcpy(pathBuf, buf);
+			strncpy(buf, ptree->parentNode->file, parentLen);
+			buf[parentLen] = '/';
+			strcpy(buf + parentLen + 1, pathBuf);
+			ptree = ptree->parentNode;
+		}
+	} else {
+		strcpy(buf, ptree->file);
+
+		while(ptree->parentNode != NULL){
+			parentLen = strlen(ptree->parentNode->file);
+			strcpy(pathBuf, buf);
+			strcpy(buf, ptree->parentNode->file);
+			buf[parentLen] = '/';
+			strcpy(buf + parentLen + 1, pathBuf);
+			ptree = ptree->parentNode;
+		}
+	}
+
+	return buf;
+}
+
 struct filetree* PathToFileTree(const char* path, int hashMode)
 {
 	struct filetree* ftree = NULL;

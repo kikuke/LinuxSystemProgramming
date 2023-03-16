@@ -11,9 +11,12 @@ int main(int argc, char* argv[])
 {
 	int hashMode = -1;
 	int addType = SSU_BACKUP_TYPE_REG;
+	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 	char addPath[SSU_BACKUP_MAX_PATH_SZ];
 	char opt;
 	int checkType;
+	struct filetree* backupTree;
+	struct filetree* addTree;
 
 	if(argc < 2 || argc > 3){
 		Usage(USAGEIDX_ADD);
@@ -52,15 +55,26 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
+	if((backupTree = PathToFileTree(GetBackupPath(pathBuf), hashMode)) == NULL){
+		perror("PathToFileTree()");
+		exit(1);
+	}
+	if((addTree = PathToFileTree(addPath, hashMode)) == NULL){
+		perror("PathToFileTree()");
+		exit(1);
+	}
+
 	return 0;
 }
 
-int AddBackupPath(const char* path, int isDir, int hashMode)
+int AddBackupByFileTree(const char* addPath, const struct filetree* backupTree, const struct filetree* addTree)
 {
-	if(!isDir){
-		
-		return 0;
-	}
+	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 
+	if(addTree->childNodeNum == 0){
+		//Todo: 파일 이름 비교함수, 파일경로 찾기 함수
+		//	재귀 할땐 찾은값으로 업데이트해서 넣어주기
+	} else {
+	}
 	return 0;
 }

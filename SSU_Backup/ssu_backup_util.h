@@ -6,6 +6,13 @@
 
 #include "ssu_backup_filetree.h"
 
+char* GetRealNameByFileTree(char* buf, const struct filetree* ftree);
+
+//Comment: 해당 버퍼 뒤로 파일트리의 중간을 부모노드로 거슬로 올라가며 파일의 경로를 찾아줍니다.
+//	이때 넣는 버퍼는 파일트리 이전의 경로값을 넣어진 상태여야 정상 작동합니다.
+//	isBackup은 0이 기본값인데, 0이 아닌 값으로 설정 시 백업폴더의 파일들로 간주하여 파일의 저장 시간 정보를 지운 패스가 반영됩니다. 
+char* GetPathByFileTree(char* buf, struct filetree* ftree, int isBackup);
+
 //Comment: 해당 경로와 하위의 모든 파일들을 filetree화 합니다.
 //	실패했거나 디렉토리일 경우, 하위 파일이 없을 때 NULL을 리턴.
 struct filetree* PathToFileTree(const char* path, int hashMode);
