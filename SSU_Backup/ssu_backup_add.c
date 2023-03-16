@@ -46,7 +46,7 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 	if((checkType == SSU_BACKUP_TYPE_DIR) && checkType != addType){
-		fprintf(stderr, "<%s> is a directory file\n", addPath);
+		fprintf(stderr, "\"%s\" is a directory file\n", addPath);
 		exit(1);
 	}
 
@@ -91,7 +91,7 @@ int AddBackupByFileTree(const char* addPath, const struct filetree* backupTree, 
 		struct filetree* pTree = matchedTree->parentNode;
 		for(int i=0; i < pTree->childNodeNum; i++){
 			if(CompareHash(addTree->hash, pTree->childNodes[i]->hash, hashMode)){
-				fprintf(stdout, "<%s> is already backuped\n", addTreePath);
+				fprintf(stdout, "\"%s\" is already backuped\n", addTreePath);
 				return 0;
 			}
 		}

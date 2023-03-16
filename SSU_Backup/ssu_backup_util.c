@@ -69,14 +69,56 @@ int CopyFile(const char* destPath, const char* sourcePath)
 	return 0;
 }
 
-int CreateFileByFileTree(const char* addPath, const struct filetree* addTree, int isAddTime);
+int CreateFileByFileTree(const char* addPath, const struct filetree* addTree, int isRecover);
 {
+	char srcFilePath[SSU_BACKUP_MAX_PATH_SZ];
+	char destFilePath[SSU_BACKUP_MAX_PATH_SZ];
+	size_t srcPathLen = 0;
+	size_t destPathLen = 0;
+
+	if(!isRecover){
+		GetBackupPath(destFilePath);
+		destPathLen = strlen(destFilePath);
+	}
+	strcpy(destFilePath + destPathLen, addPath);
+	ConcatPath(destFilePath, addTree->file);
+
 	if(addTree->childNodeNum == 0){
-		return
+		if(isRecover){
+			GetBackupPath(srcFilePath);
+			srcPathLen = strlen(srcFilePath);
+		}
+		strcpy(srcFilePath + srcPathLen, addPath);
+		ConcatPath(srcFilePath, addTree->file);
+
+		if(isRecover){
+			destFilePath[strlen(destFilePath) - SSU_BACKUP_FILE_META_LEN] = '\0';
+			if(CopyFile(destFilePath, srcFilePath) == -1)
+				return -1;
+
+			fprintf(stdout, "\"%s\" backup recover to \"%s\"\n", srcFilePath, destFilePath);
+			return 0;
+		}
+
+		if(GetNowTime(destFilePath + strlen(destFilePath)) == -1)
+			return -1;
+		if(CopyFile(destFilePath, srcFilePath) == -1)
+			return -1;
+
+		fprintf(stdout, "\"%s\" backuped\n", destFilePath);
+		return 0;
 	}
 
-	//Todo: 폴더 만들고 재귀 호출
-	return
+	//Comment: 폴더 만들고 재귀 호출
+	if(mkdir(destFilePath, SSU_BACKUP_MKDIR_AUTH) == -1){
+		return -1;
+	}
+	for(int i=0; i < addTree->childNodeNum; i++){
+		if(CreateFileByFileTree(destFilePath, addTree->childNodes[i]) == -1)
+			return -1;
+	}
+
+	return 0;
 }
 
 struct filetree* FindFileTreeInPath(const char* path, struct filetree* ftree, int isBackup)
