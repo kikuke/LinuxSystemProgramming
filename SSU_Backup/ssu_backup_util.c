@@ -4,6 +4,8 @@
 #include <fcntl.h>
 #include <string.h>
 #include <errno.h>
+#include <time.h>
+#include <sys/time.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
 
@@ -26,6 +28,22 @@ char* GetParentPath(const char* path, char* buf)
 	buf[endLen] = '\0';
 
 	return buf;
+}
+
+int GetNowTime(char* buf)
+{
+	struct timeval now;
+	struct tm* tm_now;
+
+	if(gettimeofday(&now, NULL) == -1)
+		return -1;
+
+	tm_now = localtime(&now.tv_sec);
+	sprintf(buf, "_%02d%02d%02d%02d%02d%02d",
+			tm_now->tm_year+1900, tm_now->tm_mon+1, tm_now->tm_mday,
+			tm_now->tm_hour, tm_now->tm_min, tm_now->tm_sec);
+	
+	return 0;
 }
 
 int CopyFile(const char* destPath, const char* sourcePath)

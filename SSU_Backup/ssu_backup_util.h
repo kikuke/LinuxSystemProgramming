@@ -9,9 +9,12 @@
 //Comment: 부모 경로를 리턴합니다.
 char* GetParentPath(const char* path, char* buf);
 
-//Todo: 버퍼에 시간 형식 해서 집어 넣어주는 함수 만들기
+//Comment: 현재시간을 buf에 _YYMMDDHHMMSS 형식으로 넣어줍니다.
+//	성공시 0 실패시 -1을 리턴합니다.
+int GetNowTime(char* buf);
 
 //Comment: destPath의 이름으로 sourcePath의 파일을 복사합니다.
+//	성공시 0 실패시 -1을 리턴합니다.
 int CopyFile(const char* destPath, const char* sourcePath);
 
 //Comment: addPath의 경로 아래에 addTree의 하위 파일들을 모두 생성합니다.
