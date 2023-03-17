@@ -152,9 +152,8 @@ int CreateFileByFileTree(const char* addPath, const struct filetree* addTree, in
 	}
 
 	//Comment: 폴더 만들고 재귀 호출
-	if(mkdir(destFilePath, SSU_BACKUP_MKDIR_AUTH) == -1){
+	if(MakeDirPath(addPath) == -1)
 		return -1;
-	}
 	for(int i=0; i < addTree->childNodeNum; i++){
 		if(CreateFileByFileTree(destFilePath, addTree->childNodes[i], isRecover) == -1)
 			return -1;
