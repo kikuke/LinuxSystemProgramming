@@ -87,14 +87,8 @@ int AddBackupByFileTree(const char* addPath, struct filetree* backupTree, struct
 
 	strcpy(addTreePath, addPath);
 	ConcatPath(addTreePath, addTree->file);
-
-	//test
-	puts(addTreePath);
+	ExtractHomePath(addTreePath);
 	matchedTree = FindFileTreeInPath(addTreePath, backupTree, 1);
-
-	//test
-	puts("end");
-
 	//Comment: 일치하는 백업파일이 없는 경우 해당 하위 파일 모두 생성
 	if(matchedTree == NULL)
 		return CreateFileByFileTree(addPath, addTree, 0);

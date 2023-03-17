@@ -1,6 +1,6 @@
 UTILITY = ssu_backup_filetree.o ssu_backup_usage.o ssu_backup_util.o
 CRYPTO_MACRO = -lssl -lcrypto -DOPENSSL_API_COMPAT=10101
-CC = gcc
+CC = gcc -g
 
 init: create_backup
 
