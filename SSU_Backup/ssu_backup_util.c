@@ -30,6 +30,24 @@ char* GetParentPath(const char* path, char* buf)
 	return buf;
 }
 
+char* BackupPathToSourcePath(char* path)
+{
+	char* matchPtr;
+	size_t sLen;
+	char rootPathName[SSU_BACKUP_MAX_FILENAME];
+	char tempPath[SSU_BACKUP_MAX_PATH_SZ];
+
+	strcpy(rootPathName, "/");
+	strcat(rootPathName, SSU_BACKUP_ROOT_DIR_NAME);
+	strcat(rootPathName, "/");
+	if((matchPtr = strstr(path, rootPathName)) == NULL)
+		return path;
+
+	strcpy(tempPath, matchPtr + strlen(rootPathName) - 1);
+	strcpy(matchPtr, tempPath);
+	return path;
+}
+
 int MakeDirPath(const char* path)
 {
 	int fileType;
@@ -128,10 +146,14 @@ int CreateFileByFileTree(const char* addPath, const struct filetree* addTree, in
 	if(addTree->childNodeNum == 0){
 		if(isRecover){
 			GetBackupPath(srcFilePath);
+			//Todo: 이거 틀릴수도 있음. 아마 중복되서 나올거 같은 느낌
 			srcPathLen = strlen(srcFilePath);
 		}
 		strcpy(srcFilePath + srcPathLen, addPath);
 		ConcatPath(srcFilePath, addTree->file);
+		if(!isRecover){
+			BackupPathToSourcePath(srcFilePath);
+		}
 
 		if(isRecover){
 			destFilePath[strlen(destFilePath) - SSU_BACKUP_FILE_META_LEN] = '\0';
@@ -152,7 +174,7 @@ int CreateFileByFileTree(const char* addPath, const struct filetree* addTree, in
 	}
 
 	//Comment: 폴더 만들고 재귀 호출
-	if(MakeDirPath(addPath) == -1)
+	if(MakeDirPath(destFilePath) == -1)
 		return -1;
 	for(int i=0; i < addTree->childNodeNum; i++){
 		if(CreateFileByFileTree(destFilePath, addTree->childNodes[i], isRecover) == -1)

@@ -107,9 +107,8 @@ int execute_cmd(char* cmd)
 	
 	fork_exec_cmd(p_name, (char* const*)(cmdArr));
 
-	for(int i=0; i<cmdArrCnt; i++){
-		free(cmdArr[i]);
-	}
+	//Comment: 동적할당은 투포인터만 해서 개별 포인터에 대한 해제는 하지 않았음.
+	//	개별 포인터는 지역변수 string에 대한 포인터만 들고있음.
 	free(cmdArr);
 	return 0;
 }

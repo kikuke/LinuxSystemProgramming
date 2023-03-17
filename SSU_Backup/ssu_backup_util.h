@@ -13,6 +13,11 @@ char* GetParentPath(const char* path, char* buf);
 //	성공시 0 실패시 -1을 리턴합니다.
 int MakeDirPath(const char* path);
 
+//Comment: path가 백업 경로라면 path를 원본이 있는 경로로 변환해줍니다.
+//	경로사이의 /backup/이 있다면 이를 /로 치환하는 역할을 합니다.
+//	바뀐 path를 리턴합니다.
+char* BackupPathToSourcePath(char* path);
+
 //Comment: Home경로를 지웁니다.
 //	지우고 난 뒤의 경로를 리턴합니다.
 char* ExtractHomePath(char* path);
@@ -59,7 +64,7 @@ int filterParentInScanDir(const struct dirent* target);
 // 실패시 NULL을 리턴합니다.
 struct filetree* FileToFileTree(const char* path, int hashMode);
 
-//Comment: 경로의 마지막 파일 이름을 반환합니다.
+//Comment: 경로의 마지막 파일 이름의 위치를 반환합니다.
 //	실패시 NULL을 리턴합니다.
 //	path의 문자열의 변경이 있습니다.
 char* GetFileNameByPath(char* path);
