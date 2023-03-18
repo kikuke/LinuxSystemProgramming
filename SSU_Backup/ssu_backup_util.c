@@ -135,38 +135,28 @@ int CopyFile(const char* destPath, const char* sourcePath)
 	return 0;
 }
 
-int CreateFileByFileTree(const char* addPath, const struct filetree* addTree, int isRecover)
+int CreateFileByFileTree(const char* destPath, const char* addPath, const struct filetree* addTree, int isRecover)
 {
-	char srcFilePath[SSU_BACKUP_MAX_PATH_SZ];
+	char addFilePath[SSU_BACKUP_MAX_PATH_SZ];
 	char destFilePath[SSU_BACKUP_MAX_PATH_SZ];
-	size_t srcPathLen = 0;
 
-	strcpy(destFilePath, addPath);
+	strcpy(destFilePath, destPath);
 	ConcatPath(destFilePath, addTree->file);
+	strcpy(addFilePath, addPath);
+	ConcatPath(addFilePath, addTree->file);
 	if(addTree->childNodeNum == 0){
 		if(isRecover){
-			GetBackupPath(srcFilePath);
-			//Todo: 이거 틀릴수도 있음. 아마 중복되서 나올거 같은 느낌
-			srcPathLen = strlen(srcFilePath);
-		}
-		strcpy(srcFilePath + srcPathLen, addPath);
-		ConcatPath(srcFilePath, addTree->file);
-		if(!isRecover){
-			BackupPathToSourcePath(srcFilePath);
-		}
-
-		if(isRecover){
 			destFilePath[strlen(destFilePath) - SSU_BACKUP_FILE_META_LEN] = '\0';
-			if(CopyFile(destFilePath, srcFilePath) == -1)
+			if(CopyFile(destFilePath, addFilePath) == -1)
 				return -1;
 
-			fprintf(stdout, "\"%s\" backup recover to \"%s\"\n", srcFilePath, destFilePath);
+			fprintf(stdout, "\"%s\" backup recover to \"%s\"\n", addFilePath, destFilePath);
 			return 0;
 		}
 
 		if(GetNowTime(destFilePath + strlen(destFilePath)) == -1)
 			return -1;
-		if(CopyFile(destFilePath, srcFilePath) == -1)
+		if(CopyFile(destFilePath, addFilePath) == -1)
 			return -1;
 
 		fprintf(stdout, "\"%s\" backuped\n", destFilePath);
@@ -177,7 +167,7 @@ int CreateFileByFileTree(const char* addPath, const struct filetree* addTree, in
 	if(MakeDirPath(destFilePath) == -1)
 		return -1;
 	for(int i=0; i < addTree->childNodeNum; i++){
-		if(CreateFileByFileTree(destFilePath, addTree->childNodes[i], isRecover) == -1)
+		if(CreateFileByFileTree(destFilePath, addFilePath, addTree->childNodes[i], isRecover) == -1)
 			return -1;
 	}
 
