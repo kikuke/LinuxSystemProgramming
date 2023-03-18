@@ -106,7 +106,7 @@ int GetNowTime(char* buf)
 
 	tm_now = localtime(&now.tv_sec);
 	sprintf(buf, "_%02d%02d%02d%02d%02d%02d",
-			tm_now->tm_year+1900, tm_now->tm_mon+1, tm_now->tm_mday,
+			(tm_now->tm_year+1900)%100, tm_now->tm_mon+1, tm_now->tm_mday,
 			tm_now->tm_hour, tm_now->tm_min, tm_now->tm_sec);
 	
 	return 0;
@@ -208,6 +208,9 @@ struct filetree* FindFileTreeInPath(const char* path, struct filetree* ftree, in
 		return ftree;
 	}
 
+	//Comment: 폴더가 마지막 경로일 경우 리턴
+	if(path[nextStartPathLen] == '\0')
+		return ftree;
 	for(int i=0; i<ftree->childNodeNum; i++){
 		retTree = FindFileTreeInPath(&path[nextStartPathLen], ftree->childNodes[i], isBackup);
 		if(retTree != NULL)

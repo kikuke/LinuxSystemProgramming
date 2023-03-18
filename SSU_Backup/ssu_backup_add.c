@@ -70,7 +70,6 @@ int main(int argc, char* argv[])
 
 	GetParentPath(addPath, pathBuf);
 	strcpy(addPath, pathBuf);
-	//Todo: 이아래 한줄 고치기
 	ConcatPath(GetBackupPath(destPath), ExtractHomePath(pathBuf));
 	if(AddBackupByFileTree(destPath, addPath, backupTree, addTree, hashMode) == -1){
 		perror("AddBackupByFileTree()");
@@ -93,7 +92,6 @@ int AddBackupByFileTree(const char* backupPath, const char* addPath, struct file
 	ConcatPath(addTreePath, addTree->file);
 	matchedTree = FindFileTreeInPath(backupTreePath, backupTree, 1);
 	//Comment: 일치하는 백업파일이 없는 경우 해당 하위 파일 모두 생성
-	//Todo: 파일명 변환해서 검사하기 일치하는 파일 있는지
 	if(matchedTree == NULL)
 	{
 		if(MakeDirPath(backupPath) == -1)
