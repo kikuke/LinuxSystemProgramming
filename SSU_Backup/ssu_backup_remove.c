@@ -6,41 +6,54 @@
 #include "ssu_backup_define.h"
 #include "ssu_backup_util.h"
 #include "ssu_backup_usage.h"
-#include "ssu_backup_add.h"
+#include "ssu_backup_remove.h"
 
 int main(int argc, char* argv[])
 {
 	int hashMode = -1;
-	int addType = SSU_BACKUP_TYPE_REG;
+	int removeType = SSU_BACKUP_TYPE_REG;
 	char destPath[SSU_BACKUP_MAX_PATH_SZ];
-	char addPath[SSU_BACKUP_MAX_PATH_SZ];
+	char removePath[SSU_BACKUP_MAX_PATH_SZ];
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 	char opt;
 	int checkType;
 	struct filetree* backupTree;
-	struct filetree* addTree;
+	struct filetree* removeTree;
 
 	if(argc < 2 || argc > 3){
-		Usage(USAGEIDX_ADD);
+		Usage(USAGEIDX_REMOVE);
 		exit(1);
 	}
 
 	strcpy(pathBuf, argv[1]);
-	while((opt = getopt(argc, argv, "d")) != -1){
+	while((opt = getopt(argc, argv, "ac")) != -1){
 		switch(opt){
-			case 'd':
-				addType = SSU_BACKUP_TYPE_DIR;
+			case 'a':
+				if(removeType != SSU_BACKUP_TYPE_REG){
+					Usage(USAGEIDX_REMOVE);
+					exit(1)
+				}
+				removeType = SSU_BACKUP_TYPE_DIR;
+				break;
+
+			case 'c':
+				if(removeType != SSU_BACKUP_TYPE_REG){
+					Usage(USAGEIDX_REMOVE);
+					exit(1);
+				}
+				removeType = SSU_BACKUP_TYPE_CLEAR;
 				break;
 			
 			default:
-				Usage(USAGEIDX_ADD);
+				Usage(USAGEIDX_REMOVE);
 				exit(1);
 				break;
 		}
 	}
 
+	//Todo: 이게 아닌 백업 경로로 바꿔주고 찾기
 	//Comment: add 경로 값에 따른 에러 핸들링을 합니다.
-	if(GetRealpathAndHandle(pathBuf, addPath, USAGEIDX_ADD) == NULL){
+	if(GetRealpathAndHandle(pathBuf, removePath, USAGEIDX_REMOVE) == NULL){
 		exit(1);
 	}
 
@@ -81,7 +94,7 @@ int main(int argc, char* argv[])
 	return 0;
 }
 
-int AddBackupByFileTree(const char* backupPath, const char* addPath, struct filetree* backupTree, struct filetree* addTree, int hashMode)
+int RemoveBackupByFileTree(const char* backupPath, const char* addPath, struct filetree* backupTree, struct filetree* addTree, int hashMode)
 {
 	struct filetree* matchedTree;
 	char backupTreePath[SSU_BACKUP_MAX_PATH_SZ];
@@ -106,9 +119,8 @@ int AddBackupByFileTree(const char* backupPath, const char* addPath, struct file
 		struct filetree* pTree = matchedTree->parentNode;
 		for(int i=0; i < pTree->childNodeNum; i++){
 			if(CompareHash(addTree->hash, pTree->childNodes[i]->hash, hashMode)){
-				strcpy(backupTreePath, backupPath);
-				ConcatPath(backupTreePath, pTree->childNodes[i]->file);
-				fprintf(stdout, "\"%s\" is already backuped\n", backupTreePath);
+
+				fprintf(stdout, "\"%s\" is already backuped\n", addTreePath);
 				return 0;
 			}
 		}

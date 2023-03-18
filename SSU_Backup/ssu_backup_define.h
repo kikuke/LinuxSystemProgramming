@@ -24,6 +24,7 @@
 #define SSU_BACKUP_TYPE_REG 0
 #define SSU_BACKUP_TYPE_DIR 1
 #define SSU_BACKUP_TYPE_OTHER 2
+#define SSU_BACKUP_TYPE_CLEAR 3
 
 //##### Define Command #####
 #define SSU_BACKUP_ADD "add"
