@@ -430,7 +430,13 @@ char* GetRealpathAndHandle(const char* path, char* resolved_path, SSU_BACKUP_IDX
 	char* homeDir = getenv("HOME");
 	char backup_path[SSU_BACKUP_MAX_PATH_SZ];
 
-	if((realpath(path, resolved_path) == NULL)){
+	if(path[0] == '~'){
+		strcpy(backup_path, homeDir);
+		strcat(backup_path, path+1);
+	} else {
+		strcpy(backup_path, path);
+	}
+	if((realpath(backup_path, resolved_path) == NULL)){
 		switch(errno){
 			case EACCES:
 				fputs("권한이 없습니다.", stderr);
