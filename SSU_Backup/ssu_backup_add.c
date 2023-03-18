@@ -113,6 +113,8 @@ int AddBackupByFileTree(const char* backupPath, const char* addPath, struct file
 	}
 
 	//Comment: 폴더의 경우 재귀 호출
+	strcpy(backupTreePath, backupPath);
+	ConcatPath(backupTreePath, addTree->file);
 	for(int i=0; i < addTree->childNodeNum; i++)
 		if(AddBackupByFileTree(backupTreePath, addTreePath, backupTree, addTree->childNodes[i], hashMode) == -1)
 			return -1;
