@@ -104,7 +104,8 @@ int AddBackupByFileTree(const char* backupPath, const char* addPath, struct file
 		struct filetree* pTree = matchedTree->parentNode;
 		for(int i=0; i < pTree->childNodeNum; i++){
 			if(CompareHash(addTree->hash, pTree->childNodes[i]->hash, hashMode)){
-				fprintf(stdout, "\"%s\" is already backuped\n", backupTreePath);
+
+				fprintf(stdout, "\"%s\" is already backuped\n", addTreePath);
 				return 0;
 			}
 		}
