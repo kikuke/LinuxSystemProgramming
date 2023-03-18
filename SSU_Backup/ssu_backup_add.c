@@ -71,6 +71,8 @@ int main(int argc, char* argv[])
 	GetParentPath(addPath, pathBuf);
 	strcpy(addPath, pathBuf);
 	GetBackupPath(destPath);
+	ExtractHomePath(pathBuf);
+	ConcatPath(destPath, pathBuf);
 	if(AddBackupByFileTree(destPath, addPath, backupTree, addTree, hashMode) == -1){
 		perror("AddBackupByFileTree()");
 		exit(1);
