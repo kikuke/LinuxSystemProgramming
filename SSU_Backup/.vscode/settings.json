@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "ssu_backup_path.h": "c",
+        "md5.h": "c",
+        "ssu_backup_util.h": "c",
+        "ssu_backup_define.h": "c"
+    }
+}

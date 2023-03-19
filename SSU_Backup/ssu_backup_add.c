@@ -40,7 +40,7 @@ int main(int argc, char* argv[])
 	}
 
 	//Comment: add 경로 값에 따른 에러 핸들링을 합니다.
-	if(GetRealpathAndHandle(pathBuf, addPath, USAGEIDX_ADD) == NULL){
+	if(GetRealpathAndHandle(pathBuf, addPath, USAGEIDX_ADD, 0) == NULL){
 		exit(1);
 	}
 

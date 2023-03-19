@@ -4,8 +4,9 @@
 #include <string.h>
 #include <sys/wait.h>
 
-#include "ssu_backup_define.h"
-#include "ssu_backup_util.h"
+#include "define/ssu_backup_define.h"
+#include "util/ssu_backup_path.h"
+#include "util/ssu_backup_util.h"
 #include "ssu_backup.h"
 
 int main(int argc, char* argv[])
