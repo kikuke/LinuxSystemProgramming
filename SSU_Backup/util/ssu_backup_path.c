@@ -63,6 +63,11 @@ char* ExtractHomePath(char* path)
 		return path;
 	}
 	homeLen = strlen(homeDir);
+	if(*(path+homeLen) == '\0'){
+		path[0] = '\0';
+		return path;
+	}
+
 	strcpy(pathBuf, path + homeLen + 1);
 	strcpy(path, pathBuf);
 

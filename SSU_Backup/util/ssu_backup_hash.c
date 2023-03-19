@@ -34,6 +34,7 @@ int GetMd5HashByPath(const char* path, char* hashBuf)
 	}
 	MD5_Final(hashBuf, &c);
 
+	close(fd);
 	return 0;
 }
 
@@ -53,5 +54,6 @@ int GetSha1HashByPath(const char* path, char* hashBuf)
 	}
 	SHA1_Final(hashBuf, &c);
 
+	close(fd);
 	return 0;
 }
