@@ -3,6 +3,8 @@
         "ssu_backup_path.h": "c",
         "md5.h": "c",
         "ssu_backup_util.h": "c",
-        "ssu_backup_define.h": "c"
+        "ssu_backup_define.h": "c",
+        "fcntl.h": "c",
+        "string.h": "c"
     }
 }

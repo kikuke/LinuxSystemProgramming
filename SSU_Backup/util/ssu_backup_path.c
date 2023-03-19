@@ -1,6 +1,8 @@
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
-#include "define/ssu_backup_define.h"
+#include "ssu_backup_define.h"
 #include "ssu_backup_path.h"
 
 char* ConcatPath(char* dest, const char* target)

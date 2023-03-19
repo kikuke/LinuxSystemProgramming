@@ -4,8 +4,11 @@
 #include <string.h>
 
 #include "ssu_backup_define.h"
-#include "ssu_backup_util.h"
 #include "ssu_backup_usage.h"
+#include "ssu_backup_path.h"
+#include "ssu_backup_hash.h"
+#include "ssu_backup_util.h"
+#include "ssu_backup_filetree_util.h"
 #include "ssu_backup_add.h"
 
 int main(int argc, char* argv[])
@@ -40,7 +43,7 @@ int main(int argc, char* argv[])
 	}
 
 	//Comment: add 경로 값에 따른 에러 핸들링을 합니다.
-	if(GetRealpathAndHandle(pathBuf, addPath, USAGEIDX_ADD, 0) == NULL){
+	if(GetRealpathAndHandle(pathBuf, addPath, USAGEIDX_ADD) == NULL){
 		exit(1);
 	}
 

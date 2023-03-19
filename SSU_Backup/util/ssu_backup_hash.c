@@ -1,8 +1,10 @@
+#include <unistd.h>
 #include <fcntl.h>
+#include <string.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
 
-#include "define/ssu_backup_define.h"
+#include "ssu_backup_define.h"
 
 int CompareHash(const char* hash1, const char* hash2, int hashMode)
 {

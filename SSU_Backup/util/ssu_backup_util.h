@@ -3,7 +3,7 @@
 
 #include <sys/stat.h>
 
-#include "define/ssu_backup_define.h"
+#include "ssu_backup_define.h"
 
 //Comment: 인자로 백업 경로를 저장할 버퍼를 받습니다.
 //	성공시 0 실패시 -1을 리턴하고 mkdir의 에러값을 errno에 남깁니다.

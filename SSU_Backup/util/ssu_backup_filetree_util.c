@@ -1,10 +1,13 @@
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
 
-#include "define/ssu_backup_define.h"
+#include "ssu_backup_define.h"
 #include "ssu_backup_path.h"
 #include "ssu_backup_hash.h"
+#include "ssu_backup_util.h"
 #include "ssu_backup_filetree_util.h"
 
 char* GetRealNameByFileTree(char* buf, const struct filetree* ftree)
