@@ -49,19 +49,18 @@ int SetHashMode(int mode)
 	return 0;
 }
 
-char* GetRealpathAndHandle(const char* path, char* resolved_path, SSU_BACKUP_IDX thisUsage)
+char* RealpathAndHandle(const char* path, char* resolved_path, SSU_BACKUP_IDX thisUsage)
 {
 	char* homeDir = getenv("HOME");
-	char backup_path[SSU_BACKUP_MAX_PATH_SZ];
 	char temp_path[SSU_BACKUP_MAX_PATH_SZ];
 
 	if(path[0] == '~'){
-		strcpy(backup_path, homeDir);
-		strcat(backup_path, path+1);
+		strcpy(temp_path, homeDir);
+		strcat(temp_path, path+1);
 	} else {
-		strcpy(backup_path, path);
+		strcpy(temp_path, path);
 	}
-	if((realpath(backup_path, resolved_path) == NULL)){
+	if((realpath(temp_path, resolved_path) == NULL)){
 		switch(errno){
 			case EACCES:
 				fputs("권한이 없습니다.", stderr);
@@ -90,26 +89,40 @@ char* GetRealpathAndHandle(const char* path, char* resolved_path, SSU_BACKUP_IDX
 		return NULL;
 	}
 
-	if(strncmp(homeDir, resolved_path, strlen(homeDir)) != 0){
-		fprintf(stdout, "<%s> can't be backuped\n", resolved_path);
-		return NULL;
+	return resolved_path;
+}
+
+int CheckBackupCondition(const char* path)
+{
+	char* homeDir = getenv("HOME");
+	char temp_path[SSU_BACKUP_MAX_PATH_SZ];
+
+	if(strncmp(homeDir, path, strlen(homeDir)) != 0){
+		fprintf(stdout, "<%s> can't be backuped\n", path);
+		return -1;
 	}
 
-	if(strncmp(resolved_path, homeDir, strlen(resolved_path)) == 0){
-		fprintf(stdout, "<%s> can't be backuped\n", resolved_path);
-		return NULL;
+	GetBackupPath(temp_path);
+	if(strncmp(temp_path, path, strlen(temp_path)) == 0){
+		fprintf(stdout, "<%s> can't be backuped\n", path);
+		return -1;
 	}
 
-	GetBackupPath(backup_path);
-	if(strncmp(backup_path, resolved_path, strlen(backup_path)) == 0){
-		fprintf(stdout, "<%s> can't be backuped\n", resolved_path);
-		return NULL;
-	}
-
-	if(CheckFileTypeByPath(resolved_path) == SSU_BACKUP_TYPE_OTHER){
+	if(CheckFileTypeByPath(path) == SSU_BACKUP_TYPE_OTHER){
 		fputs("일반 파일이나 디렉토리가 아닙니다.", stderr);
-		return NULL;
+		return -1;
 	}
+
+	return 0;
+}
+
+char* GetRealpathAndHandle(const char* path, char* resolved_path, SSU_BACKUP_IDX thisUsage)
+{
+	if(RealpathAndHandle(path, resolved_path, thisUsage) == NULL)
+		return NULL;
+
+	if(CheckBackupCondition(resolved_path) == -1)
+		return NULL;
 	
 	return resolved_path;
 }

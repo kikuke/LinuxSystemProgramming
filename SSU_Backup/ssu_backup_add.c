@@ -87,14 +87,20 @@ int main(int argc, char* argv[])
 int AddBackupByFileTree(const char* backupPath, const char* addPath, struct filetree* backupTree, struct filetree* addTree, int hashMode)
 {
 	struct filetree* matchedTree;
+	char checkBackupPath[SSU_BACKUP_MAX_PATH_SZ];
 	char backupTreePath[SSU_BACKUP_MAX_PATH_SZ];
 	char addTreePath[SSU_BACKUP_MAX_PATH_SZ];
+
+	GetBackupPath(checkBackupPath);
+	strcpy(addTreePath, addPath);
+	//Comment: 백업 패스인 경우 제외
+	ConcatPath(addTreePath, addTree->file);
+	if(strncmp(checkBackupPath, addTreePath, strlen(checkBackupPath)) == 0)
+		return 0;
 
 	strcpy(backupTreePath, backupPath);
 	ConcatPath(backupTreePath, addTree->file);
 	ExtractHomePath(backupTreePath);
-	strcpy(addTreePath, addPath);
-	ConcatPath(addTreePath, addTree->file);
 	matchedTree = FindFileTreeInPath(backupTreePath, backupTree, 1);
 	//Comment: 일치하는 백업파일이 없는 경우 해당 하위 파일 모두 생성
 	if(matchedTree == NULL)
@@ -122,8 +128,9 @@ int AddBackupByFileTree(const char* backupPath, const char* addPath, struct file
 	//Comment: 폴더의 경우 재귀 호출
 	strcpy(backupTreePath, backupPath);
 	ConcatPath(backupTreePath, addTree->file);
-	for(int i=0; i < addTree->childNodeNum; i++)
+	for(int i=0; i < addTree->childNodeNum; i++){
 		if(AddBackupByFileTree(backupTreePath, addTreePath, backupTree, addTree->childNodes[i], hashMode) == -1)
 			return -1;
+	}
 	return 0;
 }
