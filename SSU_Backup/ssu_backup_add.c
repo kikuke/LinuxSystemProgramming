@@ -71,13 +71,14 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	GetParentPath(addPath, pathBuf);
-	strcpy(addPath, pathBuf);
+	strcpy(pathBuf, addPath);
 	GetBackupPath(destPath);
 	ExtractHomePath(pathBuf);
 	if(strlen(pathBuf) != 0){
 		ConcatPath(destPath, pathBuf);
 	}
+	//Comment: destPath와 addPath는 부모디렉토리가 아닌 백업하려는 파일의 경로가 들어가게됨.
+	//	백업 경로가 홈디렉토리도 허용됨.
 	if(AddBackupByFileTree(destPath, addPath, backupTree, addTree, hashMode) == -1){
 		perror("AddBackupByFileTree()");
 		exit(1);
@@ -94,14 +95,12 @@ int AddBackupByFileTree(const char* backupPath, const char* addPath, struct file
 	char addTreePath[SSU_BACKUP_MAX_PATH_SZ];
 
 	GetBackupPath(checkBackupPath);
-	strcpy(addTreePath, addPath);
 	//Comment: 백업 패스인 경우 제외
-	ConcatPath(addTreePath, addTree->file);
-	if(strncmp(checkBackupPath, addTreePath, strlen(checkBackupPath)) == 0)
+	if(strncmp(checkBackupPath, addPath, strlen(checkBackupPath)) == 0)
 		return 0;
 
+	//Todo: 여기서 이렇게 처리해서 검사하는게 문제가 됨. 좀더 뒤로 미루거나 하기
 	strcpy(backupTreePath, backupPath);
-	ConcatPath(backupTreePath, addTree->file);
 	ExtractHomePath(backupTreePath);
 	matchedTree = FindFileTreeInPath(backupTreePath, backupTree, 1);
 	//Comment: 일치하는 백업파일이 없는 경우 해당 하위 파일 모두 생성
@@ -117,8 +116,6 @@ int AddBackupByFileTree(const char* backupPath, const char* addPath, struct file
 		struct filetree* pTree = matchedTree->parentNode;
 		for(int i=0; i < pTree->childNodeNum; i++){
 			if(CompareHash(addTree->hash, pTree->childNodes[i]->hash, hashMode)){
-				strcpy(backupTreePath, backupPath);
-				ConcatPath(backupTreePath, pTree->childNodes[i]->file);
 				fprintf(stdout, "\"%s\" is already backuped\n", backupTreePath);
 				return 0;
 			}
@@ -127,10 +124,13 @@ int AddBackupByFileTree(const char* backupPath, const char* addPath, struct file
 		return CreateFileByFileTree(backupPath, addPath, addTree, 0);
 	}
 
+	//Todo: 얘도 여기 위치 맞는지
 	//Comment: 폴더의 경우 재귀 호출
-	strcpy(backupTreePath, backupPath);
-	ConcatPath(backupTreePath, addTree->file);
 	for(int i=0; i < addTree->childNodeNum; i++){
+		strcpy(backupTreePath, backupPath);
+		ConcatPath(backupTreePath, addTree->childNodes[i]->file);
+		strcpy(addTreePath, addPath);
+		ConcatPath(addTreePath, addTree->childNodes[i]->file);
 		if(AddBackupByFileTree(backupTreePath, addTreePath, backupTree, addTree->childNodes[i], hashMode) == -1)
 			return -1;
 	}

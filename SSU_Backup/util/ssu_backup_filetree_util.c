@@ -196,9 +196,7 @@ int CreateFileByFileTree(const char* destPath, const char* addPath, const struct
 	char destFilePath[SSU_BACKUP_MAX_PATH_SZ];
 
 	strcpy(destFilePath, destPath);
-	ConcatPath(destFilePath, addTree->file);
 	strcpy(addFilePath, addPath);
-	ConcatPath(addFilePath, addTree->file);
 	if(addTree->childNodeNum == 0){
 		if(isRecover){
 			destFilePath[strlen(destFilePath) - SSU_BACKUP_FILE_META_LEN] = '\0';
@@ -222,6 +220,10 @@ int CreateFileByFileTree(const char* destPath, const char* addPath, const struct
 	if(MakeDirPath(destFilePath) == -1)
 		return -1;
 	for(int i=0; i < addTree->childNodeNum; i++){
+		strcpy(destFilePath, destPath);
+		ConcatPath(destFilePath, addTree->childNodes[i]->file);
+		strcpy(addFilePath, addPath);
+		ConcatPath(addFilePath, addTree->childNodes[i]->file);
 		if(CreateFileByFileTree(destFilePath, addFilePath, addTree->childNodes[i], isRecover) == -1)
 			return -1;
 	}
