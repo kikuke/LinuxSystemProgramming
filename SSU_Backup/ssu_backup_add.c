@@ -20,6 +20,7 @@ int main(int argc, char* argv[])
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 	char opt;
 	int checkType;
+	size_t pathLen;
 	struct filetree* backupTree;
 	struct filetree* addTree;
 
@@ -42,6 +43,11 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	//Comment: 디렉토리 끝에 /붙은 것 제거
+	pathLen = strlen(pathBuf);
+	if(pathLen > 1 && pathBuf[pathLen] == '/'){
+		pathBuf[pathLen] = '\0';
+	}
 	//Comment: add 경로 값에 따른 에러 핸들링을 합니다.
 	if(GetRealpathAndHandle(pathBuf, addPath, USAGEIDX_ADD) == NULL){
 		exit(1);
