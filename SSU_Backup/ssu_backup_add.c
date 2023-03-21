@@ -20,7 +20,6 @@ int main(int argc, char* argv[])
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 	char opt;
 	int checkType;
-	size_t pathLen;
 	struct filetree* backupTree;
 	struct filetree* addTree;
 
