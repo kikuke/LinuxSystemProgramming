@@ -17,13 +17,20 @@ char* GetParentPath(const char* path, char* buf)
 	size_t endLen;
 
 	strcpy(buf, path);
-	endLen = strlen(path);
+	endLen = strlen(path) - 1;
 	if(path[endLen] == '/'){
+		if(endLen == 0){
+			buf[endLen] = '\0';
+			return buf;
+		}
 		endLen--;
 	}
 
-	while((endLen > 0) && path[endLen] != '/')
+	while((endLen > 0) && path[endLen] != '/'){
+		if(endLen == 1 && path[endLen-1] == '/')
+			break;
 		endLen--;
+	}
 	buf[endLen] = '\0';
 
 	return buf;
@@ -147,7 +154,7 @@ char* GetVirtualRealPath(const char* path, char* resolved_path)
 	//Comment: 연산의 안전을 위해 끝에 EOF를 하나 더둠.
 	//	이로인해 resolved_path의 크기는 패스 최대 크기의 +1 이어야함.
 	pathLen = strlen(resolved_path);
-	resolved_path[pathLen] = '\0';
+	resolved_path[pathLen+1] = '\0';
 	while(*sPtr != '\0'){
 		ePtr++;
 		if(*ePtr == '/' || *ePtr == '\0'){

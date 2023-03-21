@@ -58,6 +58,9 @@ int main(int argc, char* argv[])
 		Usage(USAGEIDX_REMOVE);
 		exit(1);
 	}
+	//Test
+	puts(removePath);
+
 	GetBackupPath(pathBuf);
 	if(strncmp(pathBuf, removePath, strlen(pathBuf)) == 0){
 		fprintf(stdout, "<%s> can't be backuped\n", removePath);
@@ -71,8 +74,6 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	//Test
-	puts(removePath);
 /*
 	if((checkType = CheckFileTypeByPath(addPath)) == -1){
 		perror("CheckFileTypeByPath()");
