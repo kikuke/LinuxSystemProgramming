@@ -2,4 +2,5 @@
 *.swp
 **/ssu_backup
 **/ssu_backup_add
+**/ssu_backup_remove
 **/ssu_backup_help
