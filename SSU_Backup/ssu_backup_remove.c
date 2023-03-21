@@ -58,8 +58,6 @@ int main(int argc, char* argv[])
 		Usage(USAGEIDX_REMOVE);
 		exit(1);
 	}
-	//Test
-	puts(removePath);
 
 	GetBackupPath(pathBuf);
 	if(strncmp(pathBuf, removePath, strlen(pathBuf)) == 0){
@@ -68,6 +66,8 @@ int main(int argc, char* argv[])
 	}
 	//Todo: if문으로 검사하기
 	SourcePathToBackupPath(removePath);
+	//Test
+	puts(removePath);
 
 	if((hashMode = GetHashMode()) == -1){
 		fputs("GetHashMode() Failed!\n", stderr);
