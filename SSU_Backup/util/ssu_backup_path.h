@@ -35,6 +35,8 @@ char* BackupPathToSourcePath(char* path);
 //	상대경로, 절대경로 모두 변환 허용합니다.
 //	변환된 주소를 리턴합니다.
 //	백업 경로가 포함되어있거나, 실패했을경우NULL을 리턴합니다.
-char* GetRealBackupPath(const char* path, char* resolved_path);
+//	resolved_path는 최대 패스 길이 보다 1 커야합니다.
+//	실패하거나 잘못된 입력일 경우 NULL을 리턴합니다.
+char* GetVirtualRealPath(const char* path, char* resolved_path);
 
 #endif

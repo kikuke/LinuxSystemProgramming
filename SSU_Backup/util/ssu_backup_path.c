@@ -110,61 +110,77 @@ char* BackupPathToSourcePath(char* path)
 	return path;
 }
 
-char* GetRealBackupPath(const char* path, char* resolved_path)
+char* GetVirtualRealPath(const char* path, char* resolved_path)
 {
 	char* homeDir = getenv("HOME");
-	char* tokPtr;
+	char* sPtr;
+	char* ePtr;
 	char temp_path[SSU_BACKUP_MAX_PATH_SZ];
-	char post_path[SSU_BACKUP_MAX_PATH_SZ];
 	size_t pathLen;
 	
-	//Comment: ~ 홈경로로 바꿔주기
+	//Comment: 경로 끝이 /일 경우 제거
+	pathLen = strlen(resolved_path);
+	if(pathLen > 1 && resolved_path[pathLen-1] == '/'){
+		resolved_path[pathLen-1] = '\0';
+	}
+
+	//Comment: 주소가 ~인 경우 절대 경로 변환
 	if(path[0] == '~' && (path[1] == '\0' || path[1] == '/')){
 		strcpy(resolved_path, homeDir);
 		strcat(resolved_path, path+1);
 	} else {
 		strcpy(resolved_path, path);
 	}
-	pathLen = strlen(resolved_path);
-	//Comment: 경로 끝이 /일 경우 제거
-	if(pathLen > 1 && resolved_path[pathLen-1] == '/'){
-		resolved_path[pathLen-1] = '\0';
-	}
-	//Comment: 절대경로가 아닐 경우
+	//Comment: 상대경로인 경우 절대 경로 변환
+	//	../../..와 DV/.., ./.., ./., /home/.. 과 같은 경로도 파싱할 수 있어야함.
 	if(resolved_path[0] != '/'){
-		if((tokPtr = strstr(resolved_path, "/")) != NULL){
-			//Comment: 바꿀수 있는 상위 경로가 있을 경우
-			strcpy(post_path, tokPtr+1);
-			*tokPtr = '\0';
-			if(realpath(resolved_path, temp_path) == NULL){
-				perror("GetRealPathFiled");
-				return NULL;
-			}
-			strcpy(resolved_path, temp_path);
-			ConcatPath(resolved_path, post_path);
-		} else {
-			//Comment: 상위 경로가 없을 경우('.', '..', '[FileName]')
-			if((strcmp(resolved_path, ".") == 0) || (strcmp(resolved_path, "..") == 0)){
-				if(realpath(resolved_path, temp_path) == NULL){
-					perror("GetRealPathFiled");
-					return NULL;
+		strcpy(temp_path, resolved_path);
+		if(realpath(".", resolved_path) == NULL){
+			perror("GetRealPathFiled");
+			return NULL;
+		}
+		ConcatPath(resolved_path, temp_path);
+	}
+	//Comment: 각 경로의 변환
+	sPtr = resolved_path + 1;
+	ePtr = sPtr - 1;
+	//Comment: 연산의 안전을 위해 끝에 EOF를 하나 더둠.
+	//	이로인해 resolved_path의 크기는 패스 최대 크기의 +1 이어야함.
+	pathLen = strlen(resolved_path);
+	resolved_path[pathLen] = '\0';
+	while(*sPtr != '\0'){
+		ePtr++;
+		if(*ePtr == '/' || *ePtr == '\0'){
+			*ePtr = '\0';
+			if(!strcmp(sPtr, ".") || !strcmp(sPtr, "..")){
+				sPtr--;
+				*sPtr = '\0';
+				if(strcmp(sPtr + 1, "..") == 0){
+					if(*GetParentPath(resolved_path, temp_path) == '\0')
+						return NULL;
+					strcpy(resolved_path, temp_path);
+					//Comment: sPtr은 '\0'을 가리키고 있음.
+					sPtr = resolved_path + strlen(resolved_path);
 				}
-				strcpy(resolved_path, temp_path);
+				ePtr++;
+				if(*ePtr != '\0'){
+					//Comment: sPtr이 '/'다음을 가리키게됨.
+					strcpy(temp_path, ePtr);
+					ConcatPath(resolved_path, temp_path);
+					sPtr++;
+				}
+				ePtr = sPtr-1;
+				pathLen = strlen(resolved_path);
+				resolved_path[pathLen + 1] = '\0';
 			} else {
-				strcpy(post_path, resolved_path);
-				if(realpath(".", resolved_path) == NULL){
-					perror("GetRealPathFiled");
-					return NULL;
-				}
-				ConcatPath(resolved_path, post_path);
+				*ePtr = '/';
+				sPtr = ePtr + 1;
 			}
 		}
 	}
-	//Comment: 백업패스를 포함하는지 검사
-	GetBackupPath(temp_path);
-    if(strncmp(temp_path, resolved_path, strlen(temp_path)) == 0)
-		return NULL;
-
-	SourcePathToBackupPath(resolved_path);
+	pathLen = strlen(resolved_path);
+	if(pathLen > 1 && resolved_path[pathLen-1] == '/'){
+		resolved_path[pathLen-1] = '\0';
+	}
 	return resolved_path;
 }

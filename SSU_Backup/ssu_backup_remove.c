@@ -16,7 +16,7 @@ int main(int argc, char* argv[])
 	int hashMode = -1;
 	int removeType = SSU_BACKUP_TYPE_REG;
 	char destPath[SSU_BACKUP_MAX_PATH_SZ];
-	char removePath[SSU_BACKUP_MAX_PATH_SZ];
+	char removePath[SSU_BACKUP_MAX_PATH_SZ + 1];
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 	char opt;
 	int checkType;
@@ -54,10 +54,17 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if(GetRealBackupPath(pathBuf, removePath) == NULL){
+	if(GetVirtualRealPath(pathBuf, removePath) == NULL){
+		Usage(USAGEIDX_REMOVE);
+		exit(1);
+	}
+	GetBackupPath(pathBuf);
+	if(strncmp(pathBuf, removePath, strlen(pathBuf)) == 0){
 		fprintf(stdout, "<%s> can't be backuped\n", removePath);
 		exit(1);
 	}
+	//Todo: if문으로 검사하기
+	SourcePathToBackupPath(removePath);
 
 	if((hashMode = GetHashMode()) == -1){
 		fputs("GetHashMode() Failed!\n", stderr);
