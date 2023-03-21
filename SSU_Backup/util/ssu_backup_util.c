@@ -54,7 +54,7 @@ char* RealpathAndHandle(const char* path, char* resolved_path, SSU_BACKUP_IDX th
 	char* homeDir = getenv("HOME");
 	char temp_path[SSU_BACKUP_MAX_PATH_SZ];
 
-	if(path[0] == '~'){
+	if(path[0] == '~' && (path[1] == '\0' || path[1] == '/')){
 		strcpy(temp_path, homeDir);
 		strcat(temp_path, path+1);
 	} else {
