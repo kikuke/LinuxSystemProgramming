@@ -34,6 +34,7 @@ char* BackupPathToSourcePath(char* path);
 //Comment: path를 backupPath주소로 변환해줍니다.
 //	상대경로, 절대경로 모두 변환 허용합니다.
 //	변환된 주소를 리턴합니다.
+//	백업 경로가 포함되어있거나, 실패했을경우NULL을 리턴합니다.
 char* GetRealBackupPath(const char* path, char* resolved_path);
 
 #endif

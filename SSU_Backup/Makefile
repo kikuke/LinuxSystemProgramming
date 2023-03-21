@@ -18,6 +18,7 @@ create_backup:
 	done
 	make ssu_backup
 	make ssu_backup_add
+	make ssu_backup_remove
 	make ssu_backup_help
 
 clean: 
@@ -27,6 +28,7 @@ clean:
 	rm *.o
 	rm ssu_backup
 	rm ssu_backup_add
+	rm ssu_backup_remove
 	rm ssu_backup_help
 
 
@@ -35,6 +37,9 @@ ssu_backup: ssu_backup.o $(UTILITY)
 	$(CC) -o $@ $^
 
 ssu_backup_add: ssu_backup_add.o $(UTILITY) $(HASH) $(FILETREE)
+	$(CC) -o $@ $^ $(CRYPTO_MACRO)
+
+ssu_backup_remove: ssu_backup_remove.o $(UTILITY) $(HASH) $(FILETREE)
 	$(CC) -o $@ $^ $(CRYPTO_MACRO)
 
 ssu_backup_help: ssu_backup_help.o $(UTILITY)
@@ -46,6 +51,9 @@ ssu_backup.o: ssu_backup.c
 	$(CC) $(INCLUDE) -c $^
 
 ssu_backup_add.o: ssu_backup_add.c
+	$(CC) $(INCLUDE) -c $^
+
+ssu_backup_remove.o: ssu_backup_remove.c
 	$(CC) $(INCLUDE) -c $^
 
 ssu_backup_help.o: ssu_backup_help.c

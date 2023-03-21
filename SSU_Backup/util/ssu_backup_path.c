@@ -112,24 +112,51 @@ char* BackupPathToSourcePath(char* path)
 
 char* GetRealBackupPath(const char* path, char* resolved_path)
 {
+	//Todo: ..이랑 .할때 문제있음. 해결하기
 	char* homeDir = getenv("HOME");
+	char* tokPtr;
 	char temp_path[SSU_BACKUP_MAX_PATH_SZ];
-
+	char post_path[SSU_BACKUP_MAX_PATH_SZ];
+	size_t pathLen;
+	
+	//Comment: ~ 홈경로로 바꿔주기
 	if(path[0] == '~'){
 		strcpy(resolved_path, homeDir);
 		strcat(resolved_path, path+1);
 	} else {
 		strcpy(resolved_path, path);
 	}
+	pathLen = strlen(resolved_path);
+	//Comment: 경로 끝이 /일 경우 제거
+	if(pathLen > 1 && resolved_path[pathLen-1] == '/'){
+		resolved_path[pathLen-1] = '\0';
+	}
 	//Comment: 절대경로가 아닐 경우
 	if(resolved_path[0] != '/'){
-		if(realpath(".", temp_path) == NULL){
-			perror("GetCurRealPathFiled");
-			return NULL;
+		if((tokPtr = strstr(resolved_path, "/")) != NULL){
+			//Comment: 바꿀수 있는 상위 경로가 있을 경우
+			strcpy(post_path, tokPtr+1);
+			*tokPtr = '\0';
+			if(realpath(resolved_path, temp_path) == NULL){
+				perror("GetCurRealPathFiled");
+				return NULL;
+			}
+			strcpy(resolved_path, temp_path);
+		} else {
+			//Comment: 폴더조차 사라져있을 가능성이 있으므로.
+			strcpy(post_path, resolved_path);
+			if(realpath(".", resolved_path) == NULL){
+				perror("GetCurRealPathFiled");
+				return NULL;
+			}
 		}
-		ConcatPath(temp_path, resolved_path);
-		strcpy(resolved_path, temp_path);
+		ConcatPath(resolved_path, post_path);
 	}
+	//Comment: 백업패스를 포함하는지 검사
+	GetBackupPath(temp_path);
+    if(strncmp(temp_path, resolved_path, strlen(temp_path)) == 0)
+		return NULL;
+
 	SourcePathToBackupPath(resolved_path);
 	return resolved_path;
 }

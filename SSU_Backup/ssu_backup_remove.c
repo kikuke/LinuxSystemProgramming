@@ -4,8 +4,11 @@
 #include <string.h>
 
 #include "ssu_backup_define.h"
-#include "ssu_backup_util.h"
 #include "ssu_backup_usage.h"
+#include "ssu_backup_path.h"
+#include "ssu_backup_hash.h"
+#include "ssu_backup_util.h"
+#include "ssu_backup_filetree_util.h"
 #include "ssu_backup_remove.h"
 
 int main(int argc, char* argv[])
@@ -31,7 +34,7 @@ int main(int argc, char* argv[])
 			case 'a':
 				if(removeType != SSU_BACKUP_TYPE_REG){
 					Usage(USAGEIDX_REMOVE);
-					exit(1)
+					exit(1);
 				}
 				removeType = SSU_BACKUP_TYPE_DIR;
 				break;
@@ -51,23 +54,25 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	//Todo: 이게 아닌 백업 경로로 바꿔주고 찾기
-	//Comment: add 경로 값에 따른 에러 핸들링을 합니다.
-	if(GetRealpathAndHandle(pathBuf, removePath, USAGEIDX_REMOVE) == NULL){
+	if(GetRealBackupPath(pathBuf, removePath) == NULL){
+		fprintf(stdout, "<%s> can't be backuped\n", removePath);
 		exit(1);
 	}
 
+	if((hashMode = GetHashMode()) == -1){
+		fputs("GetHashMode() Failed!\n", stderr);
+		exit(1);
+	}
+
+	//Test
+	puts(removePath);
+/*
 	if((checkType = CheckFileTypeByPath(addPath)) == -1){
 		perror("CheckFileTypeByPath()");
 		exit(1);
 	}
 	if((checkType == SSU_BACKUP_TYPE_DIR) && checkType != addType){
 		fprintf(stderr, "\"%s\" is a directory file\n", addPath);
-		exit(1);
-	}
-
-	if((hashMode = GetHashMode()) == -1){
-		fputs("GetHashMode() Failed!\n", stderr);
 		exit(1);
 	}
 
@@ -80,17 +85,7 @@ int main(int argc, char* argv[])
 		perror("PathToFileTree()");
 		exit(1);
 	}
-
-	GetParentPath(addPath, pathBuf);
-	strcpy(addPath, pathBuf);
-	GetBackupPath(destPath);
-	ExtractHomePath(pathBuf);
-	ConcatPath(destPath, pathBuf);
-	if(AddBackupByFileTree(destPath, addPath, backupTree, addTree, hashMode) == -1){
-		perror("AddBackupByFileTree()");
-		exit(1);
-	}
-
+*/
 	return 0;
 }
 
@@ -132,7 +127,7 @@ int RemoveBackupByFileTree(const char* backupPath, const char* addPath, struct f
 	strcpy(backupTreePath, backupPath);
 	ConcatPath(backupTreePath, addTree->file);
 	for(int i=0; i < addTree->childNodeNum; i++)
-		if(AddBackupByFileTree(backupTreePath, addTreePath, backupTree, addTree->childNodes[i], hashMode) == -1)
+		if(RemoveBackupByFileTree(backupTreePath, addTreePath, backupTree, addTree->childNodes[i], hashMode) == -1)
 			return -1;
 	return 0;
 }

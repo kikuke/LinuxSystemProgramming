@@ -30,6 +30,9 @@
 #define SSU_BACKUP_ADD "add"
 #define SSU_BACKUP_ADD_PATH "ssu_backup_add"
 
+#define SSU_BACKUP_REMOVE "remove"
+#define SSU_BACKUP_REMOVE_PATH "ssu_backup_remove"
+
 #define SSU_BACKUP_LS "ls"
 #define SSU_BACKUP_LS_PATH "ls"
 
