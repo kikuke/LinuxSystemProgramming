@@ -54,6 +54,8 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	//Comment: 가상으로 상대경로를 절대경로로 바꿔줍니다.
+	//	././../.., ~/././.. 와 같은 표현 모두 가능합니다.
 	if(GetVirtualRealPath(pathBuf, removePath) == NULL){
 		Usage(USAGEIDX_REMOVE);
 		exit(1);

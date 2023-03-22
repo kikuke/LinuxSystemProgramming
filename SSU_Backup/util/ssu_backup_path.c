@@ -122,7 +122,7 @@ char* GetVirtualRealPath(const char* path, char* resolved_path)
 	char* homeDir = getenv("HOME");
 	char* sPtr;
 	char* ePtr;
-	char temp_path[SSU_BACKUP_MAX_PATH_SZ];
+	char temp_path[SSU_BACKUP_MAX_PATH_SZ + 1];
 	size_t pathLen;
 	
 	//Comment: 경로 끝이 /일 경우 제거
