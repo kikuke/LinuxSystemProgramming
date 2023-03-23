@@ -79,14 +79,23 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
+	//Comment: if path is $home
+	strcpy(destPath, removePath);
+	SourcePathToBackupPath(destPath);
 	GetBackupPath(pathBuf);
+	if(strcmp(destPath, pathBuf) == 0){
+		if(ClearBackupFolder(hashMode) == -1){
+			perror("ClearBackupFolder()");
+			exit(1);
+		}
+		exit(0);
+	}
+
 	if((backupTree = PathToFileTree(pathBuf, hashMode)) == NULL){
 		perror("PathToFileTree()");
 		exit(1);
 	}
 
-	strcpy(destPath, removePath);
-	SourcePathToBackupPath(destPath);
 	strcpy(pathBuf, destPath);
 	ExtractHomePath(pathBuf);
 	if((matchNum = FindAllFileTreeInPath(pathBuf, backupTree, &removeTrees, 1)) < 1){
@@ -103,7 +112,7 @@ int main(int argc, char* argv[])
 	}
 
 	//Comment: 파일에 -a 옵션을 사용한 경우 or has unique file
-	if(matchNum == 1 || (removeType == SSU_BACKUP_TYPE_DIR && checkType == SSU_BACKUP_TYPE_REG)){
+	if((matchNum == 1 && checkType == SSU_BACKUP_TYPE_REG) || (removeType == SSU_BACKUP_TYPE_DIR && checkType == SSU_BACKUP_TYPE_REG)){
 		GetParentPath(destPath, pathBuf);
 		if(RemoveFileByFileTreeList(pathBuf, (const struct filetree**)removeTrees, matchNum) == -1){
 			perror("RemoveFileByFileTreeList()");
