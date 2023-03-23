@@ -94,16 +94,14 @@ int CheckBackupCondition(const char* path, int addType)
 		return -1;
 	}
 
-	if((checkType = CheckFileTypeByPath(path)) == SSU_BACKUP_TYPE_OTHER){
-		fputs("일반 파일이나 디렉토리가 아닙니다.", stderr);
-		return -1;
-	}
-
-	if(checkType == SSU_BACKUP_TYPE_ERROR){
+	if((checkType = CheckFileTypeByPath(path)) == SSU_BACKUP_TYPE_ERROR){
 		perror("CheckFileTypeByPath()");
 		return -1;
 	}
-
+	if(checkType == SSU_BACKUP_TYPE_OTHER){
+		fputs("일반 파일이나 디렉토리가 아닙니다.", stderr);
+		return -1;
+	}
 	if((checkType == SSU_BACKUP_TYPE_DIR) && checkType != addType){
 		fprintf(stderr, "\"%s\" is a directory file\n", path);
 		return -1;

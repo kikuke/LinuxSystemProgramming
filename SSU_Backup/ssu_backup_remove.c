@@ -19,7 +19,6 @@ int main(int argc, char* argv[])
 	char removePath[SSU_BACKUP_MAX_PATH_SZ + 1];
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 	char opt;
-	int checkType;
 	struct filetree* backupTree;
 	struct filetree** removeTrees;
 	int matchNum;
@@ -41,7 +40,7 @@ int main(int argc, char* argv[])
 				break;
 
 			case 'c':
-				if(removeType != SSU_BACKUP_TYPE_REG){
+				if(argc > 2 || removeType != SSU_BACKUP_TYPE_REG){
 					Usage(USAGEIDX_REMOVE);
 					exit(1);
 				}
@@ -55,6 +54,9 @@ int main(int argc, char* argv[])
 		}
 	}
 
+	//Todo: C옵션일 경우 처리
+	//	없을경우 예외처리도 해주기
+
 	//Comment: 가상으로 상대경로를 절대경로로 바꿔줍니다.
 	//	././../.., ~/././.. 와 같은 표현 모두 가능합니다.
 	if(GetVirtualRealPath(pathBuf, removePath) == NULL){
@@ -62,12 +64,9 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	GetBackupPath(pathBuf);
-	if(strncmp(pathBuf, removePath, strlen(pathBuf)) == 0){
-		fprintf(stdout, "<%s> can't be backuped\n", removePath);
+	if(CheckRemovePathCondition(removePath) == -1){
 		exit(1);
 	}
-	//Todo: 위에거 말고도 다른거 경로 에러핸들링 처리
 
 	if((hashMode = GetHashMode()) == -1){
 		fputs("GetHashMode() Failed!\n", stderr);
@@ -84,7 +83,6 @@ int main(int argc, char* argv[])
 	SourcePathToBackupPath(destPath);
 	strcpy(pathBuf, destPath);
 	ExtractHomePath(pathBuf);
-	//Todo: 이거 말고 All함수 쓰기
 	if((matchNum = FindAllFileTreeInPath(pathBuf, backupTree, &removeTrees, 1)) < 1){
 		Usage(USAGEIDX_REMOVE);
 		exit(1);
@@ -96,16 +94,13 @@ int main(int argc, char* argv[])
 		GetCreateTimeByFileTree(fileName, removeTrees[i]);
 		puts(fileName);
 	}
-/*
-	if((checkType = CheckFileTypeByPath(addPath)) == -1){
-		perror("CheckFileTypeByPath()");
-		exit(1);
-	}
-	if((checkType == SSU_BACKUP_TYPE_DIR) && checkType != addType){
-		fprintf(stderr, "\"%s\" is a directory file\n", addPath);
-		exit(1);
-	}
 
+	GetParentPath(destPath, pathBuf);
+	ConcatPath(pathBuf, removeTrees[0]->file);
+	if(CheckFileTypeCondition(pathBuf, removePath, removeType) == -1){
+		exit(1);
+	}
+/*
 	GetBackupPath(destPath);
 	if((backupTree = PathToFileTree(destPath, hashMode)) == NULL){
 		perror("PathToFileTree()");
@@ -117,6 +112,50 @@ int main(int argc, char* argv[])
 	}
 */
 	exit(0);
+}
+
+int CheckRemovePathCondition(const char* path)
+{
+	char* homeDir = getenv("HOME");
+	char temp_path[SSU_BACKUP_MAX_PATH_SZ];
+
+	if(strlen(path) > SSU_BACKUP_MAX_PATH_SZ){
+		fputs("경로의 길이가 큽니다.\n", stderr);
+		return -1;
+	}
+
+	if(strncmp(homeDir, path, strlen(homeDir)) != 0){
+        fprintf(stdout, "<%s> can't be backuped\n", path);
+		return -1;
+    }
+
+	GetBackupPath(temp_path);
+	if(strncmp(temp_path, path, strlen(temp_path)) == 0){
+		fprintf(stdout, "<%s> can't be backuped\n", path);
+		return -1;
+	}
+
+	return 0;
+}
+
+int CheckFileTypeCondition(const char* destPath, const char* originPath, int removeType)
+{
+	int checkType;
+
+	if((checkType = CheckFileTypeByPath(destPath)) == SSU_BACKUP_TYPE_ERROR){
+		perror("CheckFileTypeByPath()");
+		return -1;
+	}
+	if(checkType == SSU_BACKUP_TYPE_OTHER){
+		fputs("일반 파일이나 디렉토리가 아닙니다.", stderr);
+		return -1;
+    }
+	if((checkType == SSU_BACKUP_TYPE_DIR) && checkType != removeType){
+		fprintf(stderr, "\"%s\" is a directory file\n", originPath);
+		return -1;
+	}
+
+	return 0;
 }
 
 int RemoveBackupByFileTree(const char* backupPath, const char* addPath, struct filetree* backupTree, struct filetree* addTree, int hashMode)
