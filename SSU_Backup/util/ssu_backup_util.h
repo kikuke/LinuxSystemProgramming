@@ -21,14 +21,6 @@ int SetHashMode(int mode);
 //Comment: realpath를 사용하는 함수들에서 내부적으로 오류를 핸들할때 사용하는 함수
 char* RealpathAndHandle(const char* path, char* resolved_path, SSU_BACKUP_IDX thisUsage);
 
-//Comment: Backup조건에 맞는 경로인지 평가합니다.
-//	조건을 만족하면 0, 만족하지 않으면 -1을 리턴합니다.
-int CheckBackupCondition(const char* path);
-
-//Comment: realpath를 내부적으로 호출 후, 공통된 예외처리를 합니다.
-//	예외 발생시 NULL을 리턴합니다.
-char* GetRealpathAndHandle(const char* path, char* resolved_path, SSU_BACKUP_IDX thisUsage);
-
 //Comment: 인자로 들어온 파일의 타입을 리턴합니다.
 //-1인 경우 에러, 0인경우 일반 파일 1인 경우 디렉토리 2인경우 그 이외를 의미합니다.
 //-1인 경우 errno를 설정합니다.

@@ -66,15 +66,14 @@ int main(int argc, char* argv[])
 		fprintf(stdout, "<%s> can't be backuped\n", removePath);
 		exit(1);
 	}
-	//Todo: if문으로 검사하기
-	SourcePathToBackupPath(removePath);
-	//Test
-	puts(removePath);
 
 	if((hashMode = GetHashMode()) == -1){
 		fputs("GetHashMode() Failed!\n", stderr);
 		exit(1);
 	}
+
+	strcpy(destPath, removePath);
+	SourcePathToBackupPath(destPath);
 
 /*
 	if((checkType = CheckFileTypeByPath(addPath)) == -1){

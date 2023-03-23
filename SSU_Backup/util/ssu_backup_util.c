@@ -92,41 +92,6 @@ char* RealpathAndHandle(const char* path, char* resolved_path, SSU_BACKUP_IDX th
 	return resolved_path;
 }
 
-int CheckBackupCondition(const char* path)
-{
-	char* homeDir = getenv("HOME");
-	char temp_path[SSU_BACKUP_MAX_PATH_SZ];
-
-	if(strncmp(homeDir, path, strlen(homeDir)) != 0){
-		fprintf(stdout, "<%s> can't be backuped\n", path);
-		return -1;
-	}
-
-	GetBackupPath(temp_path);
-	if(strncmp(temp_path, path, strlen(temp_path)) == 0){
-		fprintf(stdout, "<%s> can't be backuped\n", path);
-		return -1;
-	}
-
-	if(CheckFileTypeByPath(path) == SSU_BACKUP_TYPE_OTHER){
-		fputs("일반 파일이나 디렉토리가 아닙니다.", stderr);
-		return -1;
-	}
-
-	return 0;
-}
-
-char* GetRealpathAndHandle(const char* path, char* resolved_path, SSU_BACKUP_IDX thisUsage)
-{
-	if(RealpathAndHandle(path, resolved_path, thisUsage) == NULL)
-		return NULL;
-
-	if(CheckBackupCondition(resolved_path) == -1)
-		return NULL;
-	
-	return resolved_path;
-}
-
 int CheckFileType(const struct stat* p_stat)
 {
 	if(S_ISREG((*p_stat).st_mode)){

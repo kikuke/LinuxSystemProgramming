@@ -19,7 +19,6 @@ int main(int argc, char* argv[])
 	char addPath[SSU_BACKUP_MAX_PATH_SZ];
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 	char opt;
-	int checkType;
 	struct filetree* backupTree;
 	struct filetree* addTree;
 
@@ -43,16 +42,11 @@ int main(int argc, char* argv[])
 	}
 
 	//Comment: add 경로 값에 따른 에러 핸들링을 합니다.
-	if(GetRealpathAndHandle(pathBuf, addPath, USAGEIDX_ADD) == NULL){
+	if(RealpathAndHandle(pathBuf, addPath, USAGEIDX_ADD) == NULL){
 		exit(1);
 	}
 
-	if((checkType = CheckFileTypeByPath(addPath)) == -1){
-		perror("CheckFileTypeByPath()");
-		exit(1);
-	}
-	if((checkType == SSU_BACKUP_TYPE_DIR) && checkType != addType){
-		fprintf(stderr, "\"%s\" is a directory file\n", addPath);
+	if(CheckBackupCondition(addPath, addType) == -1){
 		exit(1);
 	}
 
@@ -61,8 +55,8 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	GetBackupPath(destPath);
-	if((backupTree = PathToFileTree(destPath, hashMode)) == NULL){
+	GetBackupPath(pathBuf);
+	if((backupTree = PathToFileTree(pathBuf, hashMode)) == NULL){
 		perror("PathToFileTree()");
 		exit(1);
 	}
@@ -71,17 +65,48 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	strcpy(pathBuf, addPath);
-	GetBackupPath(destPath);
-	ExtractHomePath(pathBuf);
-	if(strlen(pathBuf) != 0){
-		ConcatPath(destPath, pathBuf);
-	}
+	strcpy(destPath, addPath);
+	SourcePathToBackupPath(destPath);
 	//Comment: destPath와 addPath는 부모디렉토리가 아닌 백업하려는 파일의 경로가 들어가게됨.
 	//	백업 경로가 홈디렉토리도 허용됨.
 	if(AddBackupByFileTree(destPath, addPath, backupTree, addTree, hashMode) == -1){
 		perror("AddBackupByFileTree()");
 		exit(1);
+	}
+
+	exit(0);
+}
+
+int CheckBackupCondition(const char* path, int addType)
+{
+	char* homeDir = getenv("HOME");
+	int checkType;
+	char temp_path[SSU_BACKUP_MAX_PATH_SZ];
+
+	if(strncmp(homeDir, path, strlen(homeDir)) != 0){
+		fprintf(stdout, "<%s> can't be backuped\n", path);
+		return -1;
+	}
+
+	GetBackupPath(temp_path);
+	if(strncmp(temp_path, path, strlen(temp_path)) == 0){
+		fprintf(stdout, "<%s> can't be backuped\n", path);
+		return -1;
+	}
+
+	if((checkType = CheckFileTypeByPath(path)) == SSU_BACKUP_TYPE_OTHER){
+		fputs("일반 파일이나 디렉토리가 아닙니다.", stderr);
+		return -1;
+	}
+
+	if(checkType == SSU_BACKUP_TYPE_ERROR){
+		perror("CheckFileTypeByPath()");
+		return -1;
+	}
+
+	if((checkType == SSU_BACKUP_TYPE_DIR) && checkType != addType){
+		fprintf(stderr, "\"%s\" is a directory file\n", path);
+		return -1;
 	}
 
 	return 0;

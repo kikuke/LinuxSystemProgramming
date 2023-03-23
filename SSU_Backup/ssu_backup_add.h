@@ -8,4 +8,8 @@
 //	성공시 0, 실패시 -1 리턴
 int AddBackupByFileTree(const char* backupPath, const char* addPath, struct filetree* backupTree, struct filetree* addTree, int hashMode);
 
+//Comment: Backup조건에 맞는 경로인지 평가합니다.
+//	조건을 만족하면 0, 만족하지 않으면 -1을 리턴합니다.
+int CheckBackupCondition(const char* path, int addType);
+
 #endif
