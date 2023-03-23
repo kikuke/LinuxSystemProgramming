@@ -54,8 +54,18 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	//Todo: C옵션일 경우 처리
-	//	없을경우 예외처리도 해주기
+	if((hashMode = GetHashMode()) == -1){
+		fputs("GetHashMode() Failed!\n", stderr);
+		exit(1);
+	}
+
+	if(removeType == SSU_BACKUP_TYPE_CLEAR){
+		if(ClearBackupFolder(hashMode) == -1){
+			perror("ClearBackupFolder()");
+			exit(1);
+		}
+		exit(0);
+	}
 
 	//Comment: 가상으로 상대경로를 절대경로로 바꿔줍니다.
 	//	././../.., ~/././.. 와 같은 표현 모두 가능합니다.
@@ -65,11 +75,6 @@ int main(int argc, char* argv[])
 	}
 
 	if(CheckRemovePathCondition(removePath) == -1){
-		exit(1);
-	}
-
-	if((hashMode = GetHashMode()) == -1){
-		fputs("GetHashMode() Failed!\n", stderr);
 		exit(1);
 	}
 
@@ -230,6 +235,42 @@ int RemoveFileByFileTree(const char* destPath, const char* originPath, struct fi
 			fputs("Undefined removeType\n", stderr);
 			return -1;
 			break;
+	}
+
+	return 0;
+}
+
+int ClearBackupFolder(int hashMode)
+{
+	struct filetree* backupTree;
+	struct filetree* cTree;
+	int foldCnt, fileCnt;
+	char destPath[SSU_BACKUP_MAX_PATH_SZ];
+
+	GetBackupPath(destPath);
+
+	if((backupTree = PathToFileTree(destPath, hashMode)) == NULL){
+		perror("PathToFileTree()");
+		return -1;
+	}
+
+	foldCnt = 0, fileCnt = 0;
+	for(int i=0; i<backupTree->childNodeNum; i++){
+		cTree = backupTree->childNodes[i];
+		if(strcmp(cTree->file, SSU_BACKUP_HASH_SET_FILE) == 0)
+			continue;
+
+		GetBackupPath(destPath);
+		ConcatPath(destPath, cTree->file);
+		if(RemoveBackupFolderByFileTree(destPath, cTree, &foldCnt, &fileCnt, 1) == -1){
+			perror("RemoveBackupFolderByFileTree()");
+			return -1;
+		}
+	}
+	if(foldCnt > 0 || fileCnt > 0){
+		printf("backup directoy cleared(%d regular files and %d subdirectories totally).\n", fileCnt, foldCnt);
+	} else {
+		puts("no file(s) in the backup");
 	}
 
 	return 0;

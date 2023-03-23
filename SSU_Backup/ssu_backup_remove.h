@@ -23,4 +23,8 @@ int RemoveBackupFolderByFileTree(const char* removePath, struct filetree* remove
 //  성공시 0, 실패시 -1을 리턴합니다.
 int RemoveFileByFileTree(const char* destPath, const char* originPath, struct filetree** removeTrees, int listNum, int removeType);
 
+//Comment: 백업폴더를 제외한 모든 파일을 지웁니다.
+//  성공시 0, 실패시 -1을 리턴합니다.
+int ClearBackupFolder(int hashMode);
+
 #endif
