@@ -52,7 +52,7 @@ int main(int argc, char* argv[])
 		endFlag = execute_cmd(shell_buf);
 	}
 
-	return 0;
+	exit(0);
 }
 
 int StringToArray(char* srcStr, char*** destArr, const char* parser)

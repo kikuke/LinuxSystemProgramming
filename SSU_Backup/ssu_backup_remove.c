@@ -72,8 +72,18 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
+	GetBackupPath(pathBuf);
+	if((backupTree = PathToFileTree(pathBuf, hashMode)) == NULL){
+		perror("PathToFileTree()");
+		exit(1);
+	}
+
 	strcpy(destPath, removePath);
 	SourcePathToBackupPath(destPath);
+	strcpy(pathBuf, destPath);
+	ExtractHomePath(pathBuf);
+	if((removeTree = FindFileTreeInPath(pathBuf, backupTree)) == NULL){
+	}
 
 /*
 	if((checkType = CheckFileTypeByPath(addPath)) == -1){
@@ -95,7 +105,7 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 */
-	return 0;
+	exit(0);
 }
 
 int RemoveBackupByFileTree(const char* backupPath, const char* addPath, struct filetree* backupTree, struct filetree* addTree, int hashMode)

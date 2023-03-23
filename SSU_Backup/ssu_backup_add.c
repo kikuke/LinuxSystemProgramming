@@ -124,12 +124,10 @@ int AddBackupByFileTree(const char* backupPath, const char* addPath, struct file
 	if(strncmp(checkBackupPath, addPath, strlen(checkBackupPath)) == 0)
 		return 0;
 
-	//Todo: 여기서 이렇게 처리해서 검사하는게 문제가 됨. 좀더 뒤로 미루거나 하기
 	strcpy(backupTreePath, backupPath);
 	ExtractHomePath(backupTreePath);
-	matchedTree = FindFileTreeInPath(backupTreePath, backupTree, 1);
 	//Comment: 일치하는 백업파일이 없는 경우 해당 하위 파일 모두 생성
-	if(matchedTree == NULL)
+	if((matchedTree = FindFileTreeInPath(backupTreePath, backupTree, 1)) == NULL)
 	{
 		if(MakeDirPath(backupPath) == -1)
 			return -1;
@@ -151,7 +149,6 @@ int AddBackupByFileTree(const char* backupPath, const char* addPath, struct file
 		return CreateFileByFileTree(backupPath, addPath, addTree, 0);
 	}
 
-	//Todo: 얘도 여기 위치 맞는지
 	//Comment: 폴더의 경우 재귀 호출
 	for(int i=0; i < addTree->childNodeNum; i++){
 		strcpy(backupTreePath, backupPath);
