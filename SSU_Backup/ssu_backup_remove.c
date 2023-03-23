@@ -165,6 +165,7 @@ int RemoveFileSelector(const char* parentPath, const char* originPath, const str
 {
 	int sellect;
 	char c;
+	struct filetree* pTree;
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 
 	sellect = -1;
@@ -186,8 +187,16 @@ int RemoveFileSelector(const char* parentPath, const char* originPath, const str
 	ConcatPath(pathBuf, removeTrees[sellect-1]->file);
 	if(unlink(pathBuf) == -1)
 		return -1;
-
 	printf("\"%s\" backup file removed\n", pathBuf);
+
+	//Comment: Remove Folder if empty
+	if((pTree = removeTrees[0]->parentNode) != NULL){
+		if(pTree->childNodeNum == listNum){
+			if(rmdir(parentPath) == -1)
+				return -1;
+		}
+	}
+
 	return 0;
 }
 
@@ -221,7 +230,6 @@ int RemoveBackupFolderByFileTree(const char* removePath, struct filetree* remove
 {
 	char nextRemovePath[SSU_BACKUP_MAX_PATH_SZ];
 
-	//Comment: 해시값이 같은 파일이 있는지 검사후 없으면 생성
 	if(removeTree->childNodeNum == 0){
 		if(unlink(removePath) == -1)
 			return -1;
