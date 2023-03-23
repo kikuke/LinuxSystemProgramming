@@ -66,6 +66,7 @@ int main(int argc, char* argv[])
 		fprintf(stdout, "<%s> can't be backuped\n", removePath);
 		exit(1);
 	}
+	//Todo: 위에거 말고도 다른거 경로 에러핸들링 처리
 
 	if((hashMode = GetHashMode()) == -1){
 		fputs("GetHashMode() Failed!\n", stderr);
@@ -82,8 +83,12 @@ int main(int argc, char* argv[])
 	SourcePathToBackupPath(destPath);
 	strcpy(pathBuf, destPath);
 	ExtractHomePath(pathBuf);
-	if((removeTree = FindFileTreeInPath(pathBuf, backupTree)) == NULL){
+	if((removeTree = FindFileTreeInPath(pathBuf, backupTree, 1)) == NULL){
+		Usage(USAGEIDX_REMOVE);
+		exit(1);
 	}
+
+	//Todo: 이제 상위로 올라가서 일치하는거 뒤져보기
 
 /*
 	if((checkType = CheckFileTypeByPath(addPath)) == -1){
