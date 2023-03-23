@@ -11,6 +11,7 @@ int CheckFileTypeCondition(const char* originPath, int removeType, int checkType
 
 //Comment: 파일 선택기를 통해 파일을 제거합니다.
 //	성공시 0 실패시 -1을 리턴합니다.
+//  Remove Folder if empty
 int RemoveFileSelector(const char* parentPath, const char* originPath, const struct filetree** removeTrees, int listNum);
 
 //Comment: removeTrees에 담긴 위치의 파일들을 모두 지웁니다.
