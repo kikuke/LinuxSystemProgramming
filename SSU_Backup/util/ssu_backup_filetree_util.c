@@ -171,6 +171,27 @@ int FindAllFileTreeInPath(const char* path, struct filetree* ftree, struct filet
 	return matchCnt;
 }
 
+int PrintFileTreeList(const char* parentFilePath, const struct filetree** fileTreeList, int listNum)
+{
+	struct stat f_stat;
+	char intBuf[SSU_BACKUP_MAX_PRINT_INT_BUF];
+	char fileName[SSU_BACKUP_MAX_FILENAME];
+	char filePath[SSU_BACKUP_MAX_PATH_SZ];
+
+	for(int i=0; i<listNum; i++){
+		strcpy(filePath, parentFilePath);
+		ConcatPath(filePath, fileTreeList[i]->file);
+		if(stat(filePath, &f_stat) == -1)
+			return -1;
+
+		GetCreateTimeByFileTree(fileName, fileTreeList[i]);
+		IntToCommaString(f_stat.st_size, intBuf);
+		printf("%d. %s    %sbytes\n", i + 1, fileName, intBuf);
+	}
+
+	return 0;
+}
+
 struct filetree* FileToFileTree(const char* path, int hashMode)
 {
 	char* fileName = NULL;

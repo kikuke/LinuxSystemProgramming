@@ -182,3 +182,26 @@ int GetNowTime(char* buf)
 	
 	return 0;
 }
+
+char* IntToCommaString(int integer, char* buf)
+{
+	size_t intLen;
+	size_t idx;
+	char tempBuf[SSU_BACKUP_MAX_PRINT_INT_BUF];
+
+	sprintf(tempBuf, "%d", integer);
+	intLen = strlen(tempBuf);
+	idx = 0;
+	for(size_t i=0; i < intLen; i++){
+		if(((intLen - i) % 3) == 0 && i != 0){
+			buf[idx] = ',';
+			idx++;
+		}
+
+		buf[idx] = tempBuf[i];
+		idx++;
+	}
+	buf[idx] = '\0';
+
+	return buf;
+}

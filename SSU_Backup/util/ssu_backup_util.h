@@ -39,4 +39,7 @@ int CopyFile(const char* destPath, const char* sourcePath);
 //	성공시 0 실패시 -1을 리턴합니다.
 int GetNowTime(char* buf);
 
+//Comment: int를 1000단위 컴마가 찍힌 스트링으로 변환해줍니다.
+char* IntToCommaString(int integer, char* buf);
+
 #endif

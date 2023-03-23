@@ -29,6 +29,10 @@ struct filetree* FindFileTreeInPath(const char* path, struct filetree* ftree, in
 //	이름이 일치한 파일의 개수를 리턴합니다.
 int FindAllFileTreeInPath(const char* path, struct filetree* ftree, struct filetree*** matchedTrees, int isBackup);
 
+//Comment: 파일트리 리스트를 출력합니다.
+//	정상 종료시 0 비정상 종료시 -1을 리턴합니다.
+int PrintFileTreeList(const char* parentFilePath, const struct filetree** fileTreeList, int listNum);
+
 //Comment: 해당 경로의 파일을 파일트리로 바꿔줍니다.
 // 실패시 NULL을 리턴합니다.
 struct filetree* FileToFileTree(const char* path, int hashMode);

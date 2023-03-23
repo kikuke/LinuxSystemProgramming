@@ -89,11 +89,9 @@ int main(int argc, char* argv[])
 	}
 
 	//Test
-	for(int i=0; i<matchNum; i++){
-		char fileName[SSU_BACKUP_MAX_FILENAME];
-		GetCreateTimeByFileTree(fileName, removeTrees[i]);
-		puts(fileName);
-	}
+	GetParentPath(destPath, pathBuf);
+	PrintFileTreeList(pathBuf, (const struct filetree**)removeTrees, matchNum);
+	//TestEnd
 
 	GetParentPath(destPath, pathBuf);
 	ConcatPath(pathBuf, removeTrees[0]->file);

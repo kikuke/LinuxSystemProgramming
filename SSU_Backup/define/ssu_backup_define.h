@@ -26,6 +26,8 @@
 #define SSU_BACKUP_TYPE_OTHER 2
 #define SSU_BACKUP_TYPE_CLEAR 3
 
+#define SSU_BACKUP_MAX_PRINT_INT_BUF 16
+
 //##### Define Command #####
 #define SSU_BACKUP_ADD "add"
 #define SSU_BACKUP_ADD_PATH "ssu_backup_add"
