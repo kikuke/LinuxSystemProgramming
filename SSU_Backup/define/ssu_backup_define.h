@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 
 #define SSU_BACKUP_SHELL_NAME "20192388>" 
+#define SSU_BACKUP_SHELL_SELLECTOR ">>"
 #define SSU_BACKUP_SHELL_MAX_BUF_SZ 16384
 
 #define SSU_BACKUP_ROOT_DIR_NAME "backup"

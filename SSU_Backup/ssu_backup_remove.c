@@ -88,27 +88,21 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	//Test
-	GetParentPath(destPath, pathBuf);
-	PrintFileTreeList(pathBuf, (const struct filetree**)removeTrees, matchNum);
-	//TestEnd
-
 	GetParentPath(destPath, pathBuf);
 	ConcatPath(pathBuf, removeTrees[0]->file);
 	if(CheckFileTypeCondition(pathBuf, removePath, removeType) == -1){
 		exit(1);
 	}
-/*
-	GetBackupPath(destPath);
-	if((backupTree = PathToFileTree(destPath, hashMode)) == NULL){
-		perror("PathToFileTree()");
-		exit(1);
+
+	//Todo: 나중에 케이스로 해서 함수화 하기
+	if(removeType == SSU_BACKUP_TYPE_REG){
+		GetParentPath(destPath, pathBuf);
+		if(RemoveFileSelector(pathBuf, removePath, (const struct filetree**)removeTrees, matchNum) == - 1){
+			perror("RemoveFileSelector()");
+			exit(1);
+		}
 	}
-	if((addTree = PathToFileTree(addPath, hashMode)) == NULL){
-		perror("PathToFileTree()");
-		exit(1);
-	}
-*/
+
 	exit(0);
 }
 
@@ -153,6 +147,36 @@ int CheckFileTypeCondition(const char* destPath, const char* originPath, int rem
 		return -1;
 	}
 
+	return 0;
+}
+
+int RemoveFileSelector(const char* parentPath, const char* originPath, const struct filetree** removeTrees, int listNum)
+{
+	int sellect;
+	char c;
+	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+
+	sellect = -1;
+	while(sellect < 0 || sellect > listNum){
+		printf("backup file list of \"%s\"\n", originPath);
+		puts("0. exit");
+		PrintFileTreeList(parentPath, removeTrees, listNum);
+		puts("Choose file to remove");
+		printf("%s ", SSU_BACKUP_SHELL_SELLECTOR);
+		if(!scanf("%d", &sellect)){
+			puts("Wrong Input!\n");
+			while((c = getchar()) != '\n' && c != EOF);
+		}
+	}
+	if(sellect == 0)
+		return 0;
+
+	strcpy(pathBuf, parentPath);
+	ConcatPath(pathBuf, removeTrees[sellect-1]->file);
+	if(unlink(pathBuf) == -1)
+		return -1;
+
+	printf("\"%s\" backup file removed\n", pathBuf);
 	return 0;
 }
 
