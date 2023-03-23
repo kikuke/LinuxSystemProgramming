@@ -102,8 +102,8 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	//Comment: 파일에 -a 옵션을 사용한 경우
-	if(removeType == SSU_BACKUP_TYPE_DIR && checkType == SSU_BACKUP_TYPE_REG){
+	//Comment: 파일에 -a 옵션을 사용한 경우 or has unique file
+	if(matchNum == 1 || (removeType == SSU_BACKUP_TYPE_DIR && checkType == SSU_BACKUP_TYPE_REG)){
 		GetParentPath(destPath, pathBuf);
 		if(RemoveFileByFileTreeList(pathBuf, (const struct filetree**)removeTrees, matchNum) == -1){
 			perror("RemoveFileByFileTreeList()");
