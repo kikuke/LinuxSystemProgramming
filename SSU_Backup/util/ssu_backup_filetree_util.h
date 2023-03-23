@@ -9,6 +9,10 @@
 //	반드시 백업경로의 트리어야 합니다.
 char* GetRealNameByFileTree(char* buf, const struct filetree* ftree);
 
+//Comment: 해당 트리가 백업 파일일 경우 생성 시간을 리턴합니다.
+//	폴더일 경우 NULL을 리턴합니다.
+char* GetCreateTimeByFileTree(char* buf, const struct filetree* ftree);
+
 //Comment: 해당 버퍼 뒤로 파일트리의 중간을 부모노드로 거슬로 올라가며 파일의 경로를 찾아줍니다.
 //	이때 넣는 버퍼는 파일트리 이전의 경로값을 넣어진 상태여야 정상 작동합니다.
 //	isBackup은 0이 기본값인데, 0이 아닌 값으로 설정 시 백업폴더의 파일들로 간주하여 파일의 저장 시간 정보를 지운 패스가 반영됩니다. 
@@ -18,6 +22,12 @@ char* GetPathByFileTree(char* buf, struct filetree* ftree, int isBackup);
 //	발견하지 못했다면 NULL을 리턴합니다.
 // isBackup이 0이 아니면 ftree를 백업파일 트리로 간주하고 검색합니다.
 struct filetree* FindFileTreeInPath(const char* path, struct filetree* ftree, int isBackup);
+
+//Comment: ftree에서 path와 일치하는 경로를 가진 트리를 모두 찾아 matchedTrees에 저장합니다.
+//	matchedTrees에 각 요소들은 ftree의 자식포인터들이지만, 배열자체는 동적할당을 합니다.
+//	matchedTrees는 일치 요소가 없을 경우 NULL이 됩니다.
+//	이름이 일치한 파일의 개수를 리턴합니다.
+int FindAllFileTreeInPath(const char* path, struct filetree* ftree, struct filetree*** matchedTrees, int isBackup);
 
 //Comment: 해당 경로의 파일을 파일트리로 바꿔줍니다.
 // 실패시 NULL을 리턴합니다.

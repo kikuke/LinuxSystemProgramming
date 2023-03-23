@@ -21,6 +21,21 @@ char* GetRealNameByFileTree(char* buf, const struct filetree* ftree)
 
 	fileLen = strlen(ftree->file) - SSU_BACKUP_FILE_META_LEN;
 	strncpy(buf, ftree->file, fileLen);
+	buf[fileLen] = '\0';
+
+	return buf;
+}
+
+char* GetCreateTimeByFileTree(char* buf, const struct filetree* ftree)
+{
+	size_t fileLen;
+
+	if(ftree->childNodeNum != 0){
+		return NULL;
+	}
+
+	fileLen = strlen(ftree->file) - SSU_BACKUP_FILE_META_LEN;
+	strcpy(buf, (ftree->file) + fileLen + 1);
 
 	return buf;
 }
@@ -91,6 +106,69 @@ struct filetree* FindFileTreeInPath(const char* path, struct filetree* ftree, in
 			return retTree;
 	}
 	return NULL;
+}
+
+int FindAllFileTreeInPath(const char* path, struct filetree* ftree, struct filetree*** matchedTrees, int isBackup)
+{
+	int matchCnt;
+	int idx;
+	struct filetree* pTree;
+	struct filetree* cTree;
+	struct filetree* mTree;
+	char fileName[SSU_BACKUP_MAX_FILENAME];
+	char cmpFileName[SSU_BACKUP_MAX_FILENAME];
+
+	if((mTree = FindFileTreeInPath(path, ftree, isBackup)) == NULL){
+		matchedTrees = NULL;
+		return 0;
+	}
+
+	matchCnt = 0;
+	//Comment: 폴더이거나 부모노드가 없는 경우 그대로 리턴
+	if(mTree->childNodeNum > 0 || ((pTree = mTree->parentNode) == NULL)){
+		matchCnt++;
+		(*matchedTrees) = (struct filetree**)malloc(sizeof(struct filetree*) * matchCnt);
+		(*matchedTrees)[matchCnt - 1] = mTree;
+
+		return matchCnt;
+	}
+
+	if(isBackup){
+		GetRealNameByFileTree(fileName, mTree);
+	} else {
+		strcpy(fileName, mTree->file);
+	}
+	for(int i=0; i < pTree->childNodeNum; i++){
+		cTree = pTree->childNodes[i];
+		if(cTree->childNodeNum != 0)
+			continue;
+
+		if(isBackup){
+			GetRealNameByFileTree(cmpFileName, cTree);
+		} else {
+			strcpy(cmpFileName, cTree->file);
+		}
+
+		if(strcmp(fileName, cmpFileName) == 0){
+			matchCnt++;
+		}
+	}
+
+	idx = 0;
+	(*matchedTrees) = (struct filetree**)malloc(sizeof(struct filetree*) * matchCnt);
+	for(int i=0; i < pTree->childNodeNum; i++){
+		cTree = pTree->childNodes[i];
+		if(cTree->childNodeNum != 0)
+			continue;
+
+		GetRealNameByFileTree(cmpFileName, cTree);
+		if(strcmp(fileName, cmpFileName) == 0){
+			(*matchedTrees)[idx] = cTree;
+			idx++;
+		}
+	}
+
+	return matchCnt;
 }
 
 struct filetree* FileToFileTree(const char* path, int hashMode)

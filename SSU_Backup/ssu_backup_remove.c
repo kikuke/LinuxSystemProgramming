@@ -21,7 +21,8 @@ int main(int argc, char* argv[])
 	char opt;
 	int checkType;
 	struct filetree* backupTree;
-	struct filetree* removeTree;
+	struct filetree** removeTrees;
+	int matchNum;
 
 	if(argc < 2 || argc > 3){
 		Usage(USAGEIDX_REMOVE);
@@ -83,13 +84,18 @@ int main(int argc, char* argv[])
 	SourcePathToBackupPath(destPath);
 	strcpy(pathBuf, destPath);
 	ExtractHomePath(pathBuf);
-	if((removeTree = FindFileTreeInPath(pathBuf, backupTree, 1)) == NULL){
+	//Todo: 이거 말고 All함수 쓰기
+	if((matchNum = FindAllFileTreeInPath(pathBuf, backupTree, &removeTrees, 1)) < 1){
 		Usage(USAGEIDX_REMOVE);
 		exit(1);
 	}
 
-	//Todo: 이제 상위로 올라가서 일치하는거 뒤져보기
-
+	//Test
+	for(int i=0; i<matchNum; i++){
+		char fileName[SSU_BACKUP_MAX_FILENAME];
+		GetCreateTimeByFileTree(fileName, removeTrees[i]);
+		puts(fileName);
+	}
 /*
 	if((checkType = CheckFileTypeByPath(addPath)) == -1){
 		perror("CheckFileTypeByPath()");
