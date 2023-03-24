@@ -83,7 +83,7 @@ int main(int argc, char* argv[])
 	strcpy(destPath, removePath);
 	SourcePathToBackupPath(destPath);
 	GetBackupPath(pathBuf);
-	if(strcmp(destPath, pathBuf) == 0){
+	if((removeType == SSU_BACKUP_TYPE_DIR) && (strcmp(destPath, pathBuf) == 0)){
 		if(ClearBackupFolder(hashMode) == -1){
 			perror("ClearBackupFolder()");
 			exit(1);
