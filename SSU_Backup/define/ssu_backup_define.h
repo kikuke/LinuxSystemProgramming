@@ -36,6 +36,9 @@
 #define SSU_BACKUP_REMOVE "remove"
 #define SSU_BACKUP_REMOVE_PATH "ssu_backup_remove"
 
+#define SSU_BACKUP_RECOVER "recover"
+#define SSU_BACKUP_RECOVER_PATH "ssu_backup_recover"
+
 #define SSU_BACKUP_LS "ls"
 #define SSU_BACKUP_LS_PATH "ls"
 

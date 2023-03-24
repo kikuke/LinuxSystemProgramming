@@ -95,6 +95,8 @@ int execute_cmd(char* cmd)
 		p_name = SSU_BACKUP_ADD_PATH;
 	} else if(!strcmp(*cmdArr, SSU_BACKUP_REMOVE)){
 		p_name = SSU_BACKUP_REMOVE_PATH;
+	} else if(!strcmp(*cmdArr, SSU_BACKUP_RECOVER)){
+		p_name = SSU_BACKUP_RECOVER_PATH;
 	} else if(!strcmp(*cmdArr, SSU_BACKUP_LS)){
 		p_name = SSU_BACKUP_LS_PATH;
 	} else if(!strcmp(*cmdArr, SSU_BACKUP_VI)){
