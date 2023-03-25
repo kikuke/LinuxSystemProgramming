@@ -94,44 +94,6 @@ int CheckBackupCondition(const char* path, int addType)
 	return 0;
 }
 
-int AddFileByFileTree(const char* destPath, const char* addPath, const struct filetree* addTree)
-{
-	char addFilePath[SSU_BACKUP_MAX_PATH_SZ];
-	char destFilePath[SSU_BACKUP_MAX_PATH_SZ];
-
-	strcpy(destFilePath, destPath);
-	strcpy(addFilePath, addPath);
-	if(addTree->childNodeNum == 0){
-		if(GetNowTime(destFilePath + strlen(destFilePath)) == -1){
-			perror("GetNowTime()");
-			return -1;
-		}
-		if(CopyFile(destFilePath, addFilePath) == -1){
-			fprintf(stderr, "\"%s\" to \"%s\" CopyFile Failed! - %s\n", addFilePath, destFilePath, strerror(errno));
-			return -1;
-		}
-
-		fprintf(stdout, "\"%s\" backuped\n", destFilePath);
-		return 0;
-	}
-
-	//Comment: 폴더 만들고 재귀 호출
-	if(MakeDirPath(destFilePath) == -1){
-		perror("MakeDirPath()");
-		return -1;
-	}
-	for(int i=0; i < addTree->childNodeNum; i++){
-		strcpy(destFilePath, destPath);
-		ConcatPath(destFilePath, addTree->childNodes[i]->file);
-		strcpy(addFilePath, addPath);
-		ConcatPath(addFilePath, addTree->childNodes[i]->file);
-		if(AddFileByFileTree(destFilePath, addFilePath, addTree->childNodes[i]) == -1)
-			return -1;
-	}
-
-	return 0;
-}
-
 int AddBackupByFileTree(const char* backupPath, const char* addPath, struct filetree* backupTree, struct filetree* addTree, int hashMode)
 {
 	int retVal;
@@ -184,5 +146,43 @@ int AddBackupByFileTree(const char* backupPath, const char* addPath, struct file
 		if(AddBackupByFileTree(backupTreePath, addTreePath, backupTree, addTree->childNodes[i], hashMode) == -1)
 			return -1;
 	}
+	return 0;
+}
+
+int AddFileByFileTree(const char* destPath, const char* addPath, const struct filetree* addTree)
+{
+	char addFilePath[SSU_BACKUP_MAX_PATH_SZ];
+	char destFilePath[SSU_BACKUP_MAX_PATH_SZ];
+
+	strcpy(destFilePath, destPath);
+	strcpy(addFilePath, addPath);
+	if(addTree->childNodeNum == 0){
+		if(GetNowTime(destFilePath + strlen(destFilePath)) == -1){
+			perror("GetNowTime()");
+			return -1;
+		}
+		if(CopyFile(destFilePath, addFilePath) == -1){
+			fprintf(stderr, "\"%s\" to \"%s\" CopyFile Failed! - %s\n", addFilePath, destFilePath, strerror(errno));
+			return -1;
+		}
+
+		fprintf(stdout, "\"%s\" backuped\n", destFilePath);
+		return 0;
+	}
+
+	//Comment: 폴더 만들고 재귀 호출
+	if(MakeDirPath(destFilePath) == -1){
+		perror("MakeDirPath()");
+		return -1;
+	}
+	for(int i=0; i < addTree->childNodeNum; i++){
+		strcpy(destFilePath, destPath);
+		ConcatPath(destFilePath, addTree->childNodes[i]->file);
+		strcpy(addFilePath, addPath);
+		ConcatPath(addFilePath, addTree->childNodes[i]->file);
+		if(AddFileByFileTree(destFilePath, addFilePath, addTree->childNodes[i]) == -1)
+			return -1;
+	}
+
 	return 0;
 }

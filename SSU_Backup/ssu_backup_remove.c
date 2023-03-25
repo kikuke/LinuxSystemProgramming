@@ -112,38 +112,19 @@ int main(int argc, char* argv[])
 	exit(0);
 }
 
-int RemoveBackupByFileTree(const char* removePath, struct filetree* removeTree, int* foldCnt, int* fileCnt, int isSilent)
+int RemoveFileByFileTree(const char* destPath, const char* originPath, struct filetree** removeTrees, int listNum, int removeType)
 {
-	char nextRemovePath[SSU_BACKUP_MAX_PATH_SZ];
+	int foldCnt, fileCnt;
+	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 
-	if(removeTree->childNodeNum == 0){
-		if(unlink(removePath) == -1){
-			fprintf(stderr, "\"%s\" unlink Failed! - %s\n", removePath, strerror(errno));
-			return -1;
-		}
-		(*fileCnt)++;
-
-		if(!isSilent){
-			printf("\"%s\" backup file removed\n", removePath);
-		}
-		return 0;
+	//Comment: -a 옵션을 사용한 경우 or 파일이 하나일 경우
+	if(removeType == SSU_BACKUP_TYPE_DIR || listNum == 1){
+		GetParentPath(destPath, pathBuf);
+		
+		return RemoveFileByFileTreeList(pathBuf, removeTrees, listNum);
 	}
 
-	//Comment: 폴더의 경우 재귀 호출
-	for(int i=0; i < removeTree->childNodeNum; i++){
-		strcpy(nextRemovePath, removePath);
-		ConcatPath(nextRemovePath, removeTree->childNodes[i]->file);
-		if(RemoveBackupByFileTree(nextRemovePath, removeTree->childNodes[i], foldCnt, fileCnt, isSilent) == -1)
-			return -1;
-	}
-
-	if(rmdir(removePath) == -1){
-		fprintf(stderr, "\"%s\" rmdir Failed! - %s\n", removePath, strerror(errno));
-		return -1;
-	}
-	(*foldCnt)++;
-
-	return 0;
+	return RemoveFileSelector(pathBuf, originPath, removeTrees, listNum);
 }
 
 int RemoveFileByFileTreeList(const char* parentPath, struct filetree** removeTrees, int listNum)
@@ -189,21 +170,6 @@ int RemoveFileSelector(const char* parentPath, const char* originPath, struct fi
 	return RemoveBackupByFileTree(removePath, removeTrees[sellect-1], &foldCnt, &fileCnt, 0);
 }
 
-int RemoveFileByFileTree(const char* destPath, const char* originPath, struct filetree** removeTrees, int listNum, int removeType)
-{
-	int foldCnt, fileCnt;
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
-
-	//Comment: -a 옵션을 사용한 경우 or 파일이 하나일 경우
-	if(removeType == SSU_BACKUP_TYPE_DIR || listNum == 1){
-		GetParentPath(destPath, pathBuf);
-		
-		return RemoveFileByFileTreeList(pathBuf, removeTrees, listNum);
-	}
-
-	return RemoveFileSelector(pathBuf, originPath, removeTrees, listNum);
-}
-
 int ClearBackup(int hashMode)
 {
 	struct filetree* backupTree;
@@ -236,6 +202,40 @@ int ClearBackup(int hashMode)
 	} else {
 		puts("no file(s) in the backup");
 	}
+
+	return 0;
+}
+
+int RemoveBackupByFileTree(const char* removePath, struct filetree* removeTree, int* foldCnt, int* fileCnt, int isSilent)
+{
+	char nextRemovePath[SSU_BACKUP_MAX_PATH_SZ];
+
+	if(removeTree->childNodeNum == 0){
+		if(unlink(removePath) == -1){
+			fprintf(stderr, "\"%s\" unlink Failed! - %s\n", removePath, strerror(errno));
+			return -1;
+		}
+		(*fileCnt)++;
+
+		if(!isSilent){
+			printf("\"%s\" backup file removed\n", removePath);
+		}
+		return 0;
+	}
+
+	//Comment: 폴더의 경우 재귀 호출
+	for(int i=0; i < removeTree->childNodeNum; i++){
+		strcpy(nextRemovePath, removePath);
+		ConcatPath(nextRemovePath, removeTree->childNodes[i]->file);
+		if(RemoveBackupByFileTree(nextRemovePath, removeTree->childNodes[i], foldCnt, fileCnt, isSilent) == -1)
+			return -1;
+	}
+
+	if(rmdir(removePath) == -1){
+		fprintf(stderr, "\"%s\" rmdir Failed! - %s\n", removePath, strerror(errno));
+		return -1;
+	}
+	(*foldCnt)++;
 
 	return 0;
 }
