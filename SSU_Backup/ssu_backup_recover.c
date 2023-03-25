@@ -116,6 +116,80 @@ int main(int argc, char* argv[])
 	exit(0);
 }
 
+int RecoverBackupByFileTree(const char* backupPath, const char* recoverPath, struct filetree* backupTree, struct filetree* recoverTree, int hashMode)
+{
+	int retVal;
+	int backupCheckType;
+	int recoverCheckType;
+	int matchNum;
+	struct filetree** recoverTrees;
+	char checkBackupPath[SSU_BACKUP_MAX_PATH_SZ];
+	char backupTreePath[SSU_BACKUP_MAX_PATH_SZ];
+	char recoverTreePath[SSU_BACKUP_MAX_PATH_SZ];
+
+	GetBackupPath(checkBackupPath);
+	//Comment: 백업 패스인 경우 제외
+	if(strncmp(checkBackupPath, recoverPath, strlen(checkBackupPath)) == 0)
+		return 0;
+
+	strcpy(backupTreePath, backupPath);
+	ExtractHomePath(backupTreePath);
+	//Comment: 해당 경로에 대해 모든 일치하는 백업트리를 찾음.
+	if((matchNum = FindAllFileTreeInPath(backupTreePath, backupTree, &recoverTrees, 1)) < 1){
+		fprintf(stderr, "\"%s\" FindAllFileTreeInPath() Failed! - %s\n", backupPath, strerror(errno));
+		return -1;
+	}
+
+	//Todo: CreateFileByFileTree 보면서 추가하고 그함수도 리커버 인수 지우는걸로 수정하기
+	//	수정 다 끝나면 저 함수 파일트리 유틸에서 애드함수로 옮겨주기.
+	//Comment: 복원지점에 폴더나 파일이 없는 경우
+	if(recoverTree == NULL){
+		//Todo: 평가없이 생성하는 함수 만들기
+		//	파일 체크없이 쭉 생성하는 함수. 위에 함수 참고해서 구현하기.
+		//	아래에서는 파일타입검사후, 생성여부를 결정함. 아래에서도 위의 함수를 쓰긴함.
+		return
+	}
+
+
+	if((matchedTree = FindFileTreeInPath(backupTreePath, backupTree, 1)) == NULL)
+	{
+		if(MakeDirPath(backupPath) == -1)
+			return -1;
+		return CreateFileByFileTree(backupPath, addPath, addTree, 0);
+	}
+
+	//Comment: 해시값이 같은 파일이 있는지 검사후 없으면 생성
+	if(addTree->childNodeNum == 0){
+		struct filetree* pTree = matchedTree->parentNode;
+		if(pTree != NULL){
+			for(int i=0; i < pTree->childNodeNum; i++){
+				GetParentPath(backupPath, backupTreePath);
+				ConcatPath(backupTreePath, pTree->childNodes[i]->file);
+				if((retVal = CompareHashByPath(backupTreePath, addPath, hashMode)) == -1)
+					return -1;
+
+				if(retVal == 1){
+					fprintf(stdout, "\"%s\" is already backuped\n", backupTreePath);
+					return 0;
+				}
+			}
+		}
+
+		return CreateFileByFileTree(backupPath, addPath, addTree, 0);
+	}
+
+	//Comment: 폴더의 경우 재귀 호출
+	for(int i=0; i < addTree->childNodeNum; i++){
+		strcpy(backupTreePath, backupPath);
+		ConcatPath(backupTreePath, addTree->childNodes[i]->file);
+		strcpy(addTreePath, addPath);
+		ConcatPath(addTreePath, addTree->childNodes[i]->file);
+		if(RecoverBackupByFileTree(backupTreePath, addTreePath, backupTree, addTree->childNodes[i], hashMode) == -1)
+			return -1;
+	}
+	return 0;
+}
+
 int RecoverFileSelector(const char* parentPath, const char* originPath, const struct filetree** recoverTrees, int listNum)
 {
 	int sellect;
@@ -198,79 +272,5 @@ int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, const
 			return -1;
 	}
 
-	return 0;
-}
-
-int RecoverBackupByFileTree(const char* backupPath, const char* recoverPath, struct filetree* backupTree, struct filetree* recoverTree, int hashMode)
-{
-	int retVal;
-	int backupCheckType;
-	int recoverCheckType;
-	int matchNum;
-	struct filetree** recoverTrees;
-	char checkBackupPath[SSU_BACKUP_MAX_PATH_SZ];
-	char backupTreePath[SSU_BACKUP_MAX_PATH_SZ];
-	char recoverTreePath[SSU_BACKUP_MAX_PATH_SZ];
-
-	GetBackupPath(checkBackupPath);
-	//Comment: 백업 패스인 경우 제외
-	if(strncmp(checkBackupPath, recoverPath, strlen(checkBackupPath)) == 0)
-		return 0;
-
-	strcpy(backupTreePath, backupPath);
-	ExtractHomePath(backupTreePath);
-	//Comment: 해당 경로에 대해 모든 일치하는 백업트리를 찾음.
-	if((matchNum = FindAllFileTreeInPath(backupTreePath, backupTree, &recoverTrees, 1)) < 1){
-		fprintf(stderr, "\"%s\" FindAllFileTreeInPath() Failed! - %s\n", backupPath, strerror(errno));
-		return -1;
-	}
-
-	//Todo: CreateFileByFileTree 보면서 추가하고 그함수도 리커버 인수 지우는걸로 수정하기
-	//	수정 다 끝나면 저 함수 파일트리 유틸에서 애드함수로 옮겨주기.
-	//Comment: 복원지점에 폴더나 파일이 없는 경우
-	if(recoverTree == NULL){
-		//Todo: 평가없이 생성하는 함수 만들기
-		//	파일 체크없이 쭉 생성하는 함수. 위에 함수 참고해서 구현하기.
-		//	아래에서는 파일타입검사후, 생성여부를 결정함. 아래에서도 위의 함수를 쓰긴함.
-		return
-	}
-
-
-	if((matchedTree = FindFileTreeInPath(backupTreePath, backupTree, 1)) == NULL)
-	{
-		if(MakeDirPath(backupPath) == -1)
-			return -1;
-		return CreateFileByFileTree(backupPath, addPath, addTree, 0);
-	}
-
-	//Comment: 해시값이 같은 파일이 있는지 검사후 없으면 생성
-	if(addTree->childNodeNum == 0){
-		struct filetree* pTree = matchedTree->parentNode;
-		if(pTree != NULL){
-			for(int i=0; i < pTree->childNodeNum; i++){
-				GetParentPath(backupPath, backupTreePath);
-				ConcatPath(backupTreePath, pTree->childNodes[i]->file);
-				if((retVal = CompareHashByPath(backupTreePath, addPath, hashMode)) == -1)
-					return -1;
-
-				if(retVal == 1){
-					fprintf(stdout, "\"%s\" is already backuped\n", backupTreePath);
-					return 0;
-				}
-			}
-		}
-
-		return CreateFileByFileTree(backupPath, addPath, addTree, 0);
-	}
-
-	//Comment: 폴더의 경우 재귀 호출
-	for(int i=0; i < addTree->childNodeNum; i++){
-		strcpy(backupTreePath, backupPath);
-		ConcatPath(backupTreePath, addTree->childNodes[i]->file);
-		strcpy(addTreePath, addPath);
-		ConcatPath(addTreePath, addTree->childNodes[i]->file);
-		if(RecoverBackupByFileTree(backupTreePath, addTreePath, backupTree, addTree->childNodes[i], hashMode) == -1)
-			return -1;
-	}
 	return 0;
 }

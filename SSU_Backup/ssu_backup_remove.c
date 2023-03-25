@@ -78,8 +78,8 @@ int main(int argc, char* argv[])
 	SourcePathToBackupPath(destPath);
 	GetBackupPath(pathBuf);
 	if((removeType == SSU_BACKUP_TYPE_DIR) && (strcmp(destPath, pathBuf) == 0)){
-		if(ClearBackupFolder(hashMode) == -1){
-			perror("ClearBackupFolder()");
+		if(ClearBackup(hashMode) == -1){
+			perror("ClearBackup()");
 			exit(1);
 		}
 		exit(0);
@@ -123,6 +123,40 @@ int main(int argc, char* argv[])
 	exit(0);
 }
 
+int RemoveBackupByFileTree(const char* removePath, struct filetree* removeTree, int* foldCnt, int* fileCnt, int isSilent)
+{
+	char nextRemovePath[SSU_BACKUP_MAX_PATH_SZ];
+
+	if(removeTree->childNodeNum == 0){
+		if(unlink(removePath) == -1){
+			fprintf(stderr, "\"%s\" unlink Failed! - %s\n", removePath, strerror(errno));
+			return -1;
+		}
+		(*fileCnt)++;
+
+		if(!isSilent){
+			printf("\"%s\" backup file removed\n", removePath);
+		}
+		return 0;
+	}
+
+	//Comment: 폴더의 경우 재귀 호출
+	for(int i=0; i < removeTree->childNodeNum; i++){
+		strcpy(nextRemovePath, removePath);
+		ConcatPath(nextRemovePath, removeTree->childNodes[i]->file);
+		if(RemoveBackupByFileTree(nextRemovePath, removeTree->childNodes[i], foldCnt, fileCnt, isSilent) == -1)
+			return -1;
+	}
+
+	if(rmdir(removePath) == -1){
+		fprintf(stderr, "\"%s\" rmdir Failed! - %s\n", removePath, strerror(errno));
+		return -1;
+	}
+	(*foldCnt)++;
+
+	return 0;
+}
+
 int RemoveFileByFileTreeList(const char* parentPath, struct filetree** removeTrees, int listNum)
 {
 	int foldCnt=0, fileCnt=0;
@@ -131,7 +165,7 @@ int RemoveFileByFileTreeList(const char* parentPath, struct filetree** removeTre
 	for(int i=0; i < listNum; i++){
 		strcpy(removePath, parentPath);
 		ConcatPath(removePath, removeTrees[i]->file);
-		if(RemoveBackupFolderByFileTree(removePath, removeTrees[i], &foldCnt, &fileCnt, 0) == -1)
+		if(RemoveBackupByFileTree(removePath, removeTrees[i], &foldCnt, &fileCnt, 0) == -1)
 				return -1;
 	}
 
@@ -163,41 +197,7 @@ int RemoveFileSelector(const char* parentPath, const char* originPath, struct fi
 	strcpy(removePath, parentPath);
 	ConcatPath(removePath, removeTrees[sellect-1]->file);
 
-	return RemoveBackupFolderByFileTree(removePath, removeTrees[sellect-1], &foldCnt, &fileCnt, 0);
-}
-
-int RemoveBackupFolderByFileTree(const char* removePath, struct filetree* removeTree, int* foldCnt, int* fileCnt, int isSilent)
-{
-	char nextRemovePath[SSU_BACKUP_MAX_PATH_SZ];
-
-	if(removeTree->childNodeNum == 0){
-		if(unlink(removePath) == -1){
-			fprintf(stderr, "\"%s\" unlink Failed! - %s\n", removePath, strerror(errno));
-			return -1;
-		}
-		(*fileCnt)++;
-
-		if(!isSilent){
-			printf("\"%s\" backup file removed\n", removePath);
-		}
-		return 0;
-	}
-
-	//Comment: 폴더의 경우 재귀 호출
-	for(int i=0; i < removeTree->childNodeNum; i++){
-		strcpy(nextRemovePath, removePath);
-		ConcatPath(nextRemovePath, removeTree->childNodes[i]->file);
-		if(RemoveBackupFolderByFileTree(nextRemovePath, removeTree->childNodes[i], foldCnt, fileCnt, isSilent) == -1)
-			return -1;
-	}
-
-	if(rmdir(removePath) == -1){
-		fprintf(stderr, "\"%s\" rmdir Failed! - %s\n", removePath, strerror(errno));
-		return -1;
-	}
-	(*foldCnt)++;
-
-	return 0;
+	return RemoveBackupByFileTree(removePath, removeTrees[sellect-1], &foldCnt, &fileCnt, 0);
 }
 
 int RemoveFileByFileTreeAuto(const char* destPath, const char* originPath, struct filetree** removeTrees, int listNum, int removeType)
@@ -215,8 +215,8 @@ int RemoveFileByFileTreeAuto(const char* destPath, const char* originPath, struc
 			}
 			break;
 		case SSU_BACKUP_TYPE_DIR:
-			if(RemoveBackupFolderByFileTree(destPath, removeTrees[0], &foldCnt, &fileCnt, 0) == -1){
-				perror("RemoveBackupFolderByFileTree()");
+			if(RemoveBackupByFileTree(destPath, removeTrees[0], &foldCnt, &fileCnt, 0) == -1){
+				perror("RemoveBackupByFileTree()");
 				return -1;
 			}
 			break;
@@ -229,7 +229,7 @@ int RemoveFileByFileTreeAuto(const char* destPath, const char* originPath, struc
 	return 0;
 }
 
-int ClearBackupFolder(int hashMode)
+int ClearBackup(int hashMode)
 {
 	struct filetree* backupTree;
 	struct filetree* cTree;
@@ -251,8 +251,8 @@ int ClearBackupFolder(int hashMode)
 
 		GetBackupPath(destPath);
 		ConcatPath(destPath, cTree->file);
-		if(RemoveBackupFolderByFileTree(destPath, cTree, &foldCnt, &fileCnt, 1) == -1){
-			perror("RemoveBackupFolderByFileTree()");
+		if(RemoveBackupByFileTree(destPath, cTree, &foldCnt, &fileCnt, 1) == -1){
+			perror("RemoveBackupByFileTree()");
 			return -1;
 		}
 	}
