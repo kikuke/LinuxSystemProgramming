@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "ssu_backup_define.h"
 #include "ssu_backup_usage.h"
@@ -127,8 +128,10 @@ int RemoveFileByFileTree(const char* path, struct filetree* removeTree)
 	struct filetree* pTree;
 	char parentPath[SSU_BACKUP_MAX_PATH_SZ];
 
-	if(unlink(path) == -1)
+	if(unlink(path) == -1){
+		fprintf(stderr, "\"%s\" unlink Failed! - %s\n", path, strerror(errno));
 		return -1;
+	}
 
 	//Comment: Remove Folder if empty
 	pTree = removeTree->parentNode;
@@ -136,8 +139,10 @@ int RemoveFileByFileTree(const char* path, struct filetree* removeTree)
 	if(pTree != NULL){
 		if(pTree->childNodeNum == 0){
 			GetParentPath(path, parentPath);
-			if(rmdir(parentPath) == -1)
+			if(rmdir(parentPath) == -1){
+				fprintf(stderr, "\"%s\" rmdir Failed! - %s\n", parentPath, strerror(errno));
 				return -1;
+			}
 		}
 	}
 }
@@ -192,8 +197,10 @@ int RemoveBackupFolderByFileTree(const char* removePath, struct filetree* remove
 	char nextRemovePath[SSU_BACKUP_MAX_PATH_SZ];
 
 	if(removeTree->childNodeNum == 0){
-		if(unlink(removePath) == -1)
+		if(unlink(removePath) == -1){
+			fprintf(stderr, "\"%s\" unlink Failed! - %s\n", removePath, strerror(errno));
 			return -1;
+		}
 		(*fileCnt)++;
 
 		if(!isSilent){
@@ -210,8 +217,10 @@ int RemoveBackupFolderByFileTree(const char* removePath, struct filetree* remove
 			return -1;
 	}
 
-	if(rmdir(removePath) == -1)
+	if(rmdir(removePath) == -1){
+		fprintf(stderr, "\"%s\" rmdir Failed! - %s\n", removePath, strerror(errno));
 		return -1;
+	}
 	(*foldCnt)++;
 
 	return 0;
