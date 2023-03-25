@@ -1,19 +1,17 @@
 #ifndef SSU_BACKUP_REMOVE_H
 #define SSU_BACKUP_REMOVE_H
 
-//Comment: 파일트리를 이용해 파일을 제거합니다.
-//  부모 파일트리가 변경됩니다.
-int RemoveFileByFileTree(const char* path, struct filetree* removeTree);
-
-//Comment: 파일 선택기를 통해 파일을 제거합니다.
-//	성공시 0 실패시 -1을 리턴합니다.
-//  Remove Folder if empty
-int RemoveFileSelector(const char* parentPath, const char* originPath, struct filetree** removeTrees, int listNum);
+#include "ssu_backup_filetree.h"
 
 //Comment: removeTrees에 담긴 위치의 파일들을 모두 지웁니다.
 //  성공시 0 실패시 -1을 리턴합니다.
 //  Remove Folder if empty
 int RemoveFileByFileTreeList(const char* parentPath, struct filetree** removeTrees, int listNum);
+
+//Comment: 파일 선택기를 통해 동일한 이름을 가진 파일, 폴더를 선택하여 제거합니다.
+//	성공시 0 실패시 -1을 리턴합니다.
+//  Remove Folder if empty
+int RemoveFileSelector(const char* parentPath, const char* originPath, struct filetree** removeTrees, int listNum);
 
 //Comment: 해당경로를 removeTree를 이용해 삭제합니다.
 //  Cnt에는 삭제된 폴더, 파일정보가 담깁니다.

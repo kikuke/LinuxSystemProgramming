@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "ssu_backup_define.h"
 #include "ssu_backup_usage.h"
@@ -137,141 +138,139 @@ int RecoverFileSelector(const char* parentPath, const char* originPath, const st
 	if(sellect == 0)
 		return 0;
 
-	//Todo: 수정하기
-	strcpy(pathBuf, parentPath);
-	ConcatPath(pathBuf, recoverTrees[sellect-1]->file);
-	if(unlink(pathBuf) == -1)
-		return -1;
-	printf("\"%s\" backup file removed\n", pathBuf);
-
-	//Todo: 수정하기
-	//Comment: Remove Folder if empty
-	if((pTree = recoverTrees[0]->parentNode) != NULL){
-		if(pTree->childNodeNum == listNum){
-			if(rmdir(parentPath) == -1)
-				return -1;
-		}
-	}
-
-	return 0;
-}
-
-int RemoveFileByFileTreeList(const char* parentPath, const struct filetree** removeTrees, int listNum)
-{
-	struct filetree* pTree;
+	//Todo: 수정하기. 폴더였을 경우 폴더 생성 루틴으로 감.
 	
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
-
-	for(int i=0; i < listNum; i++){
-		strcpy(pathBuf, parentPath);
-		ConcatPath(pathBuf, removeTrees[i]->file);
-		if(unlink(pathBuf) == -1)
-			return -1;
-
-		printf("\"%s\" backup file removed\n", pathBuf);
-	}
-
-	//Comment: Remove Folder if empty
-	if((pTree = removeTrees[0]->parentNode) != NULL){
-		if(pTree->childNodeNum == listNum){
-			if(rmdir(parentPath) == -1)
-				return -1;
-		}
-	}
 
 	return 0;
 }
 
-int RemoveBackupFolderByFileTree(const char* removePath, struct filetree* removeTree, int* foldCnt, int* fileCnt, int isSilent)
+int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, const struct filetree** recoverTrees, int listNum)
 {
-	char nextRemovePath[SSU_BACKUP_MAX_PATH_SZ];
+	char backupFilePath[SSU_BACKUP_MAX_PATH_SZ];
+	char recoverFilePath[SSU_BACKUP_MAX_PATH_SZ];
 
-	if(removeTree->childNodeNum == 0){
-		if(unlink(removePath) == -1)
-			return -1;
-		(*fileCnt)++;
+	//Comment: 1개 이상의 동일한 이름의 파일, 폴더가 있을 경우
+	if(listNum > 1){
+		GetParentPath(backupPath, backupFilePath);
+		return RecoverFileSelector(backupFilePath, recoverPath, recoverTrees, listNum);
+	}
 
-		if(!isSilent){
-			printf("\"%s\" backup file removed\n", removePath);
+	//Comment: 디렉토리인 경우와 1개의 파일인 경우
+
+	strcpy(backupFilePath, backupPath);
+	strcpy(recoverFilePath, recoverPath);
+	if(addTree->childNodeNum == 0){
+		if(isRecover){
+			destFilePath[strlen(destFilePath) - SSU_BACKUP_FILE_META_LEN] = '\0';
+			if(CopyFile(destFilePath, addFilePath) == -1){
+				fprintf(stderr, "\"%s\" to \"%s\" CopyFile Failed! - %s\n", addFilePath, destFilePath, strerror(errno));
+				return -1;
+			}
+
+			fprintf(stdout, "\"%s\" backup recover to \"%s\"\n", addFilePath, destFilePath);
+			return 0;
 		}
+
+		if(GetNowTime(destFilePath + strlen(destFilePath)) == -1){
+			perror("GetNowTime()");
+			return -1;
+		}
+		if(CopyFile(destFilePath, addFilePath) == -1){
+			fprintf(stderr, "\"%s\" to \"%s\" CopyFile Failed! - %s\n", addFilePath, destFilePath, strerror(errno));
+			return -1;
+		}
+
+		fprintf(stdout, "\"%s\" backuped\n", destFilePath);
 		return 0;
 	}
 
-	//Comment: 폴더의 경우 재귀 호출
-	for(int i=0; i < removeTree->childNodeNum; i++){
-		strcpy(nextRemovePath, removePath);
-		ConcatPath(nextRemovePath, removeTree->childNodes[i]->file);
-		if(RemoveBackupFolderByFileTree(nextRemovePath, removeTree->childNodes[i], foldCnt, fileCnt, isSilent) == -1)
+	//Comment: 폴더 만들고 재귀 호출
+	if(MakeDirPath(destFilePath) == -1){
+		perror("MakeDirPath()");
+		return -1;
+	}
+	for(int i=0; i < addTree->childNodeNum; i++){
+		strcpy(destFilePath, destPath);
+		ConcatPath(destFilePath, addTree->childNodes[i]->file);
+		strcpy(addFilePath, addPath);
+		ConcatPath(addFilePath, addTree->childNodes[i]->file);
+		if(CreateFileByFileTree(destFilePath, addFilePath, addTree->childNodes[i], isRecover) == -1)
 			return -1;
 	}
-	if(rmdir(removePath) == -1)
-		return -1;
-	(*foldCnt)++;
 
 	return 0;
 }
 
-int RemoveFileByFileTree(const char* destPath, const char* originPath, struct filetree** removeTrees, int listNum, int removeType)
+int RecoverBackupByFileTree(const char* backupPath, const char* recoverPath, struct filetree* backupTree, struct filetree* recoverTree, int hashMode)
 {
-	int foldCnt, fileCnt;
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+	int retVal;
+	int backupCheckType;
+	int recoverCheckType;
+	int matchNum;
+	struct filetree** recoverTrees;
+	char checkBackupPath[SSU_BACKUP_MAX_PATH_SZ];
+	char backupTreePath[SSU_BACKUP_MAX_PATH_SZ];
+	char recoverTreePath[SSU_BACKUP_MAX_PATH_SZ];
 
-	switch (removeType)
+	GetBackupPath(checkBackupPath);
+	//Comment: 백업 패스인 경우 제외
+	if(strncmp(checkBackupPath, recoverPath, strlen(checkBackupPath)) == 0)
+		return 0;
+
+	strcpy(backupTreePath, backupPath);
+	ExtractHomePath(backupTreePath);
+	//Comment: 해당 경로에 대해 모든 일치하는 백업트리를 찾음.
+	if((matchNum = FindAllFileTreeInPath(backupTreePath, backupTree, &recoverTrees, 1)) < 1){
+		fprintf(stderr, "\"%s\" FindAllFileTreeInPath() Failed! - %s\n", backupPath, strerror(errno));
+		return -1;
+	}
+
+	//Todo: CreateFileByFileTree 보면서 추가하고 그함수도 리커버 인수 지우는걸로 수정하기
+	//	수정 다 끝나면 저 함수 파일트리 유틸에서 애드함수로 옮겨주기.
+	//Comment: 복원지점에 폴더나 파일이 없는 경우
+	if(recoverTree == NULL){
+		//Todo: 평가없이 생성하는 함수 만들기
+		//	파일 체크없이 쭉 생성하는 함수. 위에 함수 참고해서 구현하기.
+		//	아래에서는 파일타입검사후, 생성여부를 결정함. 아래에서도 위의 함수를 쓰긴함.
+		return
+	}
+
+
+	if((matchedTree = FindFileTreeInPath(backupTreePath, backupTree, 1)) == NULL)
 	{
-		case SSU_BACKUP_TYPE_REG:
-			GetParentPath(destPath, pathBuf);
-			if(RecoverFileSelector(pathBuf, originPath, (const struct filetree**)removeTrees, listNum) == - 1){
-				perror("RemoveFileSelector()");
-				return -1;
-			}
-			break;
-		case SSU_BACKUP_TYPE_DIR:
-			if(RemoveBackupFolderByFileTree(destPath, removeTrees[0], &foldCnt, &fileCnt, 0) == -1){
-				perror("RemoveBackupFolderByFileTree()");
-				return -1;
-			}
-			break;
-		default:
-			fputs("Undefined removeType\n", stderr);
+		if(MakeDirPath(backupPath) == -1)
 			return -1;
-			break;
+		return CreateFileByFileTree(backupPath, addPath, addTree, 0);
 	}
 
-	return 0;
-}
+	//Comment: 해시값이 같은 파일이 있는지 검사후 없으면 생성
+	if(addTree->childNodeNum == 0){
+		struct filetree* pTree = matchedTree->parentNode;
+		if(pTree != NULL){
+			for(int i=0; i < pTree->childNodeNum; i++){
+				GetParentPath(backupPath, backupTreePath);
+				ConcatPath(backupTreePath, pTree->childNodes[i]->file);
+				if((retVal = CompareHashByPath(backupTreePath, addPath, hashMode)) == -1)
+					return -1;
 
-int ClearBackupFolder(int hashMode)
-{
-	struct filetree* backupTree;
-	struct filetree* cTree;
-	int foldCnt, fileCnt;
-	char destPath[SSU_BACKUP_MAX_PATH_SZ];
-
-	GetBackupPath(destPath);
-
-	if((backupTree = PathToFileTree(destPath, hashMode)) == NULL){
-		perror("PathToFileTree()");
-		return -1;
-	}
-
-	foldCnt = 0, fileCnt = 0;
-	for(int i=0; i<backupTree->childNodeNum; i++){
-		cTree = backupTree->childNodes[i];
-		if(strcmp(cTree->file, SSU_BACKUP_HASH_SET_FILE) == 0)
-			continue;
-
-		GetBackupPath(destPath);
-		ConcatPath(destPath, cTree->file);
-		if(RemoveBackupFolderByFileTree(destPath, cTree, &foldCnt, &fileCnt, 1) == -1){
-			perror("RemoveBackupFolderByFileTree()");
-			return -1;
+				if(retVal == 1){
+					fprintf(stdout, "\"%s\" is already backuped\n", backupTreePath);
+					return 0;
+				}
+			}
 		}
-	}
-	if(foldCnt > 0 || fileCnt > 0){
-		printf("backup directoy cleared(%d regular files and %d subdirectories totally).\n", fileCnt, foldCnt);
-	} else {
-		puts("no file(s) in the backup");
+
+		return CreateFileByFileTree(backupPath, addPath, addTree, 0);
 	}
 
+	//Comment: 폴더의 경우 재귀 호출
+	for(int i=0; i < addTree->childNodeNum; i++){
+		strcpy(backupTreePath, backupPath);
+		ConcatPath(backupTreePath, addTree->childNodes[i]->file);
+		strcpy(addTreePath, addPath);
+		ConcatPath(addTreePath, addTree->childNodes[i]->file);
+		if(RecoverBackupByFileTree(backupTreePath, addTreePath, backupTree, addTree->childNodes[i], hashMode) == -1)
+			return -1;
+	}
 	return 0;
 }

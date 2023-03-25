@@ -2,6 +2,7 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
 
 #include "ssu_backup_define.h"
 #include "ssu_backup_usage.h"
@@ -93,6 +94,44 @@ int CheckBackupCondition(const char* path, int addType)
 	return 0;
 }
 
+int AddFileByFileTree(const char* destPath, const char* addPath, const struct filetree* addTree)
+{
+	char addFilePath[SSU_BACKUP_MAX_PATH_SZ];
+	char destFilePath[SSU_BACKUP_MAX_PATH_SZ];
+
+	strcpy(destFilePath, destPath);
+	strcpy(addFilePath, addPath);
+	if(addTree->childNodeNum == 0){
+		if(GetNowTime(destFilePath + strlen(destFilePath)) == -1){
+			perror("GetNowTime()");
+			return -1;
+		}
+		if(CopyFile(destFilePath, addFilePath) == -1){
+			fprintf(stderr, "\"%s\" to \"%s\" CopyFile Failed! - %s\n", addFilePath, destFilePath, strerror(errno));
+			return -1;
+		}
+
+		fprintf(stdout, "\"%s\" backuped\n", destFilePath);
+		return 0;
+	}
+
+	//Comment: 폴더 만들고 재귀 호출
+	if(MakeDirPath(destFilePath) == -1){
+		perror("MakeDirPath()");
+		return -1;
+	}
+	for(int i=0; i < addTree->childNodeNum; i++){
+		strcpy(destFilePath, destPath);
+		ConcatPath(destFilePath, addTree->childNodes[i]->file);
+		strcpy(addFilePath, addPath);
+		ConcatPath(addFilePath, addTree->childNodes[i]->file);
+		if(AddFileByFileTree(destFilePath, addFilePath, addTree->childNodes[i]) == -1)
+			return -1;
+	}
+
+	return 0;
+}
+
 int AddBackupByFileTree(const char* backupPath, const char* addPath, struct filetree* backupTree, struct filetree* addTree, int hashMode)
 {
 	int retVal;
@@ -113,7 +152,7 @@ int AddBackupByFileTree(const char* backupPath, const char* addPath, struct file
 	{
 		if(MakeDirPath(backupPath) == -1)
 			return -1;
-		return CreateFileByFileTree(backupPath, addPath, addTree, 0);
+		return AddFileByFileTree(backupPath, addPath, addTree);
 	}
 
 	//Comment: 해시값이 같은 파일이 있는지 검사후 없으면 생성
@@ -133,7 +172,7 @@ int AddBackupByFileTree(const char* backupPath, const char* addPath, struct file
 			}
 		}
 
-		return CreateFileByFileTree(backupPath, addPath, addTree, 0);
+		return AddFileByFileTree(backupPath, addPath, addTree);
 	}
 
 	//Comment: 폴더의 경우 재귀 호출

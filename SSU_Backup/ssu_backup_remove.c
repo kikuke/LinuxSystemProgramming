@@ -123,33 +123,25 @@ int main(int argc, char* argv[])
 	exit(0);
 }
 
-int RemoveFileByFileTree(const char* path, struct filetree* removeTree)
+int RemoveFileByFileTreeList(const char* parentPath, struct filetree** removeTrees, int listNum)
 {
-	struct filetree* pTree;
-	char parentPath[SSU_BACKUP_MAX_PATH_SZ];
+	int foldCnt=0, fileCnt=0;
+	char removePath[SSU_BACKUP_MAX_PATH_SZ];
 
-	if(unlink(path) == -1){
-		fprintf(stderr, "\"%s\" unlink Failed! - %s\n", path, strerror(errno));
-		return -1;
-	}
-
-	//Comment: Remove Folder if empty
-	pTree = removeTree->parentNode;
-	RemoveFileNode(removeTree);
-	if(pTree != NULL){
-		if(pTree->childNodeNum == 0){
-			GetParentPath(path, parentPath);
-			if(rmdir(parentPath) == -1){
-				fprintf(stderr, "\"%s\" rmdir Failed! - %s\n", parentPath, strerror(errno));
+	for(int i=0; i < listNum; i++){
+		strcpy(removePath, parentPath);
+		ConcatPath(removePath, removeTrees[i]->file);
+		if(RemoveBackupFolderByFileTree(removePath, removeTrees[i], &foldCnt, &fileCnt, 0) == -1)
 				return -1;
-			}
-		}
 	}
+
+	return 0;
 }
 
 int RemoveFileSelector(const char* parentPath, const char* originPath, struct filetree** removeTrees, int listNum)
 {
 	int sellect;
+	int foldCnt=0, fileCnt=0;
 	char c;
 	char removePath[SSU_BACKUP_MAX_PATH_SZ];
 
@@ -170,26 +162,8 @@ int RemoveFileSelector(const char* parentPath, const char* originPath, struct fi
 
 	strcpy(removePath, parentPath);
 	ConcatPath(removePath, removeTrees[sellect-1]->file);
-	if(RemoveFileByFileTree(removePath, removeTrees[sellect-1]) == -1)
-		return -1;
-	printf("\"%s\" backup file removed\n", removePath);
 
-	return 0;
-}
-
-int RemoveFileByFileTreeList(const char* parentPath, struct filetree** removeTrees, int listNum)
-{
-	char removePath[SSU_BACKUP_MAX_PATH_SZ];
-
-	for(int i=0; i < listNum; i++){
-		strcpy(removePath, parentPath);
-		ConcatPath(removePath, removeTrees[i]->file);
-		if(RemoveFileByFileTree(removePath, removeTrees[i]) == -1)
-				return -1;
-		printf("\"%s\" backup file removed\n", removePath);
-	}
-
-	return 0;
+	return RemoveBackupFolderByFileTree(removePath, removeTrees[sellect-1], &foldCnt, &fileCnt, 0);
 }
 
 int RemoveBackupFolderByFileTree(const char* removePath, struct filetree* removeTree, int* foldCnt, int* fileCnt, int isSilent)
