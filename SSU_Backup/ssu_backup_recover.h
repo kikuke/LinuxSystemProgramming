@@ -9,7 +9,7 @@
 int RecoverBackupByFileTree(const char* backupPath, const char* recoverPath, struct filetree* backupTree, struct filetree* recoverTree, int hashMode);
 
 //Comment: 동일한 이름의 디렉토리, 파일들을 보여줍니다. 디렉토리를 선택할 경우 디렉토리 복사 루틴으로, 파일을 선택할 경우 파일이 복사됩니다.
-int RecoverFileSelector(const char* parentPath, const char* originPath, const struct filetree** recoverTrees, int listNum);
+int RecoverFileSelector(const char* parentPath, const char* destPath, const struct filetree* backupTree, const struct filetree** matchedTrees, int listNum, int hashMode);
 
 int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, const struct filetree** recoverTrees, int listNum);
 

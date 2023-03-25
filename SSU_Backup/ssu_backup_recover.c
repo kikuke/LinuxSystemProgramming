@@ -111,7 +111,8 @@ int main(int argc, char* argv[])
 	//Comment: 복원 지점 경로의 파일을 일단 가져옴. 없어도 NULL로 가져옴.
 	recoverTree = PathToFileTree(recoverPath, hashMode);
 
-
+	//Todo: 이거 쓰기
+	int RecoverBackupByFileTree(const char* backupPath, const char* recoverPath, struct filetree* backupTree, struct filetree* recoverTree, int hashMode)
 
 	exit(0);
 }
@@ -142,7 +143,7 @@ int RecoverBackupByFileTree(const char* backupPath, const char* recoverPath, str
 
 	//Todo: CreateFileByFileTree 보면서 추가하고 그함수도 리커버 인수 지우는걸로 수정하기
 	//	수정 다 끝나면 저 함수 파일트리 유틸에서 애드함수로 옮겨주기.
-	//Comment: 복원지점에 폴더나 파일이 없는 경우
+	//Comment: 복원지점에 폴더나 파일이 없는 경우 또는 덮어쓰는 경우.
 	if(recoverTree == NULL){
 		//Todo: 평가없이 생성하는 함수 만들기
 		//	파일 체크없이 쭉 생성하는 함수. 위에 함수 참고해서 구현하기.
@@ -150,6 +151,7 @@ int RecoverBackupByFileTree(const char* backupPath, const char* recoverPath, str
 		return
 	}
 
+	//Todo: 많은 경우 셀렉터 호출
 
 	if((matchedTree = FindFileTreeInPath(backupTreePath, backupTree, 1)) == NULL)
 	{
@@ -190,18 +192,18 @@ int RecoverBackupByFileTree(const char* backupPath, const char* recoverPath, str
 	return 0;
 }
 
-int RecoverFileSelector(const char* parentPath, const char* originPath, const struct filetree** recoverTrees, int listNum)
+int RecoverFileSelector(const char* parentPath, const char* destPath, const struct filetree* backupTree, const struct filetree** matchedTrees, int listNum, int hashMode)
 {
 	int sellect;
 	char c;
 	struct filetree* pTree;
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+	char recoverPath[SSU_BACKUP_MAX_PATH_SZ];
 
 	sellect = -1;
 	while(sellect < 0 || sellect > listNum){
-		printf("backup file list of \"%s\"\n", originPath);
+		printf("backup file list of \"%s\"\n", destPath);
 		puts("0. exit");
-		PrintFileTreeList(parentPath, recoverTrees, listNum);
+		PrintFileTreeList(parentPath, matchedTrees, listNum);
 		puts("Choose file to recover");
 		printf("%s ", SSU_BACKUP_SHELL_SELLECTOR);
 		if(!scanf("%d", &sellect)){
@@ -212,10 +214,9 @@ int RecoverFileSelector(const char* parentPath, const char* originPath, const st
 	if(sellect == 0)
 		return 0;
 
-	//Todo: 수정하기. 폴더였을 경우 폴더 생성 루틴으로 감.
-	
-
-	return 0;
+	strcpy(recoverPath, parentPath);
+	ConcatPath(recoverPath, matchedTrees[sellect-1]->file);
+	return RecoverBackupByFileTree(recoverPath, destPath, backupTree, NULL, hashMode);
 }
 
 int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, const struct filetree** recoverTrees, int listNum)
@@ -223,6 +224,7 @@ int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, const
 	char backupFilePath[SSU_BACKUP_MAX_PATH_SZ];
 	char recoverFilePath[SSU_BACKUP_MAX_PATH_SZ];
 
+	//Todo: 실제 생성 루틴
 	//Comment: 1개 이상의 동일한 이름의 파일, 폴더가 있을 경우
 	if(listNum > 1){
 		GetParentPath(backupPath, backupFilePath);

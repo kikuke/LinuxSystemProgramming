@@ -166,7 +166,6 @@ int RemoveFileSelector(const char* parentPath, const char* originPath, struct fi
 
 	strcpy(removePath, parentPath);
 	ConcatPath(removePath, removeTrees[sellect-1]->file);
-
 	return RemoveBackupByFileTree(removePath, removeTrees[sellect-1], &foldCnt, &fileCnt, 0);
 }
 
