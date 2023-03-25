@@ -64,8 +64,6 @@ int main(int argc, char* argv[])
 	}
     SourcePathToBackupPath(backupPath);
 
-	//Comment: 가상으로 상대경로를 절대경로로 바꿔줍니다.
-	//	././../.., ~/././.. 와 같은 표현 모두 가능합니다.
     strcpy(pathBuf, recoverPath);
 	if(GetVirtualRealPath(pathBuf, recoverPath) == NULL){
 		Usage(USAGEIDX_RECOVER);
@@ -79,10 +77,6 @@ int main(int argc, char* argv[])
 		fputs("GetHashMode() Failed!\n", stderr);
 		exit(1);
 	}
-
-    //Test
-    puts(backupPath);
-    puts(recoverPath);
 
 	GetBackupPath(pathBuf);
 	if((backupTree = PathToFileTree(pathBuf, hashMode)) == NULL){
@@ -104,38 +98,15 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-
-    //Todo: 리코버 패스가 실제 있는 경로인지. 없다면 생성하기
-
-/*
-	//Comment: if path is $home
-	strcpy(destPath, removePath);
-	SourcePathToBackupPath(destPath);
-	GetBackupPath(pathBuf);
-	if((removeType == SSU_BACKUP_TYPE_DIR) && (strcmp(destPath, pathBuf) == 0)){
-		if(ClearBackupFolder(hashMode) == -1){
-			perror("ClearBackupFolder()");
-			exit(1);
-		}
-		exit(0);
-	}
-
-	//Comment: has unique file or 파일에 -a 옵션을 사용한 경우
-	if((matchNum == 1 && checkType == SSU_BACKUP_TYPE_REG) || (removeType == SSU_BACKUP_TYPE_DIR && checkType == SSU_BACKUP_TYPE_REG)){
-		GetParentPath(destPath, pathBuf);
-		if(RemoveFileByFileTreeList(pathBuf, (const struct filetree**)removeTrees, matchNum) == -1){
-			perror("RemoveFileByFileTreeList()");
-			exit(1);
-		}
-		exit(0);
-	}
-
-	if(RemoveFileByFileTree(destPath, removePath, removeTrees, matchNum, removeType) == -1){
-		exit(1);
-	}
+    //Todo: 리코버 패스가 실제 있는 경로인지. 없다면 생성하기 두 파일의 타입이 다른 경우 에러 발생
+	//	add꺼 배껴서 넣기
+	//	이건 그냥 재귀 호출하면서 반복하기
+	//	리커버 트리 가져오기, 이전에 만들어둔 함수 사용하기
+	//	폴더 삭제기능 필요하면 딜리트꺼 유틸로 옮기고 사용하기
+	//	NULL이던 말던 그대로 집어넣으면 됨. 함수에서 처리함.
+	//	해당 경로 파일 트리로 만드는 함수 쓰기
 
 	exit(0);
-    */
 }
 
 int CheckRecoverPathCondition(const char* path)
