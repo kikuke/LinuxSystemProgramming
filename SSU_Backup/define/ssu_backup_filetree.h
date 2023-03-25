@@ -18,5 +18,8 @@ typedef struct filetree
 struct filetree* CreateFileTree(const char* fileName);
 
 void AddChildFileNode(struct filetree* parentNode, struct filetree* childNode);
-//Todo: 파일 경로 parentNode이용해 찾는 함수 만들기
+
+//Comment: 하위 노드와 자신을 지우고, 부모 노드에 반영합니다.
+void RemoveFileNode(struct filetree* node);
+
 #endif

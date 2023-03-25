@@ -105,6 +105,12 @@ int main(int argc, char* argv[])
 	//	폴더 삭제기능 필요하면 딜리트꺼 유틸로 옮기고 사용하기
 	//	NULL이던 말던 그대로 집어넣으면 됨. 함수에서 처리함.
 	//	해당 경로 파일 트리로 만드는 함수 쓰기
+	//	add 성공하면 remove기능 이용하여 지우기
+
+	//Comment: 복원 지점 경로의 파일을 일단 가져옴. 없어도 NULL로 가져옴.
+	recoverTree = PathToFileTree(recoverPath, hashMode);
+
+
 
 	exit(0);
 }
@@ -151,7 +157,7 @@ int CheckFileTypeCondition(const char* originPath, int recoverType, int checkTyp
 	return 0;
 }
 
-int RemoveFileSelector(const char* parentPath, const char* originPath, const struct filetree** removeTrees, int listNum)
+int RecoverFileSelector(const char* parentPath, const char* originPath, const struct filetree** recoverTrees, int listNum)
 {
 	int sellect;
 	char c;
@@ -162,8 +168,8 @@ int RemoveFileSelector(const char* parentPath, const char* originPath, const str
 	while(sellect < 0 || sellect > listNum){
 		printf("backup file list of \"%s\"\n", originPath);
 		puts("0. exit");
-		PrintFileTreeList(parentPath, removeTrees, listNum);
-		puts("Choose file to remove");
+		PrintFileTreeList(parentPath, recoverTrees, listNum);
+		puts("Choose file to recover");
 		printf("%s ", SSU_BACKUP_SHELL_SELLECTOR);
 		if(!scanf("%d", &sellect)){
 			puts("Wrong Input!\n");
@@ -173,14 +179,16 @@ int RemoveFileSelector(const char* parentPath, const char* originPath, const str
 	if(sellect == 0)
 		return 0;
 
+	//Todo: 수정하기
 	strcpy(pathBuf, parentPath);
-	ConcatPath(pathBuf, removeTrees[sellect-1]->file);
+	ConcatPath(pathBuf, recoverTrees[sellect-1]->file);
 	if(unlink(pathBuf) == -1)
 		return -1;
 	printf("\"%s\" backup file removed\n", pathBuf);
 
+	//Todo: 수정하기
 	//Comment: Remove Folder if empty
-	if((pTree = removeTrees[0]->parentNode) != NULL){
+	if((pTree = recoverTrees[0]->parentNode) != NULL){
 		if(pTree->childNodeNum == listNum){
 			if(rmdir(parentPath) == -1)
 				return -1;
@@ -254,7 +262,7 @@ int RemoveFileByFileTree(const char* destPath, const char* originPath, struct fi
 	{
 		case SSU_BACKUP_TYPE_REG:
 			GetParentPath(destPath, pathBuf);
-			if(RemoveFileSelector(pathBuf, originPath, (const struct filetree**)removeTrees, listNum) == - 1){
+			if(RecoverFileSelector(pathBuf, originPath, (const struct filetree**)removeTrees, listNum) == - 1){
 				perror("RemoveFileSelector()");
 				return -1;
 			}

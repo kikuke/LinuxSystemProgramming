@@ -33,3 +33,29 @@ void AddChildFileNode(struct filetree* parentNode, struct filetree* childNode)
 
 	parentNode->childNodes = tempNodes;
 }
+
+void RemoveFileNode(struct filetree* node)
+{
+	int idx;
+	int cNodeNum;
+	struct filetree* pNode;
+
+	if((pNode = node->parentNode) != NULL){
+		idx = 0;
+		for(int i=0; i<pNode->childNodeNum; i++){
+			if(pNode->childNodes[i] == node)
+				continue;
+
+			pNode->childNodes[idx] = pNode->childNodes[i];
+			idx++;
+		}
+		pNode->childNodeNum--;
+	}
+
+	cNodeNum = node->childNodeNum;
+	for(int i=0; i<cNodeNum; i++){
+		RemoveFileNode(node->childNodes[0]);
+	}
+
+	free(node);
+}
