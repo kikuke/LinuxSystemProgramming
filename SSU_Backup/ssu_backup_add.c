@@ -112,6 +112,7 @@ int CheckBackupCondition(const char* path, int addType)
 
 int AddBackupByFileTree(const char* backupPath, const char* addPath, struct filetree* backupTree, struct filetree* addTree, int hashMode)
 {
+	int retVal;
 	struct filetree* matchedTree;
 	char checkBackupPath[SSU_BACKUP_MAX_PATH_SZ];
 	char backupTreePath[SSU_BACKUP_MAX_PATH_SZ];
@@ -137,9 +138,12 @@ int AddBackupByFileTree(const char* backupPath, const char* addPath, struct file
 		struct filetree* pTree = matchedTree->parentNode;
 		if(pTree != NULL){
 			for(int i=0; i < pTree->childNodeNum; i++){
-				if(CompareHash(addTree->hash, pTree->childNodes[i]->hash, hashMode)){
-					GetParentPath(backupPath, backupTreePath);
-					ConcatPath(backupTreePath, pTree->childNodes[i]->file);
+				GetParentPath(backupPath, backupTreePath);
+				ConcatPath(backupTreePath, pTree->childNodes[i]->file);
+				if((retVal = CompareHashByPath(backupTreePath, addPath, hashMode)) == -1)
+					return -1;
+
+				if(retVal == 1){
 					fprintf(stdout, "\"%s\" is already backuped\n", backupTreePath);
 					return 0;
 				}

@@ -3,6 +3,7 @@
 #include <string.h>
 #include <openssl/md5.h>
 #include <openssl/sha.h>
+#include <errno.h>
 
 #include "ssu_backup_define.h"
 #include "ssu_backup_path.h"
@@ -40,17 +41,13 @@ char* GetCreateTimeByFileTree(char* buf, const struct filetree* ftree)
 	return buf;
 }
 
-char* GetPathByFileTree(char* buf, struct filetree* ftree, int isBackup)
+char* GetPathByFileTree(char* buf, struct filetree* ftree)
 {
 	struct filetree* ptree = ftree;
 	size_t parentLen;
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 
-	if(isBackup){
-		GetRealNameByFileTree(buf, ptree);
-	} else {
-		strcpy(buf, ptree->file);
-	}
+	strcpy(buf, ptree->file);
 	while(ptree->parentNode != NULL){
 		parentLen = strlen(ptree->parentNode->file);
 		strcpy(pathBuf, buf);
@@ -192,38 +189,17 @@ int PrintFileTreeList(const char* parentFilePath, const struct filetree** fileTr
 	return 0;
 }
 
-struct filetree* FileToFileTree(const char* path, int hashMode)
+struct filetree* FileToFileTree(const char* path)
 {
 	char* fileName = NULL;
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
-	char hashBuf[SSU_BACKUP_HASH_MAX_LEN];
-	int hashReturnVal;
-	size_t hash_sz = 0;
 
 	strcpy(pathBuf, path);
 	if((fileName = GetFileNameByPath(pathBuf)) == NULL){
 		return NULL;
 	}
 
-	switch(hashMode){
-		case SSU_BACKUP_HASH_MD5:
-			hashReturnVal = GetMd5HashByPath(path, hashBuf);
-			hash_sz = MD5_DIGEST_LENGTH;
-			break;
-		case SSU_BACKUP_HASH_SHA1:
-			hashReturnVal = GetSha1HashByPath(path, hashBuf);
-			hash_sz = SHA_DIGEST_LENGTH;
-			break;
-		default:
-			hashReturnVal = -1;
-			break;
-	}
-	if(hashReturnVal == -1){
-		perror("GetHash()");
-		return NULL;
-	}
-
-	return CreateFileTree(fileName, hashBuf, hash_sz);
+	return CreateFileTree(fileName);
 }
 
 struct filetree* PathToFileTree(const char* path, int hashMode)
@@ -237,7 +213,7 @@ struct filetree* PathToFileTree(const char* path, int hashMode)
 			ftree = NULL;
 			break;
 		case SSU_BACKUP_TYPE_REG:
-			ftree = FileToFileTree(path, hashMode);
+			ftree = FileToFileTree(path);
 			break;
 		case SSU_BACKUP_TYPE_DIR:
 			ftree = _PathToFileTreeDir(path, hashMode);
@@ -262,7 +238,7 @@ struct filetree* _PathToFileTreeDir(const char* path, int hashMode)
 	if((childCount = scandir(path, &childList, filterParentInScanDir, alphasort)) < 1){
 		return NULL;
 	}
-	ptree = FileToFileTree(path, hashMode);
+	ptree = FileToFileTree(path);
 	realChildCnt = 0;
 	for(int i=0; i<childCount; i++){
 		strcpy(pathBuf, path);
@@ -299,25 +275,33 @@ int CreateFileByFileTree(const char* destPath, const char* addPath, const struct
 	if(addTree->childNodeNum == 0){
 		if(isRecover){
 			destFilePath[strlen(destFilePath) - SSU_BACKUP_FILE_META_LEN] = '\0';
-			if(CopyFile(destFilePath, addFilePath) == -1)
+			if(CopyFile(destFilePath, addFilePath) == -1){
+				fprintf(stderr, "\"%s\" to \"%s\" CopyFile Failed! - %s\n", addFilePath, destFilePath, strerror(errno));
 				return -1;
+			}
 
 			fprintf(stdout, "\"%s\" backup recover to \"%s\"\n", addFilePath, destFilePath);
 			return 0;
 		}
 
-		if(GetNowTime(destFilePath + strlen(destFilePath)) == -1)
+		if(GetNowTime(destFilePath + strlen(destFilePath)) == -1){
+			perror("GetNowTime()");
 			return -1;
-		if(CopyFile(destFilePath, addFilePath) == -1)
+		}
+		if(CopyFile(destFilePath, addFilePath) == -1){
+			fprintf(stderr, "\"%s\" to \"%s\" CopyFile Failed! - %s\n", addFilePath, destFilePath, strerror(errno));
 			return -1;
+		}
 
 		fprintf(stdout, "\"%s\" backuped\n", destFilePath);
 		return 0;
 	}
 
 	//Comment: 폴더 만들고 재귀 호출
-	if(MakeDirPath(destFilePath) == -1)
+	if(MakeDirPath(destFilePath) == -1){
+		perror("MakeDirPath()");
 		return -1;
+	}
 	for(int i=0; i < addTree->childNodeNum; i++){
 		strcpy(destFilePath, destPath);
 		ConcatPath(destFilePath, addTree->childNodes[i]->file);

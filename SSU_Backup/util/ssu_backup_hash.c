@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
@@ -5,6 +6,24 @@
 #include <openssl/sha.h>
 
 #include "ssu_backup_define.h"
+#include "ssu_backup_hash.h"
+
+int CompareHashByPath(const char* path1, const char* path2, int hashMode)
+{
+	char hash1[SSU_BACKUP_HASH_MAX_LEN];
+	char hash2[SSU_BACKUP_HASH_MAX_LEN];
+	
+	if(GetHashByPath(path1, hash1, hashMode) == -1){
+		perror("GetHashByPath()");
+		return -1;
+	}
+	if(GetHashByPath(path2, hash2, hashMode) == -1){
+		perror("GetHashByPath()");
+		return -1;
+	}
+
+	return CompareHash(hash1, hash2, hashMode);
+}
 
 int CompareHash(const char* hash1, const char* hash2, int hashMode)
 {
@@ -16,6 +35,23 @@ int CompareHash(const char* hash1, const char* hash2, int hashMode)
 	} else
 		return 0;
 	return !strncmp(hash1, hash2, cmpLen);
+}
+
+int GetHashByPath(const char* path, char* hashBuf, int hashMode)
+{
+	switch(hashMode){
+		case SSU_BACKUP_HASH_MD5:
+			return GetMd5HashByPath(path, hashBuf);
+			break;
+		case SSU_BACKUP_HASH_SHA1:
+			return GetSha1HashByPath(path, hashBuf);
+			break;
+		default:
+			return -1;
+			break;
+	}
+
+	return -1;
 }
 
 int GetMd5HashByPath(const char* path, char* hashBuf)

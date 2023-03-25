@@ -3,16 +3,13 @@
 
 #include "ssu_backup_filetree.h"
 
-struct filetree* CreateFileTree(const char* fileName, const char* hash, size_t hash_sz)
+struct filetree* CreateFileTree(const char* fileName)
 {
 	struct filetree* newFileTree;
 
 	newFileTree = (struct filetree*)malloc(sizeof(struct filetree));
 	strcpy(newFileTree->file, fileName);
-	if(hash_sz > SSU_BACKUP_HASH_MAX_LEN){
-		hash_sz = SSU_BACKUP_HASH_MAX_LEN;
-	}
-	memcpy(newFileTree->hash, hash, hash_sz);
+	
 	newFileTree->parentNode = NULL;
 	newFileTree->childNodeNum = 0;
 	newFileTree->childNodes = NULL;
