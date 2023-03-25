@@ -50,10 +50,17 @@ char* GetFileNameByPath(char* path)
 	return fileName;
 }
 
-char* GetBackupPath(char* buf)
+char* GetHomePath(char* buf)
 {
 	char* homeDir = getenv("HOME");
 	strcpy(buf, homeDir);
+
+	return buf;
+}
+
+char* GetBackupPath(char* buf)
+{
+	GetHomePath(buf);
 	ConcatPath(buf, SSU_BACKUP_ROOT_DIR_NAME);
 
 	return buf;

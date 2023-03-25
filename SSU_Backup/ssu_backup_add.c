@@ -79,31 +79,14 @@ int main(int argc, char* argv[])
 
 int CheckBackupCondition(const char* path, int addType)
 {
-	char* homeDir = getenv("HOME");
 	int checkType;
-	char temp_path[SSU_BACKUP_MAX_PATH_SZ];
 
-	if(strncmp(homeDir, path, strlen(homeDir)) != 0){
-		fprintf(stdout, "<%s> can't be backuped\n", path);
+	if(CheckPathCondition(path) == -1){
 		return -1;
 	}
 
-	GetBackupPath(temp_path);
-	if(strncmp(temp_path, path, strlen(temp_path)) == 0){
-		fprintf(stdout, "<%s> can't be backuped\n", path);
-		return -1;
-	}
-
-	if((checkType = CheckFileTypeByPath(path)) == SSU_BACKUP_TYPE_ERROR){
-		perror("CheckFileTypeByPath()");
-		return -1;
-	}
-	if(checkType == SSU_BACKUP_TYPE_OTHER){
-		fputs("일반 파일이나 디렉토리가 아닙니다.", stderr);
-		return -1;
-	}
-	if((checkType == SSU_BACKUP_TYPE_DIR) && checkType != addType){
-		fprintf(stderr, "\"%s\" is a directory file\n", path);
+	checkType = CheckFileTypeByPath(path);
+	if(CheckFileTypeCondition(path, addType, checkType) == -1){
 		return -1;
 	}
 

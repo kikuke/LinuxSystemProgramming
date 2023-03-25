@@ -13,6 +13,10 @@ char* GetParentPath(const char* path, char* buf);
 //	path의 문자열의 변경이 있습니다.
 char* GetFileNameByPath(char* path);
 
+//Comment: 인자로 홈 경로를 저장할 버퍼를 받습니다.
+// 버퍼의 시작 주소값을 리턴합니다.
+char* GetHomePath(char* buf);
+
 //Comment: 인자로 백업 경로를 저장할 버퍼를 받습니다.
 // 버퍼의 시작 주소값을 리턴합니다.
 char* GetBackupPath(char* buf);

@@ -59,7 +59,7 @@ int main(int argc, char* argv[])
 		Usage(USAGEIDX_RECOVER);
 		exit(1);
 	}
-	if(CheckRecoverPathCondition(backupPath) == -1){
+	if(CheckPathCondition(backupPath) == -1){
 		exit(1);
 	}
     SourcePathToBackupPath(backupPath);
@@ -69,7 +69,7 @@ int main(int argc, char* argv[])
 		Usage(USAGEIDX_RECOVER);
 		exit(1);
 	}
-	if(CheckRecoverPathCondition(recoverPath) == -1){
+	if(CheckPathCondition(recoverPath) == -1){
 		exit(1);
 	}
 
@@ -113,48 +113,6 @@ int main(int argc, char* argv[])
 
 
 	exit(0);
-}
-
-int CheckRecoverPathCondition(const char* path)
-{
-	char* homeDir = getenv("HOME");
-	char temp_path[SSU_BACKUP_MAX_PATH_SZ];
-
-	if(strlen(path) > SSU_BACKUP_MAX_PATH_SZ){
-		fputs("경로의 길이가 큽니다.\n", stderr);
-		return -1;
-	}
-
-	if(strncmp(homeDir, path, strlen(homeDir)) != 0){
-        fprintf(stdout, "<%s> can't be backuped\n", path);
-		return -1;
-    }
-
-	GetBackupPath(temp_path);
-	if(strncmp(temp_path, path, strlen(temp_path)) == 0){
-		fprintf(stdout, "<%s> can't be backuped\n", path);
-		return -1;
-	}
-
-	return 0;
-}
-
-int CheckFileTypeCondition(const char* originPath, int recoverType, int checkType)
-{
-	if(checkType == SSU_BACKUP_TYPE_ERROR){
-		perror("CheckFileTypeByPath()");
-		return -1;
-	}
-	if(checkType == SSU_BACKUP_TYPE_OTHER){
-		fputs("일반 파일이나 디렉토리가 아닙니다.", stderr);
-		return -1;
-    }
-	if((checkType == SSU_BACKUP_TYPE_DIR) && checkType != recoverType){
-		fprintf(stderr, "\"%s\" is a directory file\n", originPath);
-		return -1;
-	}
-
-	return 0;
 }
 
 int RecoverFileSelector(const char* parentPath, const char* originPath, const struct filetree** recoverTrees, int listNum)

@@ -22,10 +22,18 @@ int SetHashMode(int mode);
 char* RealpathAndHandle(const char* path, char* resolved_path, SSU_BACKUP_IDX thisUsage);
 
 //Comment: 인자로 들어온 파일의 타입을 리턴합니다.
-//-1인 경우 에러, 0인경우 일반 파일 1인 경우 디렉토리 2인경우 그 이외를 의미합니다.
-//-1인 경우 errno를 설정합니다.
+//  -1인 경우 에러, 0인경우 일반 파일 1인 경우 디렉토리 2인경우 그 이외를 의미합니다.
+//  -1인 경우 errno를 설정합니다.
 int CheckFileType(const struct stat* p_stat);
 int CheckFileTypeByPath(const char* path);
+
+//Comment: 경로 조건을 검사합니다.
+//  -1인 경우 잘못된 경로, 0인경우 올바른 조건입니다.
+int CheckPathCondition(const char* path);
+
+//Comment: 파일 옵션을 검사합니다.
+//  -1인 경우 잘못된 옵션, 0인경우 올바른 조건입니다.
+int CheckFileTypeCondition(const char* originPath, int selectType, int checkType);
 
 //Comment: 해당 경로가 없다면 path로의 디렉토리를 재귀적으로 만들어줍니다.
 //	성공시 0 실패시 -1을 리턴합니다.

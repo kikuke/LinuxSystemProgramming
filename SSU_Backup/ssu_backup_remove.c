@@ -45,7 +45,8 @@ int main(int argc, char* argv[])
 					Usage(USAGEIDX_REMOVE);
 					exit(1);
 				}
-				removeType = SSU_BACKUP_TYPE_CLEAR;
+				GetHomePath(pathBuf);
+				removeType = SSU_BACKUP_TYPE_DIR;
 				break;
 			
 			default:
@@ -60,14 +61,6 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	if(removeType == SSU_BACKUP_TYPE_CLEAR){
-		if(ClearBackupFolder(hashMode) == -1){
-			perror("ClearBackupFolder()");
-			exit(1);
-		}
-		exit(0);
-	}
-
 	//Comment: 가상으로 상대경로를 절대경로로 바꿔줍니다.
 	//	././../.., ~/././.. 와 같은 표현 모두 가능합니다.
 	if(GetVirtualRealPath(pathBuf, removePath) == NULL){
@@ -75,11 +68,11 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	if(CheckRemovePathCondition(removePath) == -1){
+	if(CheckPathCondition(removePath) == -1){
 		exit(1);
 	}
 
-	//Comment: if path is $home
+	//Comment: 홈이거나 C옵션일 경우
 	strcpy(destPath, removePath);
 	SourcePathToBackupPath(destPath);
 	GetBackupPath(pathBuf);
@@ -111,7 +104,7 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	//Comment: has unique file or 파일에 -a 옵션을 사용한 경우
+	//Comment: 파일이 하나일 경우 or 파일에 -a 옵션을 사용한 경우
 	if((matchNum == 1 && checkType == SSU_BACKUP_TYPE_REG) || (removeType == SSU_BACKUP_TYPE_DIR && checkType == SSU_BACKUP_TYPE_REG)){
 		GetParentPath(destPath, pathBuf);
 		if(RemoveFileByFileTreeList(pathBuf, removeTrees, matchNum) == -1){
@@ -121,6 +114,7 @@ int main(int argc, char* argv[])
 		exit(0);
 	}
 
+	//Comment: 그 외에 처리
 	if(RemoveFileByFileTreeAuto(destPath, removePath, removeTrees, matchNum, removeType) == -1){
 		exit(1);
 	}
@@ -128,64 +122,20 @@ int main(int argc, char* argv[])
 	exit(0);
 }
 
-int CheckRemovePathCondition(const char* path)
-{
-	char* homeDir = getenv("HOME");
-	char temp_path[SSU_BACKUP_MAX_PATH_SZ];
-
-	if(strlen(path) > SSU_BACKUP_MAX_PATH_SZ){
-		fputs("경로의 길이가 큽니다.\n", stderr);
-		return -1;
-	}
-
-	if(strncmp(homeDir, path, strlen(homeDir)) != 0){
-        fprintf(stdout, "<%s> can't be backuped\n", path);
-		return -1;
-    }
-
-	GetBackupPath(temp_path);
-	if(strncmp(temp_path, path, strlen(temp_path)) == 0){
-		fprintf(stdout, "<%s> can't be backuped\n", path);
-		return -1;
-	}
-
-	return 0;
-}
-
-int CheckFileTypeCondition(const char* originPath, int removeType, int checkType)
-{
-	if(checkType == SSU_BACKUP_TYPE_ERROR){
-		perror("CheckFileTypeByPath()");
-		return -1;
-	}
-	if(checkType == SSU_BACKUP_TYPE_OTHER){
-		fputs("일반 파일이나 디렉토리가 아닙니다.", stderr);
-		return -1;
-    }
-	if((checkType == SSU_BACKUP_TYPE_DIR) && checkType != removeType){
-		fprintf(stderr, "\"%s\" is a directory file\n", originPath);
-		return -1;
-	}
-
-	return 0;
-}
-
-int RemoveFileByFileTree(const char* parentPath, struct filetree* removeTree)
+int RemoveFileByFileTree(const char* path, struct filetree* removeTree)
 {
 	struct filetree* pTree;
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+	char parentPath[SSU_BACKUP_MAX_PATH_SZ];
 
-	strcpy(pathBuf, parentPath);
-	ConcatPath(pathBuf, removeTree->file);
-	if(unlink(pathBuf) == -1)
+	if(unlink(path) == -1)
 		return -1;
-	printf("\"%s\" backup file removed\n", pathBuf);
 
+	//Comment: Remove Folder if empty
 	pTree = removeTree->parentNode;
 	RemoveFileNode(removeTree);
-	//Comment: Remove Folder if empty
 	if(pTree != NULL){
 		if(pTree->childNodeNum == 0){
+			GetParentPath(path, parentPath);
 			if(rmdir(parentPath) == -1)
 				return -1;
 		}
@@ -196,6 +146,7 @@ int RemoveFileSelector(const char* parentPath, const char* originPath, struct fi
 {
 	int sellect;
 	char c;
+	char removePath[SSU_BACKUP_MAX_PATH_SZ];
 
 	sellect = -1;
 	while(sellect < 0 || sellect > listNum){
@@ -212,17 +163,25 @@ int RemoveFileSelector(const char* parentPath, const char* originPath, struct fi
 	if(sellect == 0)
 		return 0;
 
-	if(RemoveFileByFileTree(parentPath, removeTrees[sellect-1]) == -1)
+	strcpy(removePath, parentPath);
+	ConcatPath(removePath, removeTrees[sellect-1]->file);
+	if(RemoveFileByFileTree(removePath, removeTrees[sellect-1]) == -1)
 		return -1;
+	printf("\"%s\" backup file removed\n", removePath);
 
 	return 0;
 }
 
 int RemoveFileByFileTreeList(const char* parentPath, struct filetree** removeTrees, int listNum)
 {
+	char removePath[SSU_BACKUP_MAX_PATH_SZ];
+
 	for(int i=0; i < listNum; i++){
-		if(RemoveFileByFileTree(parentPath, removeTrees[i]) == -1)
+		strcpy(removePath, parentPath);
+		ConcatPath(removePath, removeTrees[i]->file);
+		if(RemoveFileByFileTree(removePath, removeTrees[i]) == -1)
 				return -1;
+		printf("\"%s\" backup file removed\n", removePath);
 	}
 
 	return 0;
