@@ -21,7 +21,7 @@ int RemoveFileSelector(const char* parentPath, const char* originPath, struct fi
 
 //Comment: RemoveFileSelector, RemoveBackupFolderByfileTree의 기능을 합친 함수입니다.
 //  성공시 0, 실패시 -1을 리턴합니다.
-int RemoveFileByFileTreeAuto(const char* destPath, const char* originPath, struct filetree** removeTrees, int listNum, int removeType);
+int RemoveFileByFileTree(const char* destPath, const char* originPath, struct filetree** removeTrees, int listNum, int removeType);
 
 //Comment: 백업폴더를 제외한 모든 파일을 지웁니다.
 //  성공시 0, 실패시 -1을 리턴합니다.

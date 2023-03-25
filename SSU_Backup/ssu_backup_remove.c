@@ -105,18 +105,7 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
-	//Comment: 파일이 하나일 경우 or 파일에 -a 옵션을 사용한 경우
-	if((matchNum == 1 && checkType == SSU_BACKUP_TYPE_REG) || (removeType == SSU_BACKUP_TYPE_DIR && checkType == SSU_BACKUP_TYPE_REG)){
-		GetParentPath(destPath, pathBuf);
-		if(RemoveFileByFileTreeList(pathBuf, removeTrees, matchNum) == -1){
-			perror("RemoveFileByFileTreeList()");
-			exit(1);
-		}
-		exit(0);
-	}
-
-	//Comment: 그 외에 처리
-	if(RemoveFileByFileTreeAuto(destPath, removePath, removeTrees, matchNum, removeType) == -1){
+	if(RemoveFileByFileTree(destPath, removePath, removeTrees, matchNum, removeType) == -1){
 		exit(1);
 	}
 
@@ -200,33 +189,19 @@ int RemoveFileSelector(const char* parentPath, const char* originPath, struct fi
 	return RemoveBackupByFileTree(removePath, removeTrees[sellect-1], &foldCnt, &fileCnt, 0);
 }
 
-int RemoveFileByFileTreeAuto(const char* destPath, const char* originPath, struct filetree** removeTrees, int listNum, int removeType)
+int RemoveFileByFileTree(const char* destPath, const char* originPath, struct filetree** removeTrees, int listNum, int removeType)
 {
 	int foldCnt, fileCnt;
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 
-	switch (removeType)
-	{
-		case SSU_BACKUP_TYPE_REG:
-			GetParentPath(destPath, pathBuf);
-			if(RemoveFileSelector(pathBuf, originPath, removeTrees, listNum) == - 1){
-				perror("RemoveFileSelector()");
-				return -1;
-			}
-			break;
-		case SSU_BACKUP_TYPE_DIR:
-			if(RemoveBackupByFileTree(destPath, removeTrees[0], &foldCnt, &fileCnt, 0) == -1){
-				perror("RemoveBackupByFileTree()");
-				return -1;
-			}
-			break;
-		default:
-			fputs("Undefined removeType\n", stderr);
-			return -1;
-			break;
+	//Comment: -a 옵션을 사용한 경우 or 파일이 하나일 경우
+	if(removeType == SSU_BACKUP_TYPE_DIR || listNum == 1){
+		GetParentPath(destPath, pathBuf);
+		
+		return RemoveFileByFileTreeList(pathBuf, removeTrees, listNum);
 	}
 
-	return 0;
+	return RemoveFileSelector(pathBuf, originPath, removeTrees, listNum);
 }
 
 int ClearBackup(int hashMode)
