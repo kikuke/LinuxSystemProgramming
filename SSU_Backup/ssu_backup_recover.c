@@ -197,74 +197,62 @@ int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, const
 		return -1;
 	}
 
-	return RecoverBackupByFileTree(backupPath, recoverPath, backupTree, recoverTree, hashMode)
+	return RecoverBackupByFileTree(backupPath, recoverPath, backupTree, recoverTree, hashMode);
 }
 
 int RecoverBackupByFileTree(const char* pBackupPath, const char* pRecoverPath, struct filetree* backupTree, struct filetree* pRecoverTree, int hashMode)
 {
-	int retVal;
-	int backupCheckType;
-	int recoverCheckType;
+	int nodeNum;
 	int matchNum;
+	int recoverCnt;
+	struct filetree* nRecoverTree;
 	struct filetree** recoverTrees;
-	char checkBackupPath[SSU_BACKUP_MAX_PATH_SZ];
-	char backupTreePath[SSU_BACKUP_MAX_PATH_SZ];
-	char recoverTreePath[SSU_BACKUP_MAX_PATH_SZ];
+	char nextBackupPath[SSU_BACKUP_MAX_PATH_SZ];
+	char nextRecoverPath[SSU_BACKUP_MAX_PATH_SZ];
+	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+	
+	recoverCnt = 0;
+	nodeNum = pRecoverTree->childNodeNum;
+	//Comment: 하위 파일들 순회
+	for(int i=0; i < nodeNum; i+=matchNum){
+		nRecoverTree = pRecoverTree->childNodes[i - recoverCnt];
 
-	GetBackupPath(checkBackupPath);
-	//Comment: 백업 패스인 경우 제외
-	if(strncmp(checkBackupPath, recoverPath, strlen(checkBackupPath)) == 0)
-		return 0;
+		//Comment: 부모 경로로 변환
+		strcpy(nextBackupPath, pBackupPath);
+		ConcatPath(nextBackupPath, pRecoverTree->file);
+		strcpy(nextRecoverPath, pRecoverPath);
+		ConcatPath(nextRecoverPath, pRecoverTree->file);
 
-	strcpy(backupTreePath, backupPath);
-	ExtractHomePath(backupTreePath);
-	//Comment: 해당 경로에 대해 모든 일치하는 백업트리를 찾음.
-	if((matchNum = FindAllFileTreeInPath(backupTreePath, backupTree, &recoverTrees, 1)) < 1){
-		fprintf(stderr, "\"%s\" FindAllFileTreeInPath() Failed! - %s\n", backupPath, strerror(errno));
-		return -1;
-	}
+		//Comment: 실제 경로로 변환
+		//	복원이 되면 recover트리가 하나씩 지워지므로 복원 수 만큼 idx를 감소시켜야한다.
+		ConcatPath(nextBackupPath, nRecoverTree->file);
+		GetRealNameByFileTree(pathBuf, nRecoverTree);
+		ConcatPath(nextRecoverPath, pathBuf);
 
-	//Todo: CreateFileByFileTree 보면서 추가하고 그함수도 리커버 인수 지우는걸로 수정하기
-	//	수정 다 끝나면 저 함수 파일트리 유틸에서 애드함수로 옮겨주기.
-	//Comment: 복원지점에 폴더나 파일이 없는 경우 또는 덮어쓰는 경우.
-	//Todo: 이거 아님. 따로 만들어서 직접 검사하기
-	if(recoverTree == NULL){
-		//Todo: 평가없이 생성하는 함수 만들기
-		//	파일 체크없이 쭉 생성하는 함수. 위에 함수 참고해서 구현하기.
-		//	아래에서는 파일타입검사후, 생성여부를 결정함. 아래에서도 위의 함수를 쓰긴함.
-		return
-	}
-
-	//Todo: 많은 경우 셀렉터 호출
-
-	if((matchedTree = FindFileTreeInPath(backupTreePath, backupTree, 1)) == NULL)
-	{
-		if(MakeDirPath(backupPath) == -1)
+		//Comment: 검색을 위한 추출
+		strcpy(pathBuf, nextBackupPath);
+		ExtractHomePath(pathBuf);
+		//Comment: 해당 경로에 대해 모든 일치하는 백업트리를 찾음.
+		if((matchNum = FindAllFileTreeInPath(pathBuf, backupTree, &recoverTrees, 1)) < 1){
+			fprintf(stderr, "\"%s\" FindAllFileTreeInPath() Failed! - %s\n", nextBackupPath, strerror(errno));
 			return -1;
-		return CreateFileByFileTree(backupPath, addPath, addTree, 0);
-	}
+		}
 
-	//Comment: 해시값이 같은 파일이 있는지 검사후 없으면 생성
-	if(addTree->childNodeNum == 0){
-		struct filetree* pTree = matchedTree->parentNode;
-		if(pTree != NULL){
-			for(int i=0; i < pTree->childNodeNum; i++){
-				GetParentPath(backupPath, backupTreePath);
-				ConcatPath(backupTreePath, pTree->childNodes[i]->file);
+		if(matchNum == 1){
+			if(RecoverFileByFileTree(nextBackupPath, nextRecoverPath, backupTree, nRecoverTree, hashMode) == -1){
+				perror("RecoverFileByFileTree()");
+				return -1;
+			}
+		} else {
+			GetParentPath(nextBackupPath, pathBuf);
+			if(RecoverFileSelector(pathBuf, nextRecoverPath, backupTree, recoverTrees, matchNum, hashMode) == -1){
+				perror("RecoverFileSelector()");
+				return -1;
 			}
 		}
 
-		return CreateFileByFileTree(backupPath, addPath, addTree, 0);
+		recoverCnt++;
 	}
-
-	//Comment: 폴더의 경우 재귀 호출
-	for(int i=0; i < addTree->childNodeNum; i++){
-		strcpy(backupTreePath, backupPath);
-		ConcatPath(backupTreePath, addTree->childNodes[i]->file);
-		strcpy(addTreePath, addPath);
-		ConcatPath(addTreePath, addTree->childNodes[i]->file);
-		if(RecoverBackupByFileTree(backupTreePath, addTreePath, backupTree, addTree->childNodes[i], hashMode) == -1)
-			return -1;
-	}
+	
 	return 0;
 }
