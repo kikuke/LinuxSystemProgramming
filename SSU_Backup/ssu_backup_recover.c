@@ -88,7 +88,7 @@ int main(int argc, char* argv[])
 
 	strcpy(pathBuf, backupPath);
 	ExtractHomePath(pathBuf);
-	if((matchNum = FindAllFileTreeInPath(pathBuf, backupTree, matchedTrees, 1)) < 1){
+	if((matchNum = FindAllFileTreeInPath(pathBuf, backupTree, &matchedTrees, 1)) < 1){
 		Usage(USAGEIDX_RECOVER);
 		exit(1);
 	}
@@ -125,7 +125,7 @@ int main(int argc, char* argv[])
 	exit(0);
 }
 
-int RecoverFileSelector(const char* parentPath, const char* destPath, const struct filetree* backupTree, const struct filetree** matchedTrees, int listNum, int hashMode)
+int RecoverFileSelector(const char* parentPath, const char* destPath, struct filetree* backupTree, struct filetree** matchedTrees, int listNum, int hashMode)
 {
 	int sellect;
 	char c;
@@ -141,7 +141,7 @@ int RecoverFileSelector(const char* parentPath, const char* destPath, const stru
 	while(sellect < 0 || sellect > listNum){
 		printf("backup file list of \"%s\"\n", recoverPath);
 		puts("0. exit");
-		PrintFileTreeList(parentPath, matchedTrees, listNum);
+		PrintFileTreeList(parentPath, (const struct filetree**)matchedTrees, listNum);
 		puts("Choose file to recover");
 		printf("%s ", SSU_BACKUP_SHELL_SELLECTOR);
 		if(!scanf("%d", &sellect)){
@@ -157,7 +157,7 @@ int RecoverFileSelector(const char* parentPath, const char* destPath, const stru
 	return RecoverFileByFileTree(recoverPath, destPath, backupTree, matchedTrees[sellect-1], hashMode);
 }
 
-int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, const struct filetree* backupTree, const struct filetree* recoverTree, int hashMode)
+int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, struct filetree* backupTree, struct filetree* recoverTree, int hashMode)
 {
 	int foldCnt, fileCnt;
 	int retVal;
