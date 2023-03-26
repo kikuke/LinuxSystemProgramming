@@ -3,7 +3,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 
-#define BUFFER_SZIE 1024
+#define BUFFER_SIZE 1024
 
 int main(void)
 {

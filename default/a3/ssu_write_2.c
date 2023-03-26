@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
 	}
 
 	//Comment: 두번째 인자를 쓰기전용으로, 파일이 있다면 덮어쓰기
-	if((fd2 = open(argv[2], O_WRONLY | O_CREAT | O_TRUNC)) < 0) {
+	if((fd2 = open(argv[2], O_WRONLY | O_CREAT | O_TRUNC, S_MODE)) < 0) {
 		fprintf(stderr, "open error for %s\n", argv[2]);
 		exit(1);
 	}
