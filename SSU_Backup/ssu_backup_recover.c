@@ -33,7 +33,7 @@ int main(int argc, char* argv[])
 	}
 
 	strcpy(backupPath, argv[1]);
-    strcpy(recoverPath, ".");
+	strcpy(recoverPath, ".");
 	while((opt = getopt(argc, argv, "dn:")) != -1){
 		switch(opt){
 			case 'd':
@@ -45,7 +45,7 @@ int main(int argc, char* argv[])
 					Usage(USAGEIDX_RECOVER);
 					exit(1);
 				}
-                strcpy(recoverPath, optarg);
+				strcpy(recoverPath, optarg);
 				break;
 			
 			default:
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
 
 	//Comment: 가상으로 상대경로를 절대경로로 바꿔줍니다.
 	//	././../.., ~/././.. 와 같은 표현 모두 가능합니다.
-    strcpy(pathBuf, backupPath);
+	strcpy(pathBuf, backupPath);
 	if(GetVirtualRealPath(pathBuf, backupPath) == NULL){
 		Usage(USAGEIDX_RECOVER);
 		exit(1);
@@ -65,9 +65,9 @@ int main(int argc, char* argv[])
 	if(CheckPathCondition(backupPath) == -1){
 		exit(1);
 	}
-    SourcePathToBackupPath(backupPath);
-
-    strcpy(pathBuf, recoverPath);
+	SourcePathToBackupPath(backupPath);
+	
+	strcpy(pathBuf, recoverPath);
 	if(GetVirtualRealPath(pathBuf, recoverPath) == NULL){
 		Usage(USAGEIDX_RECOVER);
 		exit(1);
