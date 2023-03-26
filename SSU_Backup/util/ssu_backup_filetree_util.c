@@ -14,7 +14,7 @@
 
 char* GetRealNameByFileTree(char* buf, const struct filetree* ftree)
 {
-	size_t fileLen;
+	int fileLen;
 
 	fileLen = strlen(ftree->file) - SSU_BACKUP_FILE_META_LEN;
 	if((ftree->childNodeNum > 0) || fileLen < 1){
