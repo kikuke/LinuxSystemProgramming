@@ -154,8 +154,6 @@ int FindAllFileTreeInPath(const char* path, struct filetree* ftree, struct filet
 	(*matchedTrees) = (struct filetree**)malloc(sizeof(struct filetree*) * matchCnt);
 	for(int i=0; i < pTree->childNodeNum; i++){
 		cTree = pTree->childNodes[i];
-		if(cTree->childNodeNum != 0)
-			continue;
 
 		GetRealNameByFileTree(cmpFileName, cTree);
 		if(strcmp(fileName, cmpFileName) == 0){
