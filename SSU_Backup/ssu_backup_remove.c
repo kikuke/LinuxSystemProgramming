@@ -231,6 +231,7 @@ int RemoveBackupByFileTree(const char* removePath, struct filetree* removeTree, 
 			return -1;
 	}
 
+	//Comment: 빈 디렉토리가 되었으니 삭제.
 	if(rmdir(removePath) == -1){
 		fprintf(stderr, "\"%s\" rmdir Failed! - %s\n", removePath, strerror(errno));
 		return -1;

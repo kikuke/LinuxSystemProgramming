@@ -23,6 +23,7 @@ int main(int argc, char* argv[])
 	int matchNum;
 	char backupPath[SSU_BACKUP_MAX_PATH_SZ + 1];
 	char recoverPath[SSU_BACKUP_MAX_PATH_SZ + 1];
+	char originPath[SSU_BACKUP_MAX_PATH_SZ];
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 
 	if(argc < 2 || argc > 5){
@@ -92,11 +93,14 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
+	strcpy(originPath, backupPath);
+	BackupPathToSourcePath(originPath);
+	//Comment: 같은 이름의 디렉토리와, 파일이 공존할수 있으니 검사
 	for(int i=0; i < matchNum; i++){
 		GetParentPath(backupPath, pathBuf);
 		ConcatPath(pathBuf, matchedTrees[i]->file);
 		checkType = CheckFileTypeByPath(pathBuf);
-		if(CheckFileTypeCondition(recoverPath, recoverType, checkType) == -1){
+		if(CheckFileTypeCondition(originPath, recoverType, checkType) == -1){
 			exit(1);
 		}
 	}
@@ -109,9 +113,17 @@ int main(int argc, char* argv[])
 	//	NULL이던 말던 그대로 집어넣으면 됨. 함수에서 처리함.
 	//	해당 경로 파일 트리로 만드는 함수 쓰기
 	//	add 성공하면 remove기능 이용하여 지우기
+	if(matchNum > 1){
+		GetParentPath(backupPath, pathBuf);
+		if(RecoverFileSelector(pathBuf, recoverPath, backupTree, matchedTrees, matchNum, hashMode) == -1){
+			fprintf(stderr, "\"%s\" FindAllFileTreeInPath() Failed! - %s\n", backupPath, strerror(errno));
+			exit(1);
+		}
 
-	//Comment: 복원 지점 경로의 파일을 일단 가져옴. 없어도 NULL로 가져옴.
-	//Todo: 이거 쓰기
+		exit(0);
+	}
+	
+	//Todo: 하나있을 때 이거쓰고, 여러개 일경우 바로 셀렉터 하기
 	int RecoverBackupByFileTree(const char* backupPath, const char* recoverPath, struct filetree* backupTree, struct filetree* recoverTree, int hashMode)
 
 	exit(0);
