@@ -138,7 +138,7 @@ int RemoveFileByFileTreeList(const char* parentPath, struct filetree** removeTre
 		strcpy(removePath, parentPath);
 		ConcatPath(removePath, removeTrees[i]->file);
 		if(RemoveBackupByFileTree(removePath, removeTrees[i], &foldCnt, &fileCnt, 0) == -1)
-				return -1;
+			return -1;
 	}
 
 	return 0;
