@@ -109,15 +109,15 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if(RemoveFileByFileTree(destPath, removePath, removeTrees, matchNum, removeType) == -1){
-		perror("RemoveFileByFileTree");
+	if(RemoveEntry(destPath, removePath, removeTrees, matchNum, removeType) == -1){
+		perror("RemoveEntry");
 		exit(1);
 	}
 
 	exit(0);
 }
 
-int RemoveFileByFileTree(const char* parentPath, const char* originPath, struct filetree** removeTrees, int listNum, int removeType)
+int RemoveEntry(const char* parentPath, const char* originPath, struct filetree** removeTrees, int listNum, int removeType)
 {
 	int foldCnt, fileCnt;
 
