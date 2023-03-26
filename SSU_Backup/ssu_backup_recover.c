@@ -196,7 +196,10 @@ int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, struc
 		if(RemoveBackupByFileTree(backupPath, recoverTree, &foldCnt, &fileCnt, 1) == -1){
 			return -1;
 		}
-		(*recoverCnt)++;
+		//Comment: 디렉토리 노드만 실제로 노드들이 삭제되므로.
+		if(recoverTree->childNodeNum != 0)
+			(*recoverCnt)++;
+
 		fprintf(stdout, "\"%s\" backup recover to \"%s\"\n", backupPath, recoverPath);
 		return 0;
 	}
