@@ -118,7 +118,7 @@ int main(int argc, char* argv[])
 	
 	//Comment: 검색된 일치 목록이 하나일 경우
 	if(RecoverFileByFileTree(backupPath, recoverPath, backupTree, *matchedTrees, hashMode) == -1){
-		perror("RecoverFileByFileTree");
+		perror("RecoverFileByFileTree()");
 		exit(1);
 	}
 
@@ -182,7 +182,6 @@ int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, struc
 
 		//Comment: 복원된 백업 경로의 파일을 삭제
 		if(RemoveBackupByFileTree(backupPath, recoverTree, &foldCnt, &fileCnt, 1) == -1){
-			perror("RemoveBackupByFileTree()");
 			return -1;
 		}
 
@@ -239,9 +238,8 @@ int RecoverBackupByFileTree(const char* pBackupPath, const char* pRecoverPath, s
 		GetParentPath(nextBackupPath, pathBuf);
 		strcpy(nextBackupPath, pathBuf);
 		if(matchNum == 1){
-			ConcatPath(nextBackupPath, nRecoverTree->file);
+			ConcatPath(nextBackupPath, (*recoverTrees)->file);
 			if(RecoverFileByFileTree(nextBackupPath, nextRecoverPath, backupTree, nRecoverTree, hashMode) == -1){
-				perror("RecoverFileByFileTree()");
 				return -1;
 			}
 		} else {
