@@ -48,4 +48,10 @@ struct filetree* _PathToFileTreeDir(const char* path, int hashMode);
 //  파일 이름의 오름차순입니다.
 int filterParentInScanDir(const struct dirent* target);
 
+//Comment: 해당경로를 removeTree를 이용해 삭제합니다.
+//  Cnt에는 삭제된 폴더, 파일정보가 담깁니다.
+//  isSilent가 0일 때는 삭제된 정보들이 출력되며 0이 아닐때는 출력되지 않습니다.
+//  성공 시 0, 실패시 -1을 리턴합니다.
+int RemoveBackupByFileTree(const char* removePath, struct filetree* removeTree, int* foldCnt, int* fileCnt, int isSilent);
+
 #endif

@@ -105,14 +105,6 @@ int main(int argc, char* argv[])
 		}
 	}
 
-    //Todo: 리코버 패스가 실제 있는 경로인지. 없다면 생성하기 두 파일의 타입이 다른 경우 에러 발생 메시지 출력하기
-	//	add꺼 배껴서 넣기
-	//	이건 그냥 재귀 호출하면서 반복하기
-	//	리커버 트리 가져오기, 이전에 만들어둔 함수 사용하기
-	//	폴더 삭제기능 필요하면 딜리트꺼 유틸로 옮기고 사용하기
-	//	NULL이던 말던 그대로 집어넣으면 됨. 함수에서 처리함.
-	//	해당 경로 파일 트리로 만드는 함수 쓰기
-	//	add 성공하면 remove기능 이용하여 지우기
 	//Comment: 검색된 일치 목록이 하나 이상일 경우. 동일한 이름의 디렉토리와 파일이 섞여있을 경우 포함.
 	if(matchNum > 1){
 		GetParentPath(backupPath, pathBuf);
@@ -124,9 +116,11 @@ int main(int argc, char* argv[])
 		exit(0);
 	}
 	
-	//Todo: 하나있을 때 이거쓰고, 여러개 일경우 바로 셀렉터 하기
 	//Comment: 검색된 일치 목록이 하나일 경우
-	int RecoverBackupByFileTree(const char* backupPath, const char* recoverPath, struct filetree* backupTree, struct filetree* recoverTree, int hashMode)
+	if(RecoverFileByFileTree(backupPath, recoverPath, backupTree, *matchedTrees, hashMode) == -1){
+		perror("RecoverFileByFileTree");
+		exit(1);
+	}
 
 	exit(0);
 }
@@ -140,7 +134,7 @@ int RecoverFileSelector(const char* parentPath, const char* destPath, const stru
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 
 	strcpy(recoverPath, parentPath);
-	GetRealNameByFileTree(pathBuf, matchedTrees[0]);
+	GetRealNameByFileTree(pathBuf, *matchedTrees);
 	ConcatPath(recoverPath, pathBuf);
 	BackupPathToSourcePath(recoverPath);
 	sellect = -1;
@@ -165,6 +159,7 @@ int RecoverFileSelector(const char* parentPath, const char* destPath, const stru
 
 int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, const struct filetree* backupTree, const struct filetree* recoverTree, int hashMode)
 {
+	int foldCnt, fileCnt;
 	int retVal;
 
 	//Comment: 파일이 recoverPath에 존재할 경우 두 파일의 해시값 비교. 디렉토리도 해시값이 동일하면 건너뜀.
@@ -185,6 +180,12 @@ int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, const
 			return -1;
 		}
 
+		//Comment: 복원된 백업 경로의 파일을 삭제
+		if(RemoveBackupByFileTree(backupPath, recoverTree, &foldCnt, &fileCnt, 1) == -1){
+			perror("RemoveBackupByFileTree()");
+			return -1;
+		}
+
 		fprintf(stdout, "\"%s\" backup recover to \"%s\"\n", backupPath, recoverPath);
 		return 0;
 	}
@@ -196,9 +197,7 @@ int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, const
 		return -1;
 	}
 
-	int RecoverBackupByFileTree(const char* pBackupPath, const char* pRecoverPath, struct filetree* backupTree, struct filetree* pRecoverTree, int hashMode)
-
-	return 0;
+	return RecoverBackupByFileTree(backupPath, recoverPath, backupTree, recoverTree, hashMode)
 }
 
 int RecoverBackupByFileTree(const char* pBackupPath, const char* pRecoverPath, struct filetree* backupTree, struct filetree* pRecoverTree, int hashMode)

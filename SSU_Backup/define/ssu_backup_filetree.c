@@ -54,7 +54,7 @@ void RemoveFileNode(struct filetree* node)
 
 	cNodeNum = node->childNodeNum;
 	for(int i=0; i<cNodeNum; i++){
-		RemoveFileNode(node->childNodes[0]);
+		RemoveFileNode(*(node->childNodes));
 	}
 
 	free(node);
