@@ -191,7 +191,7 @@ int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, struc
 
 	//Comment: recoverTree가 디렉토리인 경우
 	//	디렉토리 만들고 RecoverBackupByFileTree로 인자들을 넘긴다.
-	if(MakeDirPath(backupPath) == -1){
+	if(MakeDirPath(recoverPath) == -1){
 		perror("MakeDirPath()");
 		return -1;
 	}
