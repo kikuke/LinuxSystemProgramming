@@ -162,19 +162,19 @@ int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, struc
 	int foldCnt, fileCnt;
 	int retVal;
 
-	//Comment: 파일이 recoverPath에 존재할 경우 두 파일의 해시값 비교. 디렉토리도 해시값이 동일하면 건너뜀.
-	if(CheckFileTypeByPath(recoverPath) != SSU_BACKUP_TYPE_ERROR){
-		if((retVal = CompareHashByPath(backupPath, recoverPath, hashMode)) == -1)
-			return -1;
-
-		if(retVal == 1){
-			fprintf(stdout, "\"%s\" is already backuped\n", recoverPath);
-			return 0;
-		}
-	}
-
 	//Comment: backupPath가 파일인 경우
 	if(recoverTree->childNodeNum == 0){
+		//Comment: 파일이 recoverPath에 존재할 경우 두 파일의 해시값 비교.
+		if(CheckFileTypeByPath(recoverPath) != SSU_BACKUP_TYPE_ERROR){
+			if((retVal = CompareHashByPath(backupPath, recoverPath, hashMode)) == -1)
+				return -1;
+
+			if(retVal == 1){
+				fprintf(stdout, "\"%s\" is already backuped\n", recoverPath);
+				return 0;
+			}
+		}
+
 		if(CopyFile(backupPath, recoverPath) == -1){
 			fprintf(stderr, "\"%s\" to \"%s\" CopyFile Failed! - %s\n", backupPath, recoverPath, strerror(errno));
 			return -1;

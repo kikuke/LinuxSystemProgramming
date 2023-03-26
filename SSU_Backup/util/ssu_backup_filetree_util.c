@@ -122,8 +122,8 @@ int FindAllFileTreeInPath(const char* path, struct filetree* ftree, struct filet
 	}
 
 	matchCnt = 0;
-	//Comment: 폴더이거나 부모노드가 없는 경우 그대로 리턴
-	if(mTree->childNodeNum > 0 || ((pTree = mTree->parentNode) == NULL)){
+	//Comment: 부모노드가 없는 경우 그대로 리턴
+	if((pTree = mTree->parentNode) == NULL){
 		matchCnt++;
 		(*matchedTrees) = (struct filetree**)malloc(sizeof(struct filetree*) * matchCnt);
 		(*matchedTrees)[matchCnt - 1] = mTree;

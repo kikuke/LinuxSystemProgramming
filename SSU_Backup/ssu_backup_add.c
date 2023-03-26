@@ -62,7 +62,7 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 	if((addTree = PathToFileTree(addPath, hashMode)) == NULL){
-		perror("PathToFileTree()");
+		perror("빈 디렉토리 입니다.");
 		exit(1);
 	}
 
