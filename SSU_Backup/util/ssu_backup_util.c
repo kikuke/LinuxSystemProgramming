@@ -170,7 +170,7 @@ int MakeDirPath(const char* path)
 	while(*dirPtr != '\0'){
 		if(*dirPtr == '/'){
 			*dirPtr = '\0';
-			if((fileType = CheckFileTypeByPath(pathBuf)) != SSU_BACKUP_TYPE_DIR){
+			if((fileType = CheckFileTypeByPath(pathBuf)) == SSU_BACKUP_TYPE_ERROR){
 				if(mkdir(pathBuf, SSU_BACKUP_MKDIR_AUTH) == -1)
 					return -1;
 			}
@@ -178,7 +178,7 @@ int MakeDirPath(const char* path)
 		}
 		dirPtr++;
 	}
-	if((fileType = CheckFileTypeByPath(pathBuf)) != SSU_BACKUP_TYPE_DIR){
+	if((fileType = CheckFileTypeByPath(pathBuf)) == SSU_BACKUP_TYPE_ERROR){
 		if(mkdir(pathBuf, SSU_BACKUP_MKDIR_AUTH) == -1)
 			return -1;
 	}
