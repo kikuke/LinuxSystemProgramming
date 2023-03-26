@@ -223,8 +223,8 @@ int RecoverBackupByFileTree(const char* pBackupPath, const char* pRecoverPath, s
 
 		//Comment: 실제 경로로 변환
 		//	복원이 되면 recover트리가 하나씩 지워지므로 복원 수 만큼 idx를 감소시켜야한다.
-		ConcatPath(nextBackupPath, nRecoverTree->file);
 		GetRealNameByFileTree(pathBuf, nRecoverTree);
+		ConcatPath(nextBackupPath, pathBuf);
 		ConcatPath(nextRecoverPath, pathBuf);
 
 		//Comment: 검색을 위한 추출
@@ -236,14 +236,16 @@ int RecoverBackupByFileTree(const char* pBackupPath, const char* pRecoverPath, s
 			return -1;
 		}
 
+		GetParentPath(nextBackupPath, pathBuf);
+		strcpy(nextBackupPath, pathBuf);
 		if(matchNum == 1){
+			ConcatPath(nextBackupPath, nRecoverTree->file);
 			if(RecoverFileByFileTree(nextBackupPath, nextRecoverPath, backupTree, nRecoverTree, hashMode) == -1){
 				perror("RecoverFileByFileTree()");
 				return -1;
 			}
 		} else {
-			GetParentPath(nextBackupPath, pathBuf);
-			if(RecoverFileSelector(pathBuf, nextRecoverPath, backupTree, recoverTrees, matchNum, hashMode) == -1){
+			if(RecoverFileSelector(nextBackupPath, nextRecoverPath, backupTree, recoverTrees, matchNum, hashMode) == -1){
 				perror("RecoverFileSelector()");
 				return -1;
 			}
