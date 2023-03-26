@@ -19,8 +19,8 @@ int main(int argc, char* argv[])
 	int checkType;
 	char opt;
 	struct filetree* backupTree;
-	struct filetree* recoverTree;
-	struct filetree* matchTree;
+	struct filetree** matchedTrees;
+	int matchNum;
 	char backupPath[SSU_BACKUP_MAX_PATH_SZ + 1];
 	char recoverPath[SSU_BACKUP_MAX_PATH_SZ + 1];
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
@@ -87,16 +87,18 @@ int main(int argc, char* argv[])
 
 	strcpy(pathBuf, backupPath);
 	ExtractHomePath(pathBuf);
-	if((matchTree = FindFileTreeInPath(pathBuf, backupTree, 1)) == NULL){
+	if((matchNum = FindAllFileTreeInPath(pathBuf, backupTree, matchedTrees, 1)) < 1){
 		Usage(USAGEIDX_RECOVER);
 		exit(1);
 	}
 
-	GetParentPath(backupPath, pathBuf);
-	ConcatPath(pathBuf, matchTree->file);
-	checkType = CheckFileTypeByPath(pathBuf);
-	if(CheckFileTypeCondition(pathBuf, recoverType, checkType) == -1){
-		exit(1);
+	for(int i=0; i < matchNum; i++){
+		GetParentPath(backupPath, pathBuf);
+		ConcatPath(pathBuf, matchedTrees[i]->file);
+		checkType = CheckFileTypeByPath(pathBuf);
+		if(CheckFileTypeCondition(recoverPath, recoverType, checkType) == -1){
+			exit(1);
+		}
 	}
 
     //Todo: 리코버 패스가 실제 있는 경로인지. 없다면 생성하기 두 파일의 타입이 다른 경우 에러 발생 메시지 출력하기
@@ -109,8 +111,6 @@ int main(int argc, char* argv[])
 	//	add 성공하면 remove기능 이용하여 지우기
 
 	//Comment: 복원 지점 경로의 파일을 일단 가져옴. 없어도 NULL로 가져옴.
-	recoverTree = PathToFileTree(recoverPath, hashMode);
-
 	//Todo: 이거 쓰기
 	int RecoverBackupByFileTree(const char* backupPath, const char* recoverPath, struct filetree* backupTree, struct filetree* recoverTree, int hashMode)
 
@@ -144,6 +144,7 @@ int RecoverBackupByFileTree(const char* backupPath, const char* recoverPath, str
 	//Todo: CreateFileByFileTree 보면서 추가하고 그함수도 리커버 인수 지우는걸로 수정하기
 	//	수정 다 끝나면 저 함수 파일트리 유틸에서 애드함수로 옮겨주기.
 	//Comment: 복원지점에 폴더나 파일이 없는 경우 또는 덮어쓰는 경우.
+	//Todo: 이거 아님. 따로 만들어서 직접 검사하기
 	if(recoverTree == NULL){
 		//Todo: 평가없이 생성하는 함수 만들기
 		//	파일 체크없이 쭉 생성하는 함수. 위에 함수 참고해서 구현하기.
@@ -198,10 +199,15 @@ int RecoverFileSelector(const char* parentPath, const char* destPath, const stru
 	char c;
 	struct filetree* pTree;
 	char recoverPath[SSU_BACKUP_MAX_PATH_SZ];
+	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 
+	strcpy(recoverPath, parentPath);
+	GetRealNameByFileTree(pathBuf, matchedTrees[0]);
+	ConcatPath(recoverPath, pathBuf);
+	BackupPathToSourcePath(recoverPath);
 	sellect = -1;
 	while(sellect < 0 || sellect > listNum){
-		printf("backup file list of \"%s\"\n", destPath);
+		printf("backup file list of \"%s\"\n", recoverPath);
 		puts("0. exit");
 		PrintFileTreeList(parentPath, matchedTrees, listNum);
 		puts("Choose file to recover");
@@ -216,23 +222,16 @@ int RecoverFileSelector(const char* parentPath, const char* destPath, const stru
 
 	strcpy(recoverPath, parentPath);
 	ConcatPath(recoverPath, matchedTrees[sellect-1]->file);
-	return RecoverBackupByFileTree(recoverPath, destPath, backupTree, NULL, hashMode);
+	return RecoverFileByFileTree(recoverPath, destPath, backupTree, matchedTrees[sellect-1], hashMode);
 }
 
-int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, const struct filetree** recoverTrees, int listNum)
+int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, const struct filetree* backupTree, const struct filetree* recoverTree, int hashMode)
 {
 	char backupFilePath[SSU_BACKUP_MAX_PATH_SZ];
 	char recoverFilePath[SSU_BACKUP_MAX_PATH_SZ];
 
 	//Todo: 실제 생성 루틴
-	//Comment: 1개 이상의 동일한 이름의 파일, 폴더가 있을 경우
-	if(listNum > 1){
-		GetParentPath(backupPath, backupFilePath);
-		return RecoverFileSelector(backupFilePath, recoverPath, recoverTrees, listNum);
-	}
-
-	//Comment: 디렉토리인 경우와 1개의 파일인 경우
-
+	//Comment: backupPath가 파일인 경우
 	strcpy(backupFilePath, backupPath);
 	strcpy(recoverFilePath, recoverPath);
 	if(addTree->childNodeNum == 0){
@@ -260,12 +259,14 @@ int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, const
 		return 0;
 	}
 
-	//Comment: 폴더 만들고 재귀 호출
-	if(MakeDirPath(destFilePath) == -1){
+	//Comment: recoverTree가 디렉토리인 경우
+	//Comment: 디렉토리 만들고 재귀 호출
+	//Todo: 이름순으로 정렬되어 있으므로, 동일한 이름의 파일에 대해서는 재귀 x, RecoverBackupByFileTree얘를 호출함
+	if(MakeDirPath(backupPath) == -1){
 		perror("MakeDirPath()");
 		return -1;
 	}
-	for(int i=0; i < addTree->childNodeNum; i++){
+	for(int i=0; i < recoverTree->childNodeNum; i++){
 		strcpy(destFilePath, destPath);
 		ConcatPath(destFilePath, addTree->childNodes[i]->file);
 		strcpy(addFilePath, addPath);

@@ -98,11 +98,15 @@ int main(int argc, char* argv[])
 	}
 
 	GetParentPath(destPath, pathBuf);
-	ConcatPath(pathBuf, removeTrees[0]->file);
 	strcpy(destPath, pathBuf);
-	checkType = CheckFileTypeByPath(destPath);
-	if(CheckFileTypeCondition(removePath, removeType, checkType) == -1){
-		exit(1);
+	//Comment: 같은 이름의 파일과 폴더가 공존할수 있으니, 폴더인 경우까지 검사하기 위해
+	for(int i=0; i < matchNum; i++){
+		strcpy(pathBuf, destPath);
+		ConcatPath(pathBuf, removeTrees[i]->file);
+		checkType = CheckFileTypeByPath(pathBuf);
+		if(CheckFileTypeCondition(removePath, removeType, checkType) == -1){
+			exit(1);
+		}
 	}
 
 	if(RemoveFileByFileTree(destPath, removePath, removeTrees, matchNum, removeType) == -1){
@@ -112,19 +116,16 @@ int main(int argc, char* argv[])
 	exit(0);
 }
 
-int RemoveFileByFileTree(const char* destPath, const char* originPath, struct filetree** removeTrees, int listNum, int removeType)
+int RemoveFileByFileTree(const char* parentPath, const char* originPath, struct filetree** removeTrees, int listNum, int removeType)
 {
 	int foldCnt, fileCnt;
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 
 	//Comment: -a 옵션을 사용한 경우 or 파일이 하나일 경우
 	if(removeType == SSU_BACKUP_TYPE_DIR || listNum == 1){
-		GetParentPath(destPath, pathBuf);
-		
-		return RemoveFileByFileTreeList(pathBuf, removeTrees, listNum);
+		return RemoveFileByFileTreeList(parentPath, removeTrees, listNum);
 	}
 
-	return RemoveFileSelector(pathBuf, originPath, removeTrees, listNum);
+	return RemoveFileSelector(parentPath, originPath, removeTrees, listNum);
 }
 
 int RemoveFileByFileTreeList(const char* parentPath, struct filetree** removeTrees, int listNum)

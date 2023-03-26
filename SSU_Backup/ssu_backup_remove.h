@@ -5,7 +5,7 @@
 
 //Comment: RemoveFileSelector, RemoveBackupFolderByfileTree의 기능을 합친 함수입니다.
 //  성공시 0, 실패시 -1을 리턴합니다.
-int RemoveFileByFileTree(const char* destPath, const char* originPath, struct filetree** removeTrees, int listNum, int removeType);
+int RemoveFileByFileTree(const char* parentPath, const char* originPath, struct filetree** removeTrees, int listNum, int removeType);
 
 //Comment: removeTrees에 담긴 위치의 파일들을 모두 지웁니다.
 //  성공시 0 실패시 -1을 리턴합니다.
