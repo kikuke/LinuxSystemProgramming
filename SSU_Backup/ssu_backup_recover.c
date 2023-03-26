@@ -249,8 +249,6 @@ int RecoverBackupByFileTree(const char* pBackupPath, const char* pRecoverPath, s
 				return -1;
 			}
 		}
-
-		recoverCnt++;
 	}
 	
 	return 0;
