@@ -175,7 +175,7 @@ int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, struc
 			}
 		}
 
-		if(CopyFile(backupPath, recoverPath) == -1){
+		if(CopyFile(recoverPath, backupPath) == -1){
 			fprintf(stderr, "\"%s\" to \"%s\" CopyFile Failed! - %s\n", backupPath, recoverPath, strerror(errno));
 			return -1;
 		}
