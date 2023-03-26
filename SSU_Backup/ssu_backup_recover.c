@@ -113,7 +113,7 @@ int main(int argc, char* argv[])
 	//	NULL이던 말던 그대로 집어넣으면 됨. 함수에서 처리함.
 	//	해당 경로 파일 트리로 만드는 함수 쓰기
 	//	add 성공하면 remove기능 이용하여 지우기
-	//Comment: 검색된 일치 목록이 하나 이상일 경우
+	//Comment: 검색된 일치 목록이 하나 이상일 경우. 동일한 이름의 디렉토리와 파일이 섞여있을 경우 포함.
 	if(matchNum > 1){
 		GetParentPath(backupPath, pathBuf);
 		if(RecoverFileSelector(pathBuf, recoverPath, backupTree, matchedTrees, matchNum, hashMode) == -1){
@@ -165,19 +165,19 @@ int RecoverFileSelector(const char* parentPath, const char* destPath, const stru
 
 int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, const struct filetree* backupTree, const struct filetree* recoverTree, int hashMode)
 {
-	char nextBackupPath[SSU_BACKUP_MAX_PATH_SZ];
-	char nextRecoverPath[SSU_BACKUP_MAX_PATH_SZ];
+	int retVal;
 
-	//Todo: 해시값이 같은 경우 바로 정상종료. 단, 복원 경로에 파일이 없을때도 생각해야함.
-				if((retVal = CompareHashByPath(backupTreePath, addPath, hashMode)) == -1)
-					return -1;
+	//Comment: 파일이 recoverPath에 존재할 경우 두 파일의 해시값 비교. 디렉토리도 해시값이 동일하면 건너뜀.
+	if(CheckFileTypeByPath(recoverPath) != SSU_BACKUP_TYPE_ERROR){
+		if((retVal = CompareHashByPath(backupPath, recoverPath, hashMode)) == -1)
+			return -1;
 
-				if(retVal == 1){
-					fprintf(stdout, "\"%s\" is already backuped\n", backupTreePath);
-					return 0;
-				}
+		if(retVal == 1){
+			fprintf(stdout, "\"%s\" is already backuped\n", recoverPath);
+			return 0;
+		}
+	}
 
-	//Todo: 실제 생성 루틴
 	//Comment: backupPath가 파일인 경우
 	if(recoverTree->childNodeNum == 0){
 		if(CopyFile(backupPath, recoverPath) == -1){
@@ -196,12 +196,12 @@ int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, const
 		return -1;
 	}
 
-	int RecoverBackupByFileTree(const char* backupPath, const char* recoverPath, struct filetree* backupTree, struct filetree* recoverTree, int hashMode)
+	int RecoverBackupByFileTree(const char* pBackupPath, const char* pRecoverPath, struct filetree* backupTree, struct filetree* pRecoverTree, int hashMode)
 
 	return 0;
 }
 
-int RecoverBackupByFileTree(const char* backupPath, const char* recoverPath, struct filetree* backupTree, struct filetree* recoverTree, int hashMode)
+int RecoverBackupByFileTree(const char* pBackupPath, const char* pRecoverPath, struct filetree* backupTree, struct filetree* pRecoverTree, int hashMode)
 {
 	int retVal;
 	int backupCheckType;

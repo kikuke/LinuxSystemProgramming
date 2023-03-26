@@ -110,6 +110,7 @@ int main(int argc, char* argv[])
 	}
 
 	if(RemoveFileByFileTree(destPath, removePath, removeTrees, matchNum, removeType) == -1){
+		perror("RemoveFileByFileTree");
 		exit(1);
 	}
 
@@ -208,6 +209,7 @@ int ClearBackup(int hashMode)
 
 int RemoveBackupByFileTree(const char* removePath, struct filetree* removeTree, int* foldCnt, int* fileCnt, int isSilent)
 {
+	struct filetree* pNode;
 	char nextRemovePath[SSU_BACKUP_MAX_PATH_SZ];
 
 	if(removeTree->childNodeNum == 0){
@@ -220,23 +222,36 @@ int RemoveBackupByFileTree(const char* removePath, struct filetree* removeTree, 
 		if(!isSilent){
 			printf("\"%s\" backup file removed\n", removePath);
 		}
+
+		//Comment: 빈 디렉토리가 된 것은은 삭제.
+		pNode = removeTree->parentNode;
+		if((pNode != NULL) && pNode->childNodeNum == 1){
+			GetParentPath(removePath, nextRemovePath);
+			if(rmdir(nextRemovePath) == -1){
+				fprintf(stderr, "\"%s\" rmdir Failed! - %s\n", nextRemovePath, strerror(errno));
+				return -1;
+			}
+			(*foldCnt)++;
+		}
 		return 0;
 	}
 
 	//Comment: 폴더의 경우 재귀 호출
-	for(int i=0; i < removeTree->childNodeNum; i++){
+	while(removeTree->childNodeNum != 0){
 		strcpy(nextRemovePath, removePath);
-		ConcatPath(nextRemovePath, removeTree->childNodes[i]->file);
-		if(RemoveBackupByFileTree(nextRemovePath, removeTree->childNodes[i], foldCnt, fileCnt, isSilent) == -1)
+		ConcatPath(nextRemovePath, removeTree->childNodes[0]->file);
+		if(RemoveBackupByFileTree(nextRemovePath, removeTree->childNodes[0], foldCnt, fileCnt, isSilent) == -1)
 			return -1;
+		RemoveFileNode(removeTree->childNodes[0]);
 	}
-
-	//Comment: 빈 디렉토리가 되었으니 삭제.
-	if(rmdir(removePath) == -1){
-		fprintf(stderr, "\"%s\" rmdir Failed! - %s\n", removePath, strerror(errno));
-		return -1;
+	//Comment: 하위에서 지워지지 않은 경우 폴더 지우기
+	if(CheckFileTypeByPath(removePath) == SSU_BACKUP_TYPE_DIR){
+		if(rmdir(removePath) == -1){
+			fprintf(stderr, "\"%s\" rmdir Failed! - %s\n", removePath, strerror(errno));
+			return -1;
+		}
+		(*foldCnt)++;
 	}
-	(*foldCnt)++;
 
 	return 0;
 }
