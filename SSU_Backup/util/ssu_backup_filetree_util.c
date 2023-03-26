@@ -16,12 +16,12 @@ char* GetRealNameByFileTree(char* buf, const struct filetree* ftree)
 {
 	size_t fileLen;
 
-	if(ftree->childNodeNum > 0){
+	fileLen = strlen(ftree->file) - SSU_BACKUP_FILE_META_LEN;
+	if((ftree->childNodeNum > 0) || fileLen < 1){
 		strcpy(buf, ftree->file);
 		return buf;
 	}
 
-	fileLen = strlen(ftree->file) - SSU_BACKUP_FILE_META_LEN;
 	strncpy(buf, ftree->file, fileLen);
 	buf[fileLen] = '\0';
 
@@ -138,8 +138,6 @@ int FindAllFileTreeInPath(const char* path, struct filetree* ftree, struct filet
 	}
 	for(int i=0; i < pTree->childNodeNum; i++){
 		cTree = pTree->childNodes[i];
-		if(cTree->childNodeNum != 0)
-			continue;
 
 		if(isBackup){
 			GetRealNameByFileTree(cmpFileName, cTree);
