@@ -260,12 +260,10 @@ int RecoverBackupByFileTree(const char* pBackupPath, const char* pRecoverPath, s
 	}
 	
 	//Comment: 하위에서 지워지지 않은 경우 폴더 지우기
-	if(pRecoverTree->childNodeNum == 0){
-		if(access(pBackupPath, F_OK) == 0){
-			if(rmdir(pBackupPath) == -1){
-				fprintf(stderr, "\"%s\" rmdir Failed! - %s\n", pBackupPath, strerror(errno));
-				return -1;
-			}
+	if(access(pBackupPath, F_OK) == 0){
+		if(rmdir(pBackupPath) == -1 && errno != ENOTEMPTY){
+			fprintf(stderr, "\"%s\" rmdir Failed! - %s\n", pBackupPath, strerror(errno));
+			return -1;
 		}
 	}
 	
