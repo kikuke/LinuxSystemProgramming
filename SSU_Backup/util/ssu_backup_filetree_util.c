@@ -268,6 +268,7 @@ int RemoveBackupByFileTree(const char* removePath, struct filetree* removeTree, 
 	char nextRemovePath[SSU_BACKUP_MAX_PATH_SZ];
 
 	if(removeTree->childNodeNum == 0){
+		pNode = removeTree->parentNode;
 		if(unlink(removePath) == -1){
 			fprintf(stderr, "\"%s\" unlink Failed! - %s\n", removePath, strerror(errno));
 			return -1;
@@ -279,7 +280,6 @@ int RemoveBackupByFileTree(const char* removePath, struct filetree* removeTree, 
 		}
 
 		//Comment: 빈 디렉토리가 된 것은은 삭제.
-		pNode = removeTree->parentNode;
 		if((pNode != NULL) && pNode->childNodeNum == 1){
 			GetParentPath(removePath, nextRemovePath);
 			if(rmdir(nextRemovePath) == -1){
@@ -300,12 +300,14 @@ int RemoveBackupByFileTree(const char* removePath, struct filetree* removeTree, 
 		RemoveFileNode(*(removeTree->childNodes));
 	}
 	//Comment: 하위에서 지워지지 않은 경우 폴더 지우기
-	if(CheckFileTypeByPath(removePath) == SSU_BACKUP_TYPE_DIR){
-		if(rmdir(removePath) == -1){
-			fprintf(stderr, "\"%s\" rmdir Failed! - %s\n", removePath, strerror(errno));
-			return -1;
+	if(removeTree->childNodeNum == 0){
+		if(access(removePath, F_OK) == 0){
+			if(rmdir(removePath) == -1){
+				fprintf(stderr, "\"%s\" rmdir Failed! - %s\n", removePath, strerror(errno));
+				return -1;
+			}
+			(*foldCnt)++;
 		}
-		(*foldCnt)++;
 	}
 
 	return 0;
