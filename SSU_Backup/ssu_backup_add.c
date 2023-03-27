@@ -127,6 +127,12 @@ int AddBackupByFileTree(const char* backupPath, const char* addPath, struct file
 		struct filetree* pTree = matchedTree->parentNode;
 		if(pTree != NULL){
 			for(int i=0; i < pTree->childNodeNum; i++){
+				//Comment: 파일 이름 체크
+				GetRealNameByFileTree(checkBackupPath, pTree->childNodes[i]);
+				if(strcmp(checkBackupPath, addTree->file) != 0)
+					continue;
+				
+				//Comment: 해시 체크
 				GetParentPath(backupPath, backupTreePath);
 				ConcatPath(backupTreePath, pTree->childNodes[i]->file);
 				if((retVal = CompareHashByPath(backupTreePath, addPath, hashMode)) == -1)

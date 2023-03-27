@@ -31,7 +31,7 @@ int main(int argc, char* argv[])
 	}
 
 	strcpy(backupPath, argv[1]);
-	strcpy(recoverPath, ".");
+	strcpy(recoverPath, argv[1]);
 	while((opt = getopt(argc, argv, "dn:")) != -1){
 		switch(opt){
 			case 'd':
