@@ -114,13 +114,12 @@ int main(int argc, char* argv[])
 
 int RecoverEntry(const char* backupPath, const char* recoverPath, struct filetree* backupTree, struct filetree** matchedTrees, int matchNum, int hashMode)
 {
-	int recoverCnt;
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 
 	//Comment: 검색된 일치 목록이 하나 이상일 경우. 동일한 이름의 디렉토리와 파일이 섞여있을 경우 포함.
 	if(matchNum > 1){
 		GetParentPath(backupPath, pathBuf);
-		if(RecoverFileSelector(pathBuf, recoverPath, backupTree, matchedTrees, matchNum, &recoverCnt, hashMode) == -1){
+		if(RecoverFileSelector(pathBuf, recoverPath, backupTree, matchedTrees, matchNum, hashMode) == -1){
 			fprintf(stderr, "\"%s\" FindAllFileTreeInPath() Failed! - %s\n", backupPath, strerror(errno));
 			return -1;
 		}
@@ -129,7 +128,7 @@ int RecoverEntry(const char* backupPath, const char* recoverPath, struct filetre
 	}
 	
 	//Comment: 검색된 일치 목록이 하나일 경우
-	if(RecoverFileByFileTree(backupPath, recoverPath, backupTree, *matchedTrees, &recoverCnt, hashMode) == -1){
+	if(RecoverFileByFileTree(backupPath, recoverPath, backupTree, *matchedTrees, hashMode) == -1){
 		perror("RecoverFileByFileTree()");
 		return -1;
 	}
@@ -137,7 +136,7 @@ int RecoverEntry(const char* backupPath, const char* recoverPath, struct filetre
 	return 0;
 }
 
-int RecoverFileSelector(const char* parentPath, const char* destPath, struct filetree* backupTree, struct filetree** matchedTrees, int listNum, int* recoverCnt, int hashMode)
+int RecoverFileSelector(const char* parentPath, const char* destPath, struct filetree* backupTree, struct filetree** matchedTrees, int listNum, int hashMode)
 {
 	int sellect;
 	char c;
@@ -166,10 +165,10 @@ int RecoverFileSelector(const char* parentPath, const char* destPath, struct fil
 
 	strcpy(recoverPath, parentPath);
 	ConcatPath(recoverPath, matchedTrees[sellect-1]->file);
-	return RecoverFileByFileTree(recoverPath, destPath, backupTree, matchedTrees[sellect-1], recoverCnt, hashMode);
+	return RecoverFileByFileTree(recoverPath, destPath, backupTree, matchedTrees[sellect-1], hashMode);
 }
 
-int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, struct filetree* backupTree, struct filetree* recoverTree, int* recoverCnt, int hashMode)
+int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, struct filetree* backupTree, struct filetree* recoverTree, int hashMode)
 {
 	int foldCnt, fileCnt;
 	int retVal;
@@ -196,9 +195,6 @@ int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, struc
 		if(RemoveBackupByFileTree(backupPath, recoverTree, &foldCnt, &fileCnt, 1) == -1){
 			return -1;
 		}
-		//Comment: 디렉토리 노드만 실제로 노드들이 삭제되므로.
-		if(recoverTree->childNodeNum != 0)
-			(*recoverCnt)++;
 
 		fprintf(stdout, "\"%s\" backup recover to \"%s\"\n", backupPath, recoverPath);
 		return 0;
@@ -218,18 +214,16 @@ int RecoverBackupByFileTree(const char* pBackupPath, const char* pRecoverPath, s
 {
 	int nodeNum;
 	int matchNum;
-	int recoverCnt;
 	struct filetree* nRecoverTree;
 	struct filetree** recoverTrees;
 	char nextBackupPath[SSU_BACKUP_MAX_PATH_SZ];
 	char nextRecoverPath[SSU_BACKUP_MAX_PATH_SZ];
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 	
-	recoverCnt = 0;
 	nodeNum = pRecoverTree->childNodeNum;
 	//Comment: 하위 파일들 순회
 	for(int i=0; i < nodeNum; i+=matchNum){
-		nRecoverTree = pRecoverTree->childNodes[i - recoverCnt];
+		nRecoverTree = pRecoverTree->childNodes[i];
 
 		//Comment: 부모 경로로 변환
 		strcpy(nextBackupPath, pBackupPath);
@@ -254,12 +248,22 @@ int RecoverBackupByFileTree(const char* pBackupPath, const char* pRecoverPath, s
 		strcpy(nextBackupPath, pathBuf);
 		if(matchNum == 1){
 			ConcatPath(nextBackupPath, (*recoverTrees)->file);
-			if(RecoverFileByFileTree(nextBackupPath, nextRecoverPath, backupTree, nRecoverTree, &recoverCnt, hashMode) == -1){
+			if(RecoverFileByFileTree(nextBackupPath, nextRecoverPath, backupTree, nRecoverTree, hashMode) == -1){
 				return -1;
 			}
 		} else {
-			if(RecoverFileSelector(nextBackupPath, nextRecoverPath, backupTree, recoverTrees, matchNum, &recoverCnt, hashMode) == -1){
+			if(RecoverFileSelector(nextBackupPath, nextRecoverPath, backupTree, recoverTrees, matchNum, hashMode) == -1){
 				perror("RecoverFileSelector()");
+				return -1;
+			}
+		}
+	}
+	
+	//Comment: 하위에서 지워지지 않은 경우 폴더 지우기
+	if(pRecoverTree->childNodeNum == 0){
+		if(access(pBackupPath, F_OK) == 0){
+			if(rmdir(pBackupPath) == -1){
+				fprintf(stderr, "\"%s\" rmdir Failed! - %s\n", pBackupPath, strerror(errno));
 				return -1;
 			}
 		}
