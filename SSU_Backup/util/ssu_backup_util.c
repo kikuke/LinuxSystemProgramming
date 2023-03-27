@@ -3,7 +3,6 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
-#include <dirent.h>
 #include <time.h>
 #include <sys/time.h>
 #include <errno.h>
@@ -203,12 +202,12 @@ int ClearEmptyDirectory(const char* path)
 	char nextPath[SSU_BACKUP_MAX_PATH_SZ];
 
 	if((childCount = scandir(path, &childList, filterParentInScanDir, alphasort)) < 1){
-		return NULL;
+		return 0;
 	}
 	for(int i=0; i<childCount; i++){
 		strcpy(nextPath, path);
 		ConcatPath(nextPath, childList[i]->d_name);
-		if(lstat(nextPath, childStat) == -1)
+		if(lstat(nextPath, &childStat) == -1)
 			return -1;
 		
 		if(S_ISDIR(childStat.st_mode)){

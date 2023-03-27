@@ -1,6 +1,7 @@
 #ifndef SSU_BACKUP_UTIL_H
 #define SSU_BACKUP_UTIL_H
 
+#include <dirent.h>
 #include <sys/stat.h>
 
 #include "ssu_backup_define.h"
