@@ -105,7 +105,8 @@ int main(int argc, char* argv[])
 		}
 	}
 
-	if(RecoverEntry(backupPath, recoverPath, backupTree, matchedTrees, matchNum, hashMode) == -1){
+	GetParentPath(backupPath, pathBuf);
+	if(RecoverEntry(pathBuf, recoverPath, backupTree, matchedTrees, matchNum, hashMode) == -1){
 		exit(1);
 	}
 
@@ -117,15 +118,16 @@ int main(int argc, char* argv[])
 	exit(0);
 }
 
-int RecoverEntry(const char* backupPath, const char* recoverPath, struct filetree* backupTree, struct filetree** matchedTrees, int matchNum, int hashMode)
+int RecoverEntry(const char* parentPath, const char* recoverPath, struct filetree* backupTree, struct filetree** matchedTrees, int matchNum, int hashMode)
 {
 	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
 
+	strcpy(pathBuf, parentPath);
+	ConcatPath(pathBuf, (*matchedTrees)->file);
 	//Comment: 검색된 일치 목록이 하나 이상일 경우. 동일한 이름의 디렉토리와 파일이 섞여있을 경우 포함.
 	if(matchNum > 1){
-		GetParentPath(backupPath, pathBuf);
-		if(RecoverFileSelector(pathBuf, recoverPath, backupTree, matchedTrees, matchNum, hashMode) == -1){
-			fprintf(stderr, "\"%s\" FindAllFileTreeInPath() Failed! - %s\n", backupPath, strerror(errno));
+		if(RecoverFileSelector(parentPath, recoverPath, backupTree, matchedTrees, matchNum, hashMode) == -1){
+			fprintf(stderr, "\"%s\" FindAllFileTreeInPath() Failed! - %s\n", pathBuf, strerror(errno));
 			return -1;
 		}
 
@@ -133,7 +135,7 @@ int RecoverEntry(const char* backupPath, const char* recoverPath, struct filetre
 	}
 	
 	//Comment: 검색된 일치 목록이 하나일 경우
-	if(RecoverFileByFileTree(backupPath, recoverPath, backupTree, *matchedTrees, hashMode) == -1){
+	if(RecoverFileByFileTree(pathBuf, recoverPath, backupTree, *matchedTrees, hashMode) == -1){
 		perror("RecoverFileByFileTree()");
 		return -1;
 	}

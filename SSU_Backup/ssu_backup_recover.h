@@ -4,7 +4,7 @@
 #include "ssu_backup_filetree.h"
 
 //Comment: 아래 함수들의 진입점 입니다.
-int RecoverEntry(const char* backupPath, const char* recoverPath, struct filetree* backupTree, struct filetree** matchedTrees, int matchNum, int hashMode);
+int RecoverEntry(const char* parentPath, const char* recoverPath, struct filetree* backupTree, struct filetree** matchedTrees, int matchNum, int hashMode);
 
 //Comment: 동일한 이름의 디렉토리, 파일들을 보여줍니다. 디렉토리를 선택할 경우 디렉토리 복사 루틴으로, 파일을 선택할 경우 파일이 복사됩니다.
 //  성공시 0, 실패시 -1을 리턴합니다.
