@@ -44,9 +44,6 @@ struct filetree* PathToFileTree(const char* path, int hashMode);
 //Comment: 디렉토리일때 PathToFileTree에서 내부적으로 사용하는 함수.
 //	실패했거나 하위 파일이 없으면 NULL을 리턴합니다.
 struct filetree* _PathToFileTreeDir(const char* path, int hashMode);
-//Comment: 파일트리를 만들때 정렬 기준
-//  파일 이름의 오름차순입니다.
-int filterParentInScanDir(const struct dirent* target);
 
 //Comment: 해당경로를 removeTree 이하 모든 경로를 삭제합니다.
 //  Cnt에는 삭제된 폴더, 파일정보가 담깁니다.

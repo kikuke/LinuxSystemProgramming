@@ -175,7 +175,7 @@ int PrintFileTreeList(const char* parentFilePath, const struct filetree** fileTr
 	for(int i=0; i<listNum; i++){
 		strcpy(filePath, parentFilePath);
 		ConcatPath(filePath, fileTreeList[i]->file);
-		if(stat(filePath, &f_stat) == -1)
+		if(lstat(filePath, &f_stat) == -1)
 			return -1;
 
 		GetCreateTimeByFileTree(fileName, fileTreeList[i]);
@@ -252,14 +252,6 @@ struct filetree* _PathToFileTreeDir(const char* path, int hashMode)
 	if(realChildCnt < 1)
 		return NULL;
 	return ptree;
-}
-
-int filterParentInScanDir(const struct dirent* target)
-{
-	if(!strcmp(target->d_name, ".") || !strcmp(target->d_name, "..")){
-		return 0;
-	}
-	return 1;
 }
 
 int RemoveBackupByFileTree(const char* removePath, struct filetree* removeTree, int* foldCnt, int* fileCnt, int isSilent)

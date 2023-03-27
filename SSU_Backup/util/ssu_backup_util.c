@@ -3,9 +3,10 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <string.h>
-#include <errno.h>
+#include <dirent.h>
 #include <time.h>
 #include <sys/time.h>
+#include <errno.h>
 
 #include "ssu_backup_usage.h"
 #include "ssu_backup_path.h"
@@ -106,7 +107,7 @@ int CheckFileType(const struct stat* p_stat)
 int CheckFileTypeByPath(const char* path)
 {
 	struct stat f_stat;
-	if(stat(path, &f_stat) == -1){
+	if(lstat(path, &f_stat) == -1){
 		return SSU_BACKUP_TYPE_ERROR;
 	}
 
@@ -182,6 +183,47 @@ int MakeDirPath(const char* path)
 		if(mkdir(pathBuf, SSU_BACKUP_MKDIR_AUTH) == -1)
 			return -1;
 	}
+
+	return 0;
+}
+
+int filterParentInScanDir(const struct dirent* target)
+{
+	if(!strcmp(target->d_name, ".") || !strcmp(target->d_name, "..")){
+		return 0;
+	}
+	return 1;
+}
+
+int ClearEmptyDirectory(const char* path)
+{
+	struct dirent** childList;
+	struct stat childStat;
+	int childCount;
+	char nextPath[SSU_BACKUP_MAX_PATH_SZ];
+
+	if((childCount = scandir(path, &childList, filterParentInScanDir, alphasort)) < 1){
+		return NULL;
+	}
+	for(int i=0; i<childCount; i++){
+		strcpy(nextPath, path);
+		ConcatPath(nextPath, childList[i]->d_name);
+		if(lstat(nextPath, childStat) == -1)
+			return -1;
+		
+		if(S_ISDIR(childStat.st_mode)){
+			if(ClearEmptyDirectory(nextPath) == -1)
+				return -1;
+
+			if(rmdir(nextPath) == -1 && errno != ENOTEMPTY){
+				fprintf(stderr, "\"%s\" rmdir Failed! - %s\n", nextPath, strerror(errno));
+				return -1;
+			}
+		}
+
+		free(childList[i]);
+	}
+	free(childList);
 
 	return 0;
 }

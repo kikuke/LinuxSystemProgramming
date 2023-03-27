@@ -114,6 +114,11 @@ int main(int argc, char* argv[])
 		exit(1);
 	}
 
+	GetBackupPath(pathBuf);
+	if(ClearEmptyDirectory(pathBuf) == -1){
+		exit(1);
+	}
+
 	exit(0);
 }
 

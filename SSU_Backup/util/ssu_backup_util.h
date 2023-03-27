@@ -39,6 +39,13 @@ int CheckFileTypeCondition(const char* originPath, int selectType, int checkType
 //	성공시 0 실패시 -1을 리턴합니다.
 int MakeDirPath(const char* path);
 
+//Comment: dirent를 생성할 때 제외할 필터입니다.
+int filterParentInScanDir(const struct dirent* target);
+
+//Comment: 해당 루트 하위의 빈 디렉토리를 찾아 지웁니다.
+//  성공시 0, 실패시 -1을 리턴합니다.
+int ClearEmptyDirectory(const char* path);
+
 //Comment: destPath의 이름으로 sourcePath의 파일을 복사합니다.
 //	성공시 0 실패시 -1을 리턴합니다.
 int CopyFile(const char* destPath, const char* sourcePath);
