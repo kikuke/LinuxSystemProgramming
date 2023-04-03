@@ -21,9 +21,9 @@ int main(int argc, char* argv[])
 	struct filetree* backupTree;
 	struct filetree** removeTrees;
 	int matchNum;
-	char destPath[SSU_BACKUP_MAX_PATH_SZ];
-	char removePath[SSU_BACKUP_MAX_PATH_SZ + 1];
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+	char destPath[SSU_BACKUP_MAX_PATH_BUF_SZ];
+	char removePath[SSU_BACKUP_MAX_PATH_BUF_SZ + 1];
+	char pathBuf[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	if(argc < 2 || argc > 3){
 		Usage(USAGEIDX_REMOVE);
@@ -137,7 +137,7 @@ int RemoveEntry(const char* parentPath, const char* originPath, struct filetree*
 int RemoveFileByFileTreeList(const char* parentPath, struct filetree** removeTrees, int listNum)
 {
 	int foldCnt=0, fileCnt=0;
-	char removePath[SSU_BACKUP_MAX_PATH_SZ];
+	char removePath[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	for(int i=0; i < listNum; i++){
 		strcpy(removePath, parentPath);
@@ -154,7 +154,7 @@ int RemoveFileSelector(const char* parentPath, const char* originPath, struct fi
 	int sellect;
 	int foldCnt=0, fileCnt=0;
 	char c;
-	char removePath[SSU_BACKUP_MAX_PATH_SZ];
+	char removePath[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	sellect = -1;
 	while(sellect < 0 || sellect > listNum){
@@ -181,7 +181,7 @@ int ClearBackup(int hashMode)
 	struct filetree* backupTree;
 	struct filetree* cTree;
 	int foldCnt, fileCnt;
-	char destPath[SSU_BACKUP_MAX_PATH_SZ];
+	char destPath[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	GetBackupPath(destPath);
 

@@ -7,7 +7,7 @@
 
 typedef struct filetree
 {
-	char file[SSU_BACKUP_MAX_FILENAME];
+	char file[SSU_BACKUP_MAX_FILENAME_BUF_SZ];
 	
 	struct filetree* parentNode;
 	//Comment: childNodeNum이 0인경우는 파일 밖에 없음

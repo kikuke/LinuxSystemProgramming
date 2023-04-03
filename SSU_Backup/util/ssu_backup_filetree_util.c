@@ -46,7 +46,7 @@ char* GetPathByFileTree(char* buf, struct filetree* ftree)
 {
 	struct filetree* ptree = ftree;
 	size_t parentLen;
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+	char pathBuf[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	strcpy(buf, ptree->file);
 	while(ptree->parentNode != NULL){
@@ -113,8 +113,8 @@ int FindAllFileTreeInPath(const char* path, struct filetree* ftree, struct filet
 	struct filetree* pTree;
 	struct filetree* cTree;
 	struct filetree* mTree;
-	char fileName[SSU_BACKUP_MAX_FILENAME];
-	char cmpFileName[SSU_BACKUP_MAX_FILENAME];
+	char fileName[SSU_BACKUP_MAX_FILENAME_BUF_SZ];
+	char cmpFileName[SSU_BACKUP_MAX_FILENAME_BUF_SZ];
 
 	if((mTree = FindFileTreeInPath(path, ftree, isBackup)) == NULL){
 		matchedTrees = NULL;
@@ -169,8 +169,8 @@ int PrintFileTreeList(const char* parentFilePath, const struct filetree** fileTr
 {
 	struct stat f_stat;
 	char intBuf[SSU_BACKUP_MAX_PRINT_INT_BUF];
-	char fileName[SSU_BACKUP_MAX_FILENAME];
-	char filePath[SSU_BACKUP_MAX_PATH_SZ];
+	char fileName[SSU_BACKUP_MAX_FILENAME_BUF_SZ];
+	char filePath[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	for(int i=0; i<listNum; i++){
 		strcpy(filePath, parentFilePath);
@@ -189,7 +189,7 @@ int PrintFileTreeList(const char* parentFilePath, const struct filetree** fileTr
 struct filetree* FileToFileTree(const char* path)
 {
 	char* fileName = NULL;
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+	char pathBuf[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	strcpy(pathBuf, path);
 	if((fileName = GetFileNameByPath(pathBuf)) == NULL){
@@ -230,7 +230,7 @@ struct filetree* _PathToFileTreeDir(const char* path, int hashMode)
 	struct dirent** childList;
 	int childCount;
 	int realChildCnt;
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+	char pathBuf[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	if((childCount = scandir(path, &childList, filterParentInScanDir, alphasort)) < 1){
 		return NULL;
@@ -257,7 +257,7 @@ struct filetree* _PathToFileTreeDir(const char* path, int hashMode)
 int RemoveBackupByFileTree(const char* removePath, struct filetree* removeTree, int* foldCnt, int* fileCnt, int isSilent)
 {
 	struct filetree* pNode;
-	char nextRemovePath[SSU_BACKUP_MAX_PATH_SZ];
+	char nextRemovePath[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	if(removeTree->childNodeNum == 0){
 		pNode = removeTree->parentNode;

@@ -13,7 +13,7 @@ int main(int argc, char* argv[])
 {
 	int selectHash;
 	int endFlag;
-	char path_buf[SSU_BACKUP_MAX_PATH_SZ];
+	char path_buf[SSU_BACKUP_MAX_PATH_BUF_SZ];
 	char shell_buf[SSU_BACKUP_SHELL_MAX_BUF_SZ];
 
 	//Comment: 인자가 2개가 아니거나 인자값이 잘못된 경우 Usage 출력

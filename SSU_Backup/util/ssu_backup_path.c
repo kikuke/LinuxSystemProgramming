@@ -71,7 +71,7 @@ char* ExtractHomePath(char* path)
 	char* homeDir = getenv("HOME");
 	char* homePtr = strstr(path, homeDir);
 	size_t homeLen;
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+	char pathBuf[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	if(homePtr == NULL || homePtr != path){
 		return path;
@@ -92,8 +92,8 @@ char* SourcePathToBackupPath(char* path)
 {
 	char* homeDir = getenv("HOME");
 	char* matchPtr;
-	char rootPathName[SSU_BACKUP_MAX_FILENAME+1];
-	char tempPath[SSU_BACKUP_MAX_PATH_SZ];
+	char rootPathName[SSU_BACKUP_MAX_FILENAME_BUF_SZ + 1];
+	char tempPath[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	if((matchPtr = strstr(path, homeDir)) == NULL)
 		return path;
@@ -110,8 +110,8 @@ char* SourcePathToBackupPath(char* path)
 char* BackupPathToSourcePath(char* path)
 {
 	char* matchPtr;
-	char rootPathName[SSU_BACKUP_MAX_FILENAME + 2];
-	char tempPath[SSU_BACKUP_MAX_PATH_SZ];
+	char rootPathName[SSU_BACKUP_MAX_FILENAME_BUF_SZ + 2];
+	char tempPath[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	strcpy(rootPathName, "/");
 	strcat(rootPathName, SSU_BACKUP_ROOT_DIR_NAME);
@@ -129,7 +129,7 @@ char* GetVirtualRealPath(const char* path, char* resolved_path)
 	char* homeDir = getenv("HOME");
 	char* sPtr;
 	char* ePtr;
-	char temp_path[SSU_BACKUP_MAX_PATH_SZ + 1];
+	char temp_path[SSU_BACKUP_MAX_PATH_BUF_SZ + 1];
 	size_t pathLen;
 	
 	//Comment: 경로 끝이 /일 경우 제거

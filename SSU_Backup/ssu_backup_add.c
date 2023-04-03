@@ -16,9 +16,9 @@ int main(int argc, char* argv[])
 {
 	int hashMode = -1;
 	int addType = SSU_BACKUP_TYPE_REG;
-	char destPath[SSU_BACKUP_MAX_PATH_SZ];
-	char addPath[SSU_BACKUP_MAX_PATH_SZ];
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+	char destPath[SSU_BACKUP_MAX_PATH_BUF_SZ];
+	char addPath[SSU_BACKUP_MAX_PATH_BUF_SZ];
+	char pathBuf[SSU_BACKUP_MAX_PATH_BUF_SZ];
 	char opt;
 	struct filetree* backupTree;
 	struct filetree* addTree;
@@ -103,9 +103,9 @@ int AddBackupByFileTree(const char* backupPath, const char* addPath, struct file
 {
 	int retVal;
 	struct filetree* matchedTree;
-	char checkBackupPath[SSU_BACKUP_MAX_PATH_SZ];
-	char backupTreePath[SSU_BACKUP_MAX_PATH_SZ];
-	char addTreePath[SSU_BACKUP_MAX_PATH_SZ];
+	char checkBackupPath[SSU_BACKUP_MAX_PATH_BUF_SZ];
+	char backupTreePath[SSU_BACKUP_MAX_PATH_BUF_SZ];
+	char addTreePath[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	GetBackupPath(checkBackupPath);
 	//Comment: 백업 패스인 경우 제외
@@ -162,8 +162,8 @@ int AddBackupByFileTree(const char* backupPath, const char* addPath, struct file
 
 int AddFileByFileTree(const char* destPath, const char* addPath, const struct filetree* addTree)
 {
-	char addFilePath[SSU_BACKUP_MAX_PATH_SZ];
-	char destFilePath[SSU_BACKUP_MAX_PATH_SZ];
+	char addFilePath[SSU_BACKUP_MAX_PATH_BUF_SZ];
+	char destFilePath[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	strcpy(destFilePath, destPath);
 	strcpy(addFilePath, addPath);

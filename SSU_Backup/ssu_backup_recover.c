@@ -21,9 +21,9 @@ int main(int argc, char* argv[])
 	struct filetree* backupTree;
 	struct filetree** matchedTrees;
 	int matchNum;
-	char backupPath[SSU_BACKUP_MAX_PATH_SZ + 1];
-	char recoverPath[SSU_BACKUP_MAX_PATH_SZ + 1];
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+	char backupPath[SSU_BACKUP_MAX_PATH_BUF_SZ + 1];
+	char recoverPath[SSU_BACKUP_MAX_PATH_BUF_SZ + 1];
+	char pathBuf[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	if(argc < 2 || argc > 5){
 		Usage(USAGEIDX_RECOVER);
@@ -120,7 +120,7 @@ int main(int argc, char* argv[])
 
 int RecoverEntry(const char* parentPath, const char* recoverPath, struct filetree* backupTree, struct filetree** matchedTrees, int matchNum, int hashMode)
 {
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+	char pathBuf[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	strcpy(pathBuf, parentPath);
 	ConcatPath(pathBuf, (*matchedTrees)->file);
@@ -148,8 +148,8 @@ int RecoverFileSelector(const char* parentPath, const char* destPath, struct fil
 	int sellect;
 	char c;
 	struct filetree* pTree;
-	char recoverPath[SSU_BACKUP_MAX_PATH_SZ];
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+	char recoverPath[SSU_BACKUP_MAX_PATH_BUF_SZ];
+	char pathBuf[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	strcpy(recoverPath, parentPath);
 	GetRealNameByFileTree(pathBuf, *matchedTrees);
@@ -177,6 +177,7 @@ int RecoverFileSelector(const char* parentPath, const char* destPath, struct fil
 
 int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, struct filetree* backupTree, struct filetree* recoverTree, int hashMode)
 {
+	struct filetree* recoverPathTree;
 	int foldCnt, fileCnt;
 	int retVal;
 
@@ -193,6 +194,15 @@ int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, struc
 			}
 		}
 
+		//Comment: 복사해야되는 곳에 디렉토리가 있는 경우 삭제
+		if(CheckFileTypeByPath(recoverPath) == SSU_BACKUP_TYPE_DIR){
+			if((recoverPathTree = PathToFileTree(recoverPath, hashMode)) == NULL){
+				return -1;
+			}
+			if(RemoveBackupByFileTree(recoverPath, recoverPathTree, &foldCnt, &fileCnt, 1) == -1){
+				return -1;
+			}
+		}
 		if(CopyFile(recoverPath, backupPath) == -1){
 			fprintf(stderr, "\"%s\" to \"%s\" CopyFile Failed! - %s\n", backupPath, recoverPath, strerror(errno));
 			return -1;
@@ -205,6 +215,14 @@ int RecoverFileByFileTree(const char* backupPath, const char* recoverPath, struc
 
 		fprintf(stdout, "\"%s\" backup recover to \"%s\"\n", backupPath, recoverPath);
 		return 0;
+	}
+
+	//Comment: 복사해야되는 곳에 디렉토리가 있는 경우 삭제
+	if(CheckFileTypeByPath(recoverPath) == SSU_BACKUP_TYPE_REG){
+		if(unlink(recoverPath) == -1){
+			fprintf(stderr, "\"%s\" unlink Failed! - %s\n", recoverPath, strerror(errno));
+			return -1;
+		}
 	}
 
 	//Comment: recoverTree가 디렉토리인 경우
@@ -223,9 +241,9 @@ int RecoverBackupByFileTree(const char* pBackupPath, const char* pRecoverPath, s
 	int matchNum;
 	struct filetree* nRecoverTree;
 	struct filetree** recoverTrees;
-	char nextBackupPath[SSU_BACKUP_MAX_PATH_SZ];
-	char nextRecoverPath[SSU_BACKUP_MAX_PATH_SZ];
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+	char nextBackupPath[SSU_BACKUP_MAX_PATH_BUF_SZ];
+	char nextRecoverPath[SSU_BACKUP_MAX_PATH_BUF_SZ];
+	char pathBuf[SSU_BACKUP_MAX_PATH_BUF_SZ];
 	
 	nodeNum = pRecoverTree->childNodeNum;
 	//Comment: 하위 파일들 순회

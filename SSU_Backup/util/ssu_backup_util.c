@@ -21,7 +21,7 @@ int GetHashMode()
 {
 	int fd;
 	int mode;
-	char path_buf[SSU_BACKUP_MAX_PATH_SZ];
+	char path_buf[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	GetBackupPath(path_buf);
 	ConcatPath(path_buf, SSU_BACKUP_HASH_SET_FILE);
@@ -36,11 +36,11 @@ int GetHashMode()
 int SetHashMode(int mode)
 {
 	int fd;
-	char path_buf[SSU_BACKUP_MAX_PATH_SZ];
+	char path_buf[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	GetBackupPath(path_buf);
 	ConcatPath(path_buf, SSU_BACKUP_HASH_SET_FILE);
-	if((fd = open(path_buf, O_WRONLY | O_CREAT | O_TRUNC, 0644)) == -1){
+	if((fd = open(path_buf, O_WRONLY | O_CREAT | O_TRUNC, SSU_BACKUP_MKFILE_AUTH)) == -1){
 		return -1;
 	}
 	
@@ -52,7 +52,7 @@ int SetHashMode(int mode)
 char* RealpathAndHandle(const char* path, char* resolved_path, SSU_BACKUP_IDX thisUsage)
 {
 	char* homeDir = getenv("HOME");
-	char temp_path[SSU_BACKUP_MAX_PATH_SZ];
+	char temp_path[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	if(path[0] == '~' && (path[1] == '\0' || path[1] == '/')){
 		strcpy(temp_path, homeDir);
@@ -116,9 +116,9 @@ int CheckFileTypeByPath(const char* path)
 int CheckPathCondition(const char* path)
 {
 	char* homeDir = getenv("HOME");
-	char temp_path[SSU_BACKUP_MAX_PATH_SZ];
+	char temp_path[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
-	if(strlen(path) > SSU_BACKUP_MAX_PATH_SZ){
+	if(strlen(path) > SSU_BACKUP_MAX_PATH_BUF_SZ-1){
 		fputs("경로의 길이가 큽니다.\n", stderr);
 		return -1;
 	}
@@ -159,10 +159,10 @@ int MakeDirPath(const char* path)
 {
 	int fileType;
 	char* dirPtr;
-	char pathBuf[SSU_BACKUP_MAX_PATH_SZ];
+	char pathBuf[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	strcpy(pathBuf, path);
-	pathBuf[SSU_BACKUP_MAX_PATH_SZ-1] = '\0';
+	pathBuf[SSU_BACKUP_MAX_PATH_BUF_SZ-1] = '\0';
 	dirPtr = pathBuf; 
 
 	if(*dirPtr == '/')
@@ -199,7 +199,7 @@ int ClearEmptyDirectory(const char* path)
 	struct dirent** childList;
 	struct stat childStat;
 	int childCount;
-	char nextPath[SSU_BACKUP_MAX_PATH_SZ];
+	char nextPath[SSU_BACKUP_MAX_PATH_BUF_SZ];
 
 	if((childCount = scandir(path, &childList, filterParentInScanDir, alphasort)) < 1){
 		return 0;
