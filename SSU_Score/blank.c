@@ -187,7 +187,6 @@ int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN])
 {
 	char *start, *end;
 	char tmp[BUFLEN];
-	char str2[BUFLEN];
 	char *op = "(),;><=!|&^/+-*\""; 
 	int row = 0;
 	int i;
@@ -195,10 +194,13 @@ int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN])
 	int lcount, rcount;
 	int p_str;
 	
+	//값을 모두 0으로 채움
 	clear_tokens(tokens);
 
+	//start가 str의 맨 처음을 가리키게 함.
 	start = str;
 	
+	//타입 검사를 해서 오류인 경우 false리턴
 	if(is_typeStatement(str) == 0) 
 		return false;	
 	
@@ -1080,16 +1082,24 @@ int is_typeStatement(char *str)
 	char tmp2[BUFLEN] = {0}; 
 	int i;	 
 	
+	//start가 str의 맨 처음을 가리키게 함
 	start = str;
+	//str2에 복사함
 	strncpy(str2,str,strlen(str));
+	//str2의 공백을 제거함
 	remove_space(str2);
 
+	//원본 파일의 시작이 공백일 경우 한칸 뒤를 참조
 	while(start[0] == ' ')
 		start += 1;
 
+	//gcc라는 글자가 공백 제거한 스트링에 포함되어 있을 경우
 	if(strstr(str2, "gcc") != NULL)
 	{
+		//start의 맨 앞을 gcc 글자만큼 가져옴
 		strncpy(tmp2, start, strlen("gcc"));
+		//gcc로 시작하는 경우 2 리턴
+		//gcc가 아니라면 에러로 판단해 0 리턴
 		if(strcmp(tmp2,"gcc") != 0)
 			return 0;
 		else
@@ -1098,12 +1108,17 @@ int is_typeStatement(char *str)
 	
 	for(i = 0; i < DATATYPE_SIZE; i++)
 	{
+		//str2와 자료형들 중에서 일치하는 것이 있다면
 		if(strstr(str2,datatype[i]) != NULL)
 		{	
+			//공백을 제거한 것과, 공백을 제거하지 않은 것을 맨앞에서 부터 데이터 타입 길이만큼 두 개다 복사
 			strncpy(tmp, str2, strlen(datatype[i]));
 			strncpy(tmp2, start, strlen(datatype[i]));
 			
+			//공백을 제거한 것에서 일치하다면
 			if(strcmp(tmp, datatype[i]) == 0)
+				//두개가 다르게 생겼다면 오류로 판단해 0 리턴
+				//	아닌경우 2 리턴
 				if(strcmp(tmp, tmp2) != 0)
 					return 0;  
 				else
@@ -1111,6 +1126,7 @@ int is_typeStatement(char *str)
 		}
 
 	}
+	//자료형이나 gcc둘 다 아닌 경우 1 리턴
 	return 1;
 
 }

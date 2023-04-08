@@ -40,6 +40,7 @@ typedef struct operator_precedence{
 
 //앞 뒤가 바뀌어도 되는 연산자일 경우를 고려해 두 노드가 같은지를 체크
 //	result에 성공시 1, 실패시 0이 담김
+//	1+1과 1+2를 비교할 때 잘 비교되는지 체크해보기
 void compare_tree(node *root1,  node *root2, int *result);
 
 //64길이의 스트링 배열
@@ -73,18 +74,28 @@ int get_sibling_cnt(node *cur);
 
 int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN]);
 
+//str에 대해 타입 검사를 함
+//	str의 시작이 gcc나 data type인 경우 2리턴, 아닌경우 1 리턴, 오류가 있는 경우 0 리턴
 int is_typeStatement(char *str);
+
 int find_typeSpecifier(char tokens[TOKEN_CNT][MINLEN]);
 int find_typeSpecifier2(char tokens[TOKEN_CNT][MINLEN]);
 int is_character(char c);
 int all_star(char *str);
 int all_character(char *str);
 int reset_tokens(int start, char tokens[TOKEN_CNT][MINLEN]);
+
+//tokens의 값을 0으로 채운다.
 void clear_tokens(char tokens[TOKEN_CNT][MINLEN]);
+
 int get_token_cnt(char tokens[TOKEN_CNT][MINLEN]);
 char *rtrim(char *_str);
 char *ltrim(char *_str);
+
+//str에서 공백을 제거함.
 void remove_space(char *str);
+
+
 int check_brackets(char *str);
 char* remove_extraspace(char *str);
 
