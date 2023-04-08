@@ -1,5 +1,7 @@
-#ifndef MAIN_H_
-#define MAIN_H_
+#ifndef SSU_SCORE_H_
+#define SSU_SCORE_H_
+
+#include <sys/types.h>
 
 #ifndef true
 	#define true 1

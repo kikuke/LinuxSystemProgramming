@@ -3,8 +3,10 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <ctype.h>
+
 #include "blank.h"
 
+//35가지 자료형들 명칭 정리
 char datatype[DATATYPE_SIZE][MINLEN] = {"int", "char", "double", "float", "long"
 			, "short", "ushort", "FILE", "DIR","pid"
 			,"key_t", "ssize_t", "mode_t", "ino_t", "dev_t"
@@ -13,7 +15,7 @@ char datatype[DATATYPE_SIZE][MINLEN] = {"int", "char", "double", "float", "long"
 			, "void", "size_t", "unsigned", "sigset_t", "sigjmp_buf"
 			, "rlim_t", "jmp_buf", "sig_atomic_t", "clock_t", "struct"};
 
-
+//24개의 연산자들에 대한 우선순위 정리
 operator_precedence operators[OPERATOR_CNT] = {
 	{"(", 0}, {")", 0}
 	,{"->", 1}	
@@ -32,13 +34,15 @@ operator_precedence operators[OPERATOR_CNT] = {
 void compare_tree(node *root1,  node *root2, int *result)
 {
 	node *tmp;
-	int cnt1, cnt2;
 
+	//둘 중 하나라도 NULL이면 실패
 	if(root1 == NULL || root2 == NULL){
 		*result = false;
 		return;
 	}
 
+	//root1과 root2 모두 비교연산자이고, 서로 다르다면 root2의 부등호를 반대로 한다. 이때 등호는 유지한다.
+	//	root2의 자식순서는 root2가 비교연산자일 경우와 상관없이 root1이 비교연산자일 때 무조건 바꾼다.
 	if(!strcmp(root1->name, "<") || !strcmp(root1->name, ">") || !strcmp(root1->name, "<=") || !strcmp(root1->name, ">=")){
 		if(strcmp(root1->name, root2->name) != 0){
 
@@ -54,52 +58,67 @@ void compare_tree(node *root1,  node *root2, int *result)
 			else if(!strncmp(root2->name, ">=", 2))
 				strncpy(root2->name, "<=", 2);
 
+			//root2의 자식노드 순서를 바꾼다.
 			root2 = change_sibling(root2);
 		}
 	}
 
+	//두 이름이 다를경우 실패 리턴
 	if(strcmp(root1->name, root2->name) != 0){
 		*result = false;
 		return;
 	}
 
+	//둘 중 하나만 자식 노드가 없을 경우 실패 리턴
 	if((root1->child_head != NULL && root2->child_head == NULL)
 		|| (root1->child_head == NULL && root2->child_head != NULL)){
 		*result = false;
 		return;
 	}
-
+	//root1이 자식노드가 있는 경우
 	else if(root1->child_head != NULL){
+		//두 자식 노드의 개수가 다르다면 실패 리턴
 		if(get_sibling_cnt(root1->child_head) != get_sibling_cnt(root2->child_head)){
 			*result = false;
 			return;
 		}
 
+
+		//앞뒤가 바뀌어도 상관없는 연산자들일 경우
+		//	얘는 자식이 딱 두개임
 		if(!strcmp(root1->name, "==") || !strcmp(root1->name, "!="))
 		{
+			//각 자식 헤드를 기준으로 재귀 호출
+			//	둘 중 하나라도 NULL이면 실패가 리턴된다.
 			compare_tree(root1->child_head, root2->child_head, result);
 
 			if(*result == false)
 			{
 				*result = true;
+				//실패 했다면 자식 순서를 바꿔서 다시 시도.
+				//	함수가 한 쪽만 고려하고 있기에 이런 방식으로 양방향 체크함.
 				root2 = change_sibling(root2);
 				compare_tree(root1->child_head, root2->child_head, result);
 			}
 		}
+		//앞뒤가 바뀌어도 상관없는 연산자들일 경우
+		//	자식이 두개 이상?
 		else if(!strcmp(root1->name, "+") || !strcmp(root1->name, "*")
 				|| !strcmp(root1->name, "|") || !strcmp(root1->name, "&")
 				|| !strcmp(root1->name, "||") || !strcmp(root1->name, "&&"))
 		{
+			//두 자식노드의 개수가 다르다면 실패 리턴
 			if(get_sibling_cnt(root1->child_head) != get_sibling_cnt(root2->child_head)){
 				*result = false;
 				return;
 			}
-
+			//temp가 자식노드를 가리키고 있음
 			tmp = root2->child_head;
-
+			//맨 처음의 자식노드로 되감음
 			while(tmp->prev != NULL)
 				tmp = tmp->prev;
-
+			//root1의 자식노드에 대해 root2의 모든 자식노드를 순회하며 result가 true인 것이 없는지 탐색함
+			//	일치하는 것이 없다면 실패
 			while(tmp != NULL)
 			{
 				compare_tree(root1->child_head, tmp, result);
@@ -114,33 +133,38 @@ void compare_tree(node *root1,  node *root2, int *result)
 			}
 		}
 		else{
+			//바뀌어도 되는 연산자가 아닐경우 바로 자식 헤드에 대해 재귀 호출
 			compare_tree(root1->child_head, root2->child_head, result);
 		}
-	}	
+	}
 
-
+	//형제 노드가 있는 경우
 	if(root1->next != NULL){
-
+		//형제 노드 개수가 다르다면 실패 리턴
 		if(get_sibling_cnt(root1) != get_sibling_cnt(root2)){
 			*result = false;
 			return;
 		}
-
+		//이전의 비교에서 성공했을 경우
 		if(*result == true)
 		{
+			//부모 노드. 즉 연산자를 가져옴
 			tmp = get_operator(root1);
-	
+			//앞뒤가 바뀌어도 상관없는 연산자들일 경우
+			//	위에서 root2의 자식들을 순회하며 이미 true체크를 했음. 따라서 반대편 한쪽도 true이기만 하면됨.
 			if(!strcmp(tmp->name, "+") || !strcmp(tmp->name, "*")
 					|| !strcmp(tmp->name, "|") || !strcmp(tmp->name, "&")
 					|| !strcmp(tmp->name, "||") || !strcmp(tmp->name, "&&"))
 			{	
 				tmp = root2;
-	
+				//root2를 맨 앞으로 되감음
 				while(tmp->prev != NULL)
 					tmp = tmp->prev;
 
 				while(tmp != NULL)
 				{
+					//root1은 위에서 같은지 검사했으므로 순회하며 다른 형제도 일치하는게 있는지 검사함.
+					//	근데 이렇게 하면 1 + 1 vs 1 + 2 의 검사에 문제가 있지 않은지...
 					compare_tree(root1->next, tmp, result);
 
 					if(*result == true)
@@ -152,7 +176,7 @@ void compare_tree(node *root1,  node *root2, int *result)
 					}
 				}
 			}
-
+			//바뀌어도 상관없지 않은 경우 그냥 같은 건지 검사
 			else
 				compare_tree(root1->next, root2->next, result);
 		}
@@ -831,16 +855,25 @@ node *change_sibling(node *parent)
 {
 	node *tmp;
 	
+	//자식 헤드 노드를 가져옴
 	tmp = parent->child_head;
 
+	//부모노드의 자식 헤드를 자식 헤드의 형제노드로 바꿈
 	parent->child_head = parent->child_head->next;
+	//바뀐 자식헤드의 부모를 설정해줌
 	parent->child_head->parent = parent;
+	//이전 헤드를 지움. 헤드가 되었기 때문
 	parent->child_head->prev = NULL;
 
+	//바뀐 자식헤드의 형제로 재설정
 	parent->child_head->next = tmp;
+	//이전 형제 노드는 바뀐 자식헤드가 됨
 	parent->child_head->next->prev = parent->child_head;
+	//자식헤드의 옆 형제노드(원래 헤드노드)의 오른쪽 형제 노드는 NULL이 됨.
+	//	이로 인해 이진트리 전제가 됨.
 	parent->child_head->next->next = NULL;
-	parent->child_head->next->parent = NULL;		
+	//원래 헤드노드의 부모가리키는것을 NULL로 바꿈
+	parent->child_head->next->parent = NULL;
 
 	return parent;
 }
@@ -1002,9 +1035,12 @@ int get_sibling_cnt(node *cur)
 {
 	int i = 0;
 
+	//맨 처음 형제로 되감음
 	while(cur->prev != NULL)
 		cur = cur->prev;
 
+	//맨 끝 형제까지 루프하며 카운트함.
+	//	여기선 cur이 바뀌지만 결과적으로 cur이 바뀌진 않음
 	while(cur->next != NULL){
 		cur = cur->next;
 		i++;

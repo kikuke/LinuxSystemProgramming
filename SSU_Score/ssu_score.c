@@ -1,4 +1,12 @@
-//add header files
+#include <stdio.h>
+#include <unistd.h>
+#include <sys/stat.h>
+#include <dirent.h>
+#include <signal.h>
+#include <fcntl.h>
+
+#include "blank.h"
+#include "ssu_score.h"
 
 extern struct ssu_scoreTable score_table[QNUM];
 extern char id_table[SNUM][10];
@@ -199,7 +207,7 @@ void do_iOption(char (*ids)[FILELEN])
 	fclose(fp);
 }
 
-void do_mOption(char *ansDir)
+void do_mOption()
 {
 	double newScore;
 	char modiName[FILELEN];
