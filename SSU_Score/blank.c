@@ -164,7 +164,7 @@ void compare_tree(node *root1,  node *root2, int *result)
 				while(tmp != NULL)
 				{
 					//root1은 위에서 같은지 검사했으므로 순회하며 다른 형제도 일치하는게 있는지 검사함.
-					//	근데 이렇게 하면 1 + 1 vs 1 + 2 의 검사에 문제가 있지 않은지...
+					//	근데 이렇게 하면 1 + 1 vs 1 + 2 의 검사에 문제가 있음
 					compare_tree(root1->next, tmp, result);
 
 					if(*result == true)
@@ -206,12 +206,17 @@ int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN])
 	
 	while(1)
 	{
+		//start에서 op에 해당하는 문자가 있는지 검사함
+		//	character가 아닌경우.
 		if((end = strpbrk(start, op)) == NULL)
 			break;
 
+		//character가 아닌것이 바로 발견된 경우.
 		if(start == end){
 
+			//-- ++인 경우
 			if(!strncmp(start, "--", 2) || !strncmp(start, "++", 2)){
+				//잘못된 입력인 경우 false 리턴
 				if(!strncmp(start, "++++", 4)||!strncmp(start,"----",4))
 					return false;
 
@@ -443,6 +448,7 @@ int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN])
 				}
 			}
 		}
+		//character가 아닌것이 바로 처음으로 발견 되지 않은 경우. 사이에 뭐가 낀 경우
 		else{ 
 			if(all_star(tokens[row - 1]) && row > 1 && !is_character(tokens[row - 2][strlen(tokens[row - 2]) - 1]))   
 				row--;				
@@ -1313,11 +1319,19 @@ char *rtrim(char *_str)
 	char tmp[BUFLEN];
 	char *end;
 
+	//tmp로 문자열 복사
 	strcpy(tmp, _str);
+
+	//문자열의 맨 뒤 문자를 end로
 	end = tmp + strlen(tmp) - 1;
+
+	//문자열 시작위치가 아니고, 공백인 동안 계속 감소
+	//	end와 _str은 다를수 밖에 없음. 서로 다른 메모리라.
+	//	오류가 발생할 여지가 있음.
 	while(end != _str && isspace(*end))
 		--end;
 
+	//맨 뒤에서부터 최초로 공백이 아닌 지점을 문자열 끝으로 재지정
 	*(end + 1) = '\0';
 	_str = tmp;
 	return _str;
@@ -1327,8 +1341,12 @@ char *ltrim(char *_str)
 {
 	char *start = _str;
 
+	//문자열 끝이 아니거나 공백인 동안 start의 값을 증가
+	//	isspace는 개행을 확인하는 함수임.
 	while(*start != '\0' && isspace(*start))
 		++start;
+	
+	//공백이 아닌 최초 지점을 리턴
 	_str = start;
 	return _str;
 }

@@ -2,13 +2,28 @@
 
 #include "blank.c"
 
+void rtrim_test(char* arr);
+void ltrim_test(char* arr);
 void compare_tree_Test(const char* n1_c1_s, const char* n1_c2_s, const char* n2_c1_s, const char* n2_c2_s);
 
 int main(void)
 {
-    compare_tree_Test("2", "2", "1", "2");
+    char hello[] = "          ";//11문자열
+    //compare_tree_Test("2", "2", "1", "2");
+    rtrim_test(hello);
+    ltrim_test(hello);
 
     return 0;
+}
+
+void rtrim_test(char* arr)
+{   
+    printf("%ld\n", strlen(rtrim(arr)));
+}
+
+void ltrim_test(char* arr)
+{
+    printf("%ld\n", strlen(ltrim(arr)));
 }
 
 void compare_tree_Test(const char* n1_c1_s, const char* n1_c2_s, const char* n2_c1_s, const char* n2_c2_s)
