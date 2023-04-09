@@ -164,7 +164,7 @@ void compare_tree(node *root1,  node *root2, int *result)
 				while(tmp != NULL)
 				{
 					//root1은 위에서 같은지 검사했으므로 순회하며 다른 형제도 일치하는게 있는지 검사함.
-					//	근데 이렇게 하면 1 + 1 vs 1 + 2 의 검사에 문제가 있음
+					//Warning: 근데 이렇게 하면 1 + 1 vs 1 + 2 의 검사에 문제가 있음
 					compare_tree(root1->next, tmp, result);
 
 					if(*result == true)
@@ -211,7 +211,8 @@ int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN])
 		if((end = strpbrk(start, op)) == NULL)
 			break;
 
-		//character가 아닌것이 바로 발견된 경우.
+		//op에 해당하는 것이 바로 발견된 경우
+		//	character가 아닌 것
 		if(start == end){
 
 			//-- ++인 경우
@@ -221,21 +222,35 @@ int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN])
 					return false;
 
 				// ex) ++a
+				//++이나 --인 경우 바로 뒤의 것이 공백을 제외해 캐릭터인 경우
 				if(is_character(*ltrim(start + 2))){
+					//최초가 아닌 이후부터 검사
+					//Todo: 여기 다시 채우기
 					if(row > 0 && is_character(tokens[row - 1][strlen(tokens[row - 1]) - 1]))
 						return false; //ex) ++a++
 
+					//++이후에 op에 해당하는 문자가 있는지 위치 탐색
+					//	위에서 캐릭터 검사를 해서 ++뒤엔 무조건 character가 있는 상태
 					end = strpbrk(start + 2, op);
+					//op에 해당하는 문제가 없는 경우 str의 문자열 끝(\0)의 주소를 넘김
 					if(end == NULL)
 						end = &str[strlen(str)];
+					//++이후 op이 발견되기 전까지 혹은 문자열 끝이 되기 전까지 토큰 값 넣어주기 및 에러체크
 					while(start < end) {
+						//이전 문자가 공백이고, 공백 이전에 넣었던 문자가 캐릭터인 경우 실패
+						//	++ a 허용 ++a a 실패.
+						//	문자 뒤에 띄어쓰기 하고 문자가 오는 경우 실패임.
+						//Warning: start위의 주소에 ' '가 있고, tokens위의 주소에 캐릭터가 있는 경우 문제가 생김
 						if(*(start - 1) == ' ' && is_character(tokens[row][strlen(tokens[row]) - 1]))
 							return false;
+						//공백이 아닌 경우 tokens[row]에 이어 씀. 이는 스트링인 상태임.
+						//	공백을 제외한 뒤의 값들을 넣어줌.
 						else if(*start != ' ')
 							strncat(tokens[row], start, 1);
 						start++;	
 					}
 				}
+				//Todo: 여기 다시 채우기
 				// ex) a++
 				else if(row>0 && is_character(tokens[row - 1][strlen(tokens[row - 1]) - 1])){
 					if(strstr(tokens[row - 1], "++") != NULL || strstr(tokens[row - 1], "--") != NULL)	
@@ -247,14 +262,15 @@ int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN])
 					start += 2;
 					row--;
 				}
+				//Todo: 여기 다시 채우기
 				else{
 					memset(tmp, 0, sizeof(tmp));
 					strncpy(tmp, start, 2);
 					strcat(tokens[row], tmp);
 					start += 2;
 				}
-			}
-
+			}//앞이 --, ++인 경우 종료
+			//아래와 같은 기호로 시작하는 경우 tokens[row]에 이어 쓰고 쓴만큼 start 위치 옮기기
 			else if(!strncmp(start, "==", 2) || !strncmp(start, "!=", 2) || !strncmp(start, "<=", 2)
 				|| !strncmp(start, ">=", 2) || !strncmp(start, "||", 2) || !strncmp(start, "&&", 2) 
 				|| !strncmp(start, "&=", 2) || !strncmp(start, "^=", 2) || !strncmp(start, "!=", 2) 
@@ -264,20 +280,24 @@ int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN])
 				strncpy(tokens[row], start, 2);
 				start += 2;
 			}
+			//간접 참조인 경우
 			else if(!strncmp(start, "->", 2))
 			{
+				//op에 해당하는 문자가 있는지 체크
 				end = strpbrk(start + 2, op);
-
+				//없을 경우 문자열 끝(\0)으로 설정
 				if(end == NULL)
 					end = &str[strlen(str)];
-
+				//op 또는 문자열 끝 이전인 동안 이전 row에 공백을 제외한 글자들을 토큰에 넣음.
 				while(start < end){
 					if(*start != ' ')
 						strncat(tokens[row - 1], start, 1);
 					start++;
 				}
+				//row를 이전 row로 되돌림
 				row--;
 			}
+			//start 지점에서 바로 발견된 op이 &인 경우 -> start == end 이므로
 			else if(*end == '&')
 			{
 				// ex) &a (address)
@@ -448,7 +468,7 @@ int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN])
 				}
 			}
 		}
-		//character가 아닌것이 바로 처음으로 발견 되지 않은 경우. 사이에 뭐가 낀 경우
+		//op에 해당하는 것이 바로 발견되지 않은 경우. start가 op이 아님.
 		else{ 
 			if(all_star(tokens[row - 1]) && row > 1 && !is_character(tokens[row - 2][strlen(tokens[row - 2]) - 1]))   
 				row--;				
@@ -1095,17 +1115,19 @@ int is_typeStatement(char *str)
 	//str2의 공백을 제거함
 	remove_space(str2);
 
-	//원본 파일의 시작이 공백일 경우 한칸 뒤를 참조
+	//공백이 아닐 때 까지 스트링 시작위치를 증가시킴
 	while(start[0] == ' ')
 		start += 1;
 
 	//gcc라는 글자가 공백 제거한 스트링에 포함되어 있을 경우
+	//	gcc를 띄어쓰기 했을 경우 에러? 또는 맨처음에 오지 않았을 경우 에러
+	//Warning: 우연히 문자를 합쳤더니 gcc가 되는 경우는?
 	if(strstr(str2, "gcc") != NULL)
 	{
 		//start의 맨 앞을 gcc 글자만큼 가져옴
 		strncpy(tmp2, start, strlen("gcc"));
 		//gcc로 시작하는 경우 2 리턴
-		//gcc가 아니라면 에러로 판단해 0 리턴
+		//gcc가 공백을 제외했을 때 맨 처음에 오지 않거나 g cc이런 식으로 적으면 에러
 		if(strcmp(tmp2,"gcc") != 0)
 			return 0;
 		else
@@ -1121,10 +1143,11 @@ int is_typeStatement(char *str)
 			strncpy(tmp, str2, strlen(datatype[i]));
 			strncpy(tmp2, start, strlen(datatype[i]));
 			
-			//공백을 제거한 것에서 일치하다면
+			//공백을 제거한 것에서 최초로 데이터 타입에 대한 내용이 있다면
 			if(strcmp(tmp, datatype[i]) == 0)
-				//두개가 다르게 생겼다면 오류로 판단해 0 리턴
-				//	아닌경우 2 리턴
+				//데이터 타입에 대한 내용을 띄어쓰기 했다면 에러
+				//	올바른 경우 2 리턴
+				//Warning: int1 이런꼴은? 정상으로 판단되 2가 리턴됨. 또한 우연히 이후 글자에서 정답으로 판단이 될 수 있는데 이전에서 에러로 판단 되버리면 오류
 				if(strcmp(tmp, tmp2) != 0)
 					return 0;  
 				else
@@ -1132,7 +1155,7 @@ int is_typeStatement(char *str)
 		}
 
 	}
-	//자료형이나 gcc둘 다 아닌 경우 1 리턴
+	//공백 제외 gcc가 포함되어 있지 않고 데이터 타입으로 시작하지 않으면 1 리턴
 	return 1;
 
 }
@@ -1326,7 +1349,7 @@ char *rtrim(char *_str)
 	end = tmp + strlen(tmp) - 1;
 
 	//문자열 시작위치가 아니고, 공백인 동안 계속 감소
-	//	end와 _str은 다를수 밖에 없음. 서로 다른 메모리라.
+	//Warining: end와 _str은 다를수 밖에 없음. 서로 다른 메모리라.
 	//	오류가 발생할 여지가 있음.
 	while(end != _str && isspace(*end))
 		--end;

@@ -40,7 +40,7 @@ typedef struct operator_precedence{
 
 //앞 뒤가 바뀌어도 되는 연산자일 경우를 고려해 두 노드가 같은지를 체크
 //	result에 성공시 1, 실패시 0이 담김
-//	1+1과 1+2와 같은 케이스에 문제가 발생함
+//Warning: 1+1과 1+2와 같은 케이스에 문제가 발생함
 void compare_tree(node *root1,  node *root2, int *result);
 
 //64길이의 스트링 배열
@@ -75,7 +75,8 @@ int get_sibling_cnt(node *cur);
 int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN]);
 
 //str에 대해 타입 검사를 함
-//	str의 시작이 gcc나 data type인 경우 2리턴, 아닌경우 1 리턴, 오류가 있는 경우 0 리턴
+//	공백을 제거한 뒤 str의 시작이 gcc나 data type인 경우 2리턴, 아닌경우 1 리턴, 띄어쓰기 등 오류가 있는 경우 0 리턴
+//Warning: 우연히 중간에 gcc라는 글자가 들어가거나 공백을 제거했더니 gcc라는 글자가 만들어지면 오류로 판단됨
 int is_typeStatement(char *str);
 
 int find_typeSpecifier(char tokens[TOKEN_CNT][MINLEN]);
@@ -96,10 +97,11 @@ int get_token_cnt(char tokens[TOKEN_CNT][MINLEN]);
 //문자열의 맨 뒤의 공백들이 지워진 새로운 주소의 문자열을 리턴한다.
 //	공백이 없는 경우 문자열 길이는 0이 된다.
 //	_str의 변경은 없다
-//	while문이 잘못되어 오류로 동작함. 공백이 없는 경우 문자열 길이가 0이 된다는 것도 사실 1이 되야함
+//Warning: while문이 잘못되어 오류로 동작함. 공백이 없는 경우 문자열 길이가 0이 된다는 것도 사실 1이 되야함
 char *rtrim(char *_str);
 
 //문자열에 최초로 공백들이 올 경우 이를 지움.
+//	실제로는 _str에서의 공백을 제외한 위치가 리턴됨
 //	공백이 없는 경우 문자열 끝(\0)의 위치가 리턴됨. 문자열 길이는 0
 //	_str의 변경은 없다.
 char *ltrim(char *_str);

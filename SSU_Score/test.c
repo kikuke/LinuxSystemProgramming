@@ -2,18 +2,38 @@
 
 #include "blank.c"
 
+void is_typeStatement_test(char *str);
+void make_tokens_test(char *str);
 void rtrim_test(char* arr);
 void ltrim_test(char* arr);
 void compare_tree_Test(const char* n1_c1_s, const char* n1_c2_s, const char* n2_c1_s, const char* n2_c2_s);
 
 int main(void)
 {
-    char hello[] = "          ";//11문자열
+    char test1 = ' ';
+    char hello[] = "int gcc = 0";//11문자열
+
+    is_typeStatement_test(hello);
+
+    //make_tokens_test(hello);
+
     //compare_tree_Test("2", "2", "1", "2");
-    rtrim_test(hello);
-    ltrim_test(hello);
+    //rtrim_test(hello);
+    //ltrim_test(hello);
 
     return 0;
+}
+
+void is_typeStatement_test(char *str)
+{
+    printf("is_typeStatement result: %d\n", is_typeStatement(str));
+}
+
+void make_tokens_test(char *str)
+{
+    char test2 = 'a';
+    char tokens[TOKEN_CNT][MINLEN];
+    printf("make_token result: %d\n", make_tokens(str, tokens));
 }
 
 void rtrim_test(char* arr)
