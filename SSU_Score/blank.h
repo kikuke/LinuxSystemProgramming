@@ -72,6 +72,9 @@ void free_node(node *cur);
 //	cur이 바뀌진 않음.
 int get_sibling_cnt(node *cur);
 
+//최초 사용시 ltrim을 사용해 공백을 제거한 뒤 사용해야됨.
+//Warning: a** 같은 string을 집어넣을 경우 무한루프
+//Warning: int a++ 같은 애도 통과함
 int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN]);
 
 //str에 대해 타입 검사를 함

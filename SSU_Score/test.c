@@ -10,12 +10,12 @@ void compare_tree_Test(const char* n1_c1_s, const char* n1_c2_s, const char* n2_
 
 int main(void)
 {
-    char test1 = ' ';
-    char hello[] = "int gcc = 0";//11문자열
+    //char test1 = ' ';
+    char hello[] = "**(b)";//11문자열
 
-    is_typeStatement_test(hello);
+    //is_typeStatement_test(hello);
 
-    //make_tokens_test(hello);
+    make_tokens_test(hello);
 
     //compare_tree_Test("2", "2", "1", "2");
     //rtrim_test(hello);
@@ -31,7 +31,7 @@ void is_typeStatement_test(char *str)
 
 void make_tokens_test(char *str)
 {
-    char test2 = 'a';
+    //char test2 = 'a';
     char tokens[TOKEN_CNT][MINLEN];
     printf("make_token result: %d\n", make_tokens(str, tokens));
 }

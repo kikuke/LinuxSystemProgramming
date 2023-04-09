@@ -212,7 +212,9 @@ int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN])
 			break;
 
 		//op에 해당하는 것이 바로 발견된 경우
+		//	start는 이 시점에 공백이 있을 수 없고, 있으면 안됨.
 		//	character가 아닌 것
+		//	a * b 이런게 아닌 *b 이런 것 들이 해당됨
 		if(start == end){
 
 			//-- ++인 경우
@@ -269,7 +271,7 @@ int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN])
 					strcat(tokens[row], tmp);
 					start += 2;
 				}
-			}//앞이 --, ++인 경우 종료
+			}//앞이 --, ++인 경우 끝
 			//아래와 같은 기호로 시작하는 경우 tokens[row]에 이어 쓰고 쓴만큼 start 위치 옮기기
 			else if(!strncmp(start, "==", 2) || !strncmp(start, "!=", 2) || !strncmp(start, "<=", 2)
 				|| !strncmp(start, ">=", 2) || !strncmp(start, "||", 2) || !strncmp(start, "&&", 2) 
@@ -300,16 +302,22 @@ int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN])
 			//start 지점에서 바로 발견된 op이 &인 경우 -> start == end 이므로
 			else if(*end == '&')
 			{
+				//문자열 가장 처음으로 앤퍼센트가 오거나 이전 토큰에서 op이 있는 경우 주소 반환 연산으로 판단
+				//Todo: 좀더 자세한 분석 필요
 				// ex) &a (address)
 				if(row == 0 || (strpbrk(tokens[row - 1], op) != NULL)){
+					//가장 처음에 발견한 &연산을 제외하고 이 뒤에 다른 연산자가 있으면 그 위치를 end로, 없다면 문자열 끝을 end로
 					end = strpbrk(start + 1, op);
 					if(end == NULL)
 						end = &str[strlen(str)];
 					
+					//&연산을 붙이고 start를 증가시킴 해당 row의 가장 앞의 문자열이 됨
 					strncat(tokens[row], start, 1);
 					start++;
-
+					//다음 연산자 전까지 또는 문자열 끝까지 띄어쓰기를 제외한 문자를 이어 붙임
 					while(start < end){
+						//주소연산을 띄어쓰기로 한 경우 실패
+						//	ex) & a
 						if(*(start - 1) == ' ' && tokens[row][strlen(tokens[row]) - 1] != '&')
 							return false;
 						else if(*start != ' ')
@@ -317,96 +325,146 @@ int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN])
 						start++;
 					}
 				}
+				//이전 토큰에 op이 없는경우 즉 문자열만 달랑 있는 경우. 앤퍼센트 하나만 토큰으로 붙여줌
+				//	아래와 같은 꼴
 				// ex) a & b (bit)
 				else{
+					//앤퍼센트 하나만 토큰으로 붙임
 					strncpy(tokens[row], start, 1);
 					start += 1;
 				}
 				
 			}
+			//start지점에서 바로 발견된 op이 star인 경우
 		  	else if(*end == '*')
 			{
 				isPointer=0;
 
+				//이전 토큰이 존재하는 경우
 				if(row > 0)
 				{
+					//이전 토큰이 데이터 타입인지 탐색
 					//ex) char** (pointer)
 					for(i = 0; i < DATATYPE_SIZE; i++) {
+						//이전 토큰이 데이터 타입 중 하나라면 (포인터 붙어있는 경우 포함)
 						if(strstr(tokens[row - 1], datatype[i]) != NULL){
+							//이전 토큰에 포인터를 붙이고 start를 증가
 							strcat(tokens[row - 1], "*");
 							start += 1;	
+							//포인터 플래그 활성화
 							isPointer = 1;
 							break;
 						}
 					}
+					//데이터 타입에 붙는 포인터 였을 경우 row증가를 하지 않고 그대로 다시 한번더 while loop를 돈다.
 					if(isPointer == 1)
 						continue;
+					//start 다음이 문자열 끝이 아닐경우 end를 start 바로 뒤를 가리키게 한다.
 					if(*(start+1) !=0)
 						end = start + 1;
-
-					// ex) a * **b (multiply then pointer)
+					//두 단계 전 토큰이 있고, 두단계 전의 토큰이 star이고, 이전 토큰이 별들일 경우
+					//	두 단계 전 토큰은 곱셈으로 취급하고 한단계 전 토큰은 포인터들로 취급한다.
+					//	쌓인 이전 토큰이 a * *인 상황부터
+					// ex) a * **b (multiply then pointer),
 					if(row>1 && !strcmp(tokens[row - 2], "*") && (all_star(tokens[row - 1]) == 1)){
+						//문자열 끝이 *로 끝날 경우 토큰을 넣지 않음.
+						//Todo: 왜 넣지 않은 건지 체크
 						strncat(tokens[row - 1], start, end - start);
+						//이전 토큰으로 복귀. 현재 포인터를 넣은 것으로 취급 이전 단계 상태가 됨.
 						row--;
-					}
+					}//값이 들어갔었을 수도 있지만 그에 따른 start는 증가되지 않은 상태
 					
 					// ex) a*b(multiply)
+					//이전 토큰의 문자열 끝이 character일 경우 이번 포인터는 곱셈으로 취급.
+					//	데이터 타입일 경우는 위에서 continue로 건너 뛰므로 고려된 상태
 					else if(is_character(tokens[row - 1][strlen(tokens[row - 1]) - 1]) == 1){ 
-						strncat(tokens[row], start, end - start);   
+						//문자열 끝이 *로 끝날 경우 토큰을 넣지 않음.
+						strncat(tokens[row], start, end - start);
 					}
-
+					//이전 토큰에 연산자가 포함되어 있을 경우
 					// ex) ,*b (pointer)
-					else if(strpbrk(tokens[row - 1], op) != NULL){		
+					//Todo: -> *abc * a 일 경우는 곱이 될 수 있음. 근데 어차피 밑에서도 똑같이 처리하므로.
+					//Todo:	**a 도 여기에 해당됨 그런데 ***a는??
+					else if(strpbrk(tokens[row - 1], op) != NULL){
+						//문자열 끝이 *로 끝날 경우 토큰을 넣지 않음.
 						strncat(tokens[row] , start, end - start); 
-							
 					}
 					else
+						//문자열 끝이 *로 끝날 경우 토큰을 넣지 않음.
 						strncat(tokens[row], start, end - start);
 
+					//넣은 만큼 start 증가. 보통 1만큼 증가할 것.
+					//	아닐 경우는 문자열 끝에 *가 올 경우. 이 경우 start는 증가하지 않음. 여전히 *를 가리키는 상태
+					//Warning: a***같은 애를 넣으면 무한루프되는 원인
 					start += (end - start);
 				}
-
+				//첫 토큰 첫 문자열 시작이므로 무조건 포인터임
 			 	else if(row == 0)
 				{
+					//뒤에 op이 없는 경우
+					//	*을 현재 토큰에 복사함.
+					//	문자열이 *abc 이런 경우
 					if((end = strpbrk(start + 1, op)) == NULL){
 						strncat(tokens[row], start, 1);
 						start += 1;
 					}
+					//뒤에 op이 오는 경우 그 전까지 복사
 					else{
 						while(start < end){
+							//Warning: 맨 위와 같은 이유로 start가 시작 지점이면 문제.
+							//*ab cd 인 경우 실패
 							if(*(start - 1) == ' ' && is_character(tokens[row][strlen(tokens[row]) - 1]))
 								return false;
+							//공백을 제외하고 토큰 값을 채움
 							else if(*start != ' ')
 								strncat(tokens[row], start, 1);
 							start++;	
 						}
+						//***a 같은 애들일 경우 row를 0으로 유지하기 위해.
+						//	***a같은 애들이 한 토큰이 되게된다.
 						if(all_star(tokens[row]))
 							row--;
 						
 					}
 				}
 			}
+			//start지점에서 바로 발견된 op이 (인 경우
 			else if(*end == '(') 
 			{
 				lcount = 0;
 				rcount = 0;
+				//이전 토큰이 있고, 괄호 이전의 토큰이 & 이거나 *인 경우
+				//	곱이나 비트 and 연산인 경우
 				if(row>0 && (strcmp(tokens[row - 1],"&") == 0 || strcmp(tokens[row - 1], "*") == 0)){
+					//괄호가 몇개 쌓여있나 카운트. 지금 당장의 괄호는 포함되지 않음
+					//	연달아 있는 괄호 밖에 체크 못함
+					//Warning: a*(((a) + (1)))이런건 에러가 됨
 					while(*(end + lcount + 1) == '(')
 						lcount++;
+					//괄호 안의 괄호 수 만큼 더해줌
+					//	start는 가장 마지막 괄호 열기를 가리킴
 					start += lcount;
 
+					//최초로 만나게되는 괄호 닫기를 찾음
 					end = strpbrk(start + 1, ")");
 
+					//괄호 닫기가 없다면 잘못된 입력이므로 false
 					if(end == NULL)
 						return false;
 					else{
+						//닫히는 괄호를 셈. 연속된 괄호밖에 셀 수 없음.
+						//Warning: a*(((a) + (1)))이런건 에러가 됨
 						while(*(end + rcount +1) == ')')
 							rcount++;
+						//가장 마지막 괄호 닫기를 가리킴
 						end += rcount;
-
+						//괄호 개수가 다르면 실패
 						if(lcount != rcount)
 							return false;
 
+						//현재 단계가 세번째 이상이고, 두 단계 이전 토큰의 마지막 문자가 캐릭터가 아닐경우
+						//	또는 &로 주소연산을 하는 경우. *는 위에서 검사해서 해당 x
+						//Todo: 이게 뭘 의미하는지
 						if( (row > 1 && !is_character(tokens[row - 2][strlen(tokens[row - 2]) - 1])) || row == 1){ 
 							strncat(tokens[row - 1], start + 1, end - start - rcount - 1);
 							row--;
@@ -529,7 +587,7 @@ int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN])
 		} 
 
 		row++;
-	}
+	}//while loop 종료
 
 	if(all_star(tokens[row - 1]) && row > 1 && !is_character(tokens[row - 2][strlen(tokens[row - 2]) - 1]))  
 		row--;				
@@ -898,7 +956,7 @@ node *change_sibling(node *parent)
 	//이전 형제 노드는 바뀐 자식헤드가 됨
 	parent->child_head->next->prev = parent->child_head;
 	//자식헤드의 옆 형제노드(원래 헤드노드)의 오른쪽 형제 노드는 NULL이 됨.
-	//	이로 인해 이진트리 전제가 됨.
+	//	이로 인해 자식이 두개가 되는것이 전제가 됨.
 	parent->child_head->next->next = NULL;
 	//원래 헤드노드의 부모가리키는것을 NULL로 바꿈
 	parent->child_head->next->parent = NULL;
