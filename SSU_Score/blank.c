@@ -1446,7 +1446,7 @@ char* remove_extraspace(char *str)
 		position = end - start;
 	
 		strncat(temp, str, position);
-		strncat(temp, " ", 1);
+		strcat(temp, " ");
 		strncat(temp, str + position, strlen(str) - position + 1);
 
 		str = temp;		
