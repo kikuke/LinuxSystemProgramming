@@ -59,7 +59,8 @@ void print_usage();
 //score_student를 호출해 학생들의 채점을 한 뒤 채점 결과를 csv에 출력 하고 총점을 출력함
 //	학생 평균 점수 리턴
 //	실행 파일이 있는 경우 stdout, exe파일을 만들어 직접 실행시키고 실행 결과를 stdout파일에 출력후 두 파일을 비교해서 채점한다.
-void score_students(const char* resDir);
+//	성공시 0 실패시 -1
+int score_students(const char* resDir);
 
 //인자로 들어론 id를 채점 후 stdin으로 출력 및 fd 파일에 이어쓰기
 //	이때 쓰기는 id, 뒤부터 쓰게됨. id,는 score_students에서 쓰기 때문
@@ -108,13 +109,13 @@ double check_error_warning(char *filename);
 //	성공시 true, 실패시 false 리턴
 int compare_resultfile(char *file1, char *file2);
 
-//Todo: 경로 바꿔주기
 //인자로 받은 id의 틀린 문제를 출력한다.
-void do_iOption(char (*ids)[FILELEN]);
+//	실패시 -1 성공시 0
+int do_pOption(char (*ids)[FILELEN]);
 
-//Todo: 경로 바꿔주기
 //배점을 수정할 문제를 입력 받고 배점을 수정한 뒤 score_table.csv파일을 새로 쓰기함.
-void do_mOption();
+//	실패시 -1 성공시 0
+int do_mOption();
 
 int is_exist(char (*src)[FILELEN], char *target);
 

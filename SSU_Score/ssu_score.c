@@ -20,13 +20,15 @@ char ansDir[BUFLEN];
 char resDir[FILELEN];
 char errorDir[BUFLEN];
 char threadFiles[ARGNUM][FILELEN];
-char iIDs[ARGNUM][FILELEN];
+char pIDs[ARGNUM][FILELEN];
+char cIDs[ARGNUM][FILELEN];
 
 int nOption = false;
 int eOption = false;
 int tOption = false;
 int mOption = false;
-int iOption = false;
+int pOption = false;
+int cOption = false;
 
 void ssu_score(int argc, char *argv[])
 {
@@ -40,14 +42,11 @@ void ssu_score(int argc, char *argv[])
 		}
 	}
 
-	//Todo: i 옵션이란 것은 없다.
 	//메모리의 값을 0으로 채움
-	//	i옵션이 아닌 일반적인 상황의 경우 stuDir, ansDir에 학생 폴더, 정답 폴더를 복사한다.
+	//	stuDir, ansDir에 학생 폴더, 정답 폴더를 복사한다.
 	memset(saved_path, 0, BUFLEN);
-	if(argc >= 3 && strcmp(argv[1], "-i") != 0){
-		strcpy(stuDir, argv[1]);
-		strcpy(ansDir, argv[2]);
-	}
+	strcpy(stuDir, argv[1]);
+	strcpy(ansDir, argv[2]);
 
 	//옵션 처리. 플래그를 키고 각 인자들을 복사한다.
 	if(!check_option(argc, argv))
@@ -55,10 +54,10 @@ void ssu_score(int argc, char *argv[])
 
 	//아무 옵션도 없고, 디렉토리 설정 없이 i옵션만 켜져있다면 i옵션 실행 후 종료
 	//	다른 옵션이 있어서 못했다면 밑에서 한번 더 실행하긴함.
-	if(!mOption && !eOption && !tOption && iOption 
+	if(!mOption && !eOption && !tOption && pOption 
 			&& !strcmp(stuDir, "") && !strcmp(ansDir, "")){
 		//인자로 들어온 학생들의 틀린 문제를 출력
-		do_iOption(iIDs);
+		do_pOption(pIDs);
 		return;
 	}
 
@@ -93,19 +92,30 @@ void ssu_score(int argc, char *argv[])
 	set_idTable(stuDir);
 
 	//배점 수정 옵션이 있는 경우 배점을 수정할 문제를 입력 받고 배점을 수정한 뒤 score_table.csv파일을 새로 쓰기함.
-	if(mOption)
-		do_mOption();
+	if(mOption){
+		if(do_mOption() == -1){
+			fprintf(stderr, "do_mOption error()\n");
+			exit(1);
+		}
+	}
 
 	printf("grading student's test papers..\n");
+
+	if(!nOption){
+		strcpy(resDir, ansDir);
+		ConcatPath(resDir, DEFRESNAME);
+	}
 	//score_student를 호출해 학생들의 채점을 한 뒤 채점 결과를 csv에 출력 하고 총점을 출력함
 	//	실행 파일이 있는 경우 stdout, exe파일을 만들어 직접 실행시키고 실행 결과를 stdout파일에 출력후 두 파일을 비교해서 채점한다.
 
-	ConcatPath(resDir,DEFRESNAME);
-	score_students(resDir);
+	if(score_students(resDir) == -1){
+		fprintf(stderr, "score_students error for %s\n", resDir);
+		exit(1);
+	}
 
 	//iOption이 들어왔을 경우 인자로 들어온 학생들의 틀린 문제를 출력
-	if(iOption)
-		do_iOption(iIDs);
+	if(pOption)
+		do_pOption(pIDs);
 
 	return;
 }
@@ -116,10 +126,25 @@ int check_option(int argc, char *argv[])
 	int c;
 
 	//옵션을 추출한다.
-	while((c = getopt(argc, argv, "n:e:thmi")) != -1)
+	while((c = getopt(argc, argv, "n:e:thmic")) != -1)
 	{
 		switch(c){
 			//n옵션이 들어왔을 경우 변경할 파일 명 복사
+			case 'c':
+				cOption = true;
+				i = optind;
+				j = 0;
+
+				//t옵션 사용형태와 비슷함
+				while(i < argc && argv[i][0] != '-'){
+					if(j >= ARGNUM)
+						printf("Maximum Number of Argument Exceeded. :: %s\n", argv[i]);
+					else
+						strcpy(cIDs[j], argv[i]);
+					i++;
+					j++;
+				}
+				break;
 			case 'n':
 				nOption = true;
 				strcpy(resDir, optarg);
@@ -164,9 +189,8 @@ int check_option(int argc, char *argv[])
 				mOption = true;
 				break;
 
-			case 'i':
-				//Todo: i옵션이란 것은 없다.
-				iOption = true;
+			case 'p':
+				pOption = true;
 				i = optind;
 				j = 0;
 
@@ -175,7 +199,7 @@ int check_option(int argc, char *argv[])
 					if(j >= ARGNUM)
 						printf("Maximum Number of Argument Exceeded. :: %s\n", argv[i]);
 					else
-						strcpy(iIDs[j], argv[i]);
+						strcpy(pIDs[j], argv[i]);
 					i++;
 					j++;
 				}
@@ -191,20 +215,33 @@ int check_option(int argc, char *argv[])
 	return true;
 }
 
-void do_iOption(char (*ids)[FILELEN])
+int do_pOption(char (*ids)[FILELEN])
 {
 	FILE *fp;
 	char tmp[BUFLEN];
 	char qname[QNUM][FILELEN];
+	char savePath[BUFLEN];
 	char *p, *id;
 	int i, j;
 	char first, exist;
+	char *extension;
+
+	//csv확장자인지 검사
+	if((extension = get_file_extension(resDir)) == NULL || strcmp(extension, ".csv")){
+		fprintf(stderr, "result file extension is not csv for %s\n", resDir);
+		return -1;
+	}
+	
+	if(GetVirtualRealPath(resDir, savePath) == NULL){
+		fprintf(stderr, "GetVirtualRealPath Failed for %s\n", resDir);
+		return -1;
+	}
 
 	//Todo: 이부분 바꿔줘야함. 이 디렉토리가 아님.
 	//score.csv 파일을 오픈한다. 채점 결과 파일
-	if((fp = fopen("./score.csv", "r")) == NULL){
-		fprintf(stderr, "score.csv file doesn't exist\n");
-		return;
+	if((fp = fopen(savePath, "r")) == NULL){
+		fprintf(stderr, "%s file doesn't exist\n", savePath);
+		return -1;
 	}
 
 	// get qnames
@@ -266,13 +303,14 @@ void do_iOption(char (*ids)[FILELEN])
 	}
 
 	fclose(fp);
+	return 0;
 }
 
-void do_mOption()
+int do_mOption()
 {
 	double newScore;
 	char modiName[FILELEN];
-	char filename[FILELEN];
+	char filename[BUFLEN + FILELEN];
 	char *ptr;
 	int i;
 
@@ -291,6 +329,11 @@ void do_mOption()
 
 		//scoreTable 배열 크기만큼 순회
 		for(i=0; i < sizeof(score_table) / sizeof(score_table[0]); i++){
+			if(score_table[i].score == 0){
+				fprintf(stderr, "%s question doesn't exist\n", modiName);
+				break;
+			}
+
 			//파일 이름을 ptr로 복사
 			strcpy(ptr, score_table[i].qname);
 			//딱 한번만 사용했기에 .이 없지 않은 이상 ptr은 변경되지 않는다.
@@ -311,14 +354,13 @@ void do_mOption()
 		}
 	}
 
-	//Todo: 이게 아님
 	//쓰기위한 파일이름을 생성함
-	sprintf(filename, "./%s", "score_table.csv");
+	sprintf(filename, "%s/%s", ansDir, "score_table.csv");
 	//해당 파일이름으로 스코어테이블을 쓰기함.
 	write_scoreTable(filename);
 	//동적할당 메모리 해제
 	free(ptr);
-
+	return 0;
 }
 
 int is_exist(char (*src)[FILELEN], char *target)
@@ -614,7 +656,7 @@ int get_create_type(const char *ansDir)
 	return num;
 }
 
-void score_students(const char* resDir)
+int score_students(const char* resDir)
 {
 	double score = 0;
 	int num;
@@ -622,21 +664,22 @@ void score_students(const char* resDir)
 	char savePath[BUFLEN];
 	char tmp[BUFLEN];
 	int size = sizeof(id_table) / sizeof(id_table[0]);
-
-	//score.csv라는 파일을 새로 쓰기로 열음
-	sprintf(savePath, "%s", resDir);
+	char *extension;
 
 	//csv확장자인지 검사
-	if(strcmp(get_file_extension(resDir), ".csv"))
-		return;
+	if((extension = get_file_extension(resDir)) == NULL || strcmp(extension, ".csv")){
+		fprintf(stderr, "result file extension is not csv for %s\n", resDir);
+		return -1;
+	}
 	
-	//Todo: 에러핸들링후 리턴 뚫어놓기
-	if(GetVirtualRealPath(resDir, savePath) == NULL)
-		return;
+	if(GetVirtualRealPath(resDir, savePath) == NULL){
+		fprintf(stderr, "GetVirtualRealPath Failed for %s\n", resDir);
+		return -1;
+	}
 
 	if((fd = creat(savePath, 0666)) < 0){
-		fprintf(stderr, "creat error for %s", savePath);
-		return;
+		fprintf(stderr, "creat error for %s\n", savePath);
+		return -1;
 	}
 	//score테이블을 이용해 csv의 컬럼을 구성함.
 	write_first_row(fd);
@@ -658,13 +701,14 @@ void score_students(const char* resDir)
 		score += score_student(fd, id_table[num]);
 	}
 
-	//Todo: 나중에 바꿔줘야함. 옵션으로
 	//총점 출력
-	//printf("Total average : %.2f\n", score / num);
+	if(cOption)
+		printf("Total average : %.2f\n", score / num);
 
 	printf("result saved.. (%s)\n", savePath);
 
 	close(fd);
+	return 0;
 }
 
 double score_student(int fd, char *id)
@@ -727,7 +771,16 @@ double score_student(int fd, char *id)
 	}
 
 	//해당 학생의 채점 결과 출력
-	printf("%s is finished. score : %.2f\n", id, score); 
+	printf("%s is finished..", id);
+	if(cOption){
+		for(i=0; i<ARGNUM; i++){
+			if(**cIDs == 0 || !strcmp(cIDs[i], id)){
+				printf(" score : %.2f", score);
+				break;
+			}
+		}
+	}
+	printf("\n");
 
 	//점수 총점을 쓰고 개행
 	sprintf(tmp, "%.2f\n", score);
@@ -984,7 +1037,13 @@ double compile_program(char *id, char *filename)
 	memcpy(qname, filename, strlen(filename) - strlen(strrchr(filename, '.')));
 	
 	//스레드 컴파일 되기로한 문제인지 체크
-	isthread = is_thread(qname);
+	if(tOption){
+		if(**threadFiles == 0){
+			isthread = true;
+		} else {
+			isthread = is_thread(qname);
+		}
+	}
 
 	//정답파일이 있는 경로를 tmp_f에 저장
 	sprintf(tmp_f, "%s/%s", ansDir, filename);
