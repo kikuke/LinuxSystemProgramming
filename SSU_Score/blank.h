@@ -43,7 +43,8 @@ typedef struct operator_precedence{
 //Warning: 1+1과 1+2와 같은 케이스에 문제가 발생함
 void compare_tree(node *root1,  node *root2, int *result);
 
-//64길이의 스트링 배열
+//받은 토큰으로 연산자 우선순위에 근거해 트리를 만듦
+//	idx는 토큰의 어디부터 트리를 만들지임.
 node *make_tree(node *root, char (*tokens)[MINLEN], int *idx, int parentheses);
 
 //자식 노드의 순서를 바꾼다.
@@ -72,7 +73,10 @@ void free_node(node *cur);
 //	cur이 바뀌진 않음.
 int get_sibling_cnt(node *cur);
 
-//최초 사용시 ltrim을 사용해 공백을 제거한 뒤 사용해야됨.
+//해당 문자열을 토큰 단위로 파싱해서 tokens에 채워 넣음
+//	만약 토큰이 여러 방식으로 표현될 수 있는 경우 일관된 표현으로 바꾼다.
+//	문법에 문제가 있는경우 false 정상인 경우 true 리턴
+//	최초 사용시 ltrim을 사용해 공백을 제거한 뒤 사용해야됨.
 //Warning: a** 같은 string을 집어넣을 경우 무한루프
 //Warning: int a++ 같은 애도 통과함
 int make_tokens(char *str, char tokens[TOKEN_CNT][MINLEN]);
@@ -112,8 +116,9 @@ char *ltrim(char *_str);
 //str에서 공백을 제거함.
 void remove_space(char *str);
 
-
+//양쪽의 괄호 갯수가 맞는지 체크
 int check_brackets(char *str);
+
 char* remove_extraspace(char *str);
 
 #endif
