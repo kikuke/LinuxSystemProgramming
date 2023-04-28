@@ -53,10 +53,63 @@ struct ScoreTree* DownTree(struct ScoreTree* target)
         return NULL;
 
     down_down = down->next[SCORE_DOWN];
+    if(target->next[SCORE_UP] != NULL)
+        target->next[SCORE_UP]->next[SCORE_DOWN] = down;
+    if(down_down != NULL)
+        down_down->next[SCORE_UP] = target;
     down->next[SCORE_UP] = target->next[SCORE_UP];
     down->next[SCORE_DOWN] = target;
     target->next[SCORE_UP] = down;
     target->next[SCORE_DOWN] = down_down;
 
     return target;
+}
+
+int SortTreeByField(struct ScoreTree* target, int fieldIdx, int isDesc)
+{
+    struct ScoreTree *downTree = target;
+    struct ScoreTree *aftTree;
+    //0은 해당 타겟의 제일 첫 트리, 1은 해당 타겟의 해당 idx 트리
+    struct ScoreTree *sortTarget[QNUM][2];
+    struct ScoreTree *tmpTree;
+    int idxCnt;
+    int sortCnt;
+    int sign;
+
+    sortCnt = 0;
+	for(downTree=downTree->next[SCORE_DOWN]; downTree!=NULL; downTree=downTree->next[SCORE_DOWN]){
+        idxCnt = 0;
+
+		for(aftTree = downTree; aftTree!=NULL; aftTree=aftTree->next[SCORE_AFT]){
+            if(idxCnt == fieldIdx){
+                sortTarget[sortCnt][0] = downTree;
+                sortTarget[sortCnt][1] = aftTree;
+                sortCnt++;
+            }
+            idxCnt++;
+		}
+	}
+    if(sortCnt == 0)
+        return -1;
+    
+    //오름/내림차순 설정
+    isDesc == 0 ? (sign = +1) : (sign = -1);
+
+    for(int i=0; i<sortCnt-1; i++){
+        for(int j=0; j<sortCnt-1-i; j++){
+            if(sign * (sortTarget[j][1]->record - sortTarget[j+1][1]->record) > 0){
+                if(DownTree(sortTarget[j][0]) == NULL)
+                    return -1;
+
+                tmpTree = sortTarget[j][0];
+                sortTarget[j][0] = sortTarget[j+1][0];
+                sortTarget[j+1][0] = tmpTree;
+                tmpTree = sortTarget[j][1];
+                sortTarget[j][1] = sortTarget[j+1][1];
+                sortTarget[j+1][1] = tmpTree;
+            }
+        }
+    }
+
+    return 0;
 }

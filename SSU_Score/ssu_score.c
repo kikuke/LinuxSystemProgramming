@@ -29,9 +29,13 @@ int tOption = false;
 int mOption = false;
 int pOption = false;
 int cOption = false;
+int sOption = false;
+int isDesc;
+int isSortBySum;
 
 void ssu_score(int argc, char *argv[])
 {
+	struct ScoreTree* tempTree;
 	char saved_path[BUFLEN];
 
 	//인자 중 -h옵션이 들어온 것이 하나라도 있다면 뒤의 명령들 무시하고 무조건 사용법 출력
@@ -104,10 +108,28 @@ void ssu_score(int argc, char *argv[])
 		exit(1);
 	}
 
+	if(sOption){
+		//sum으로 정렬인 경우 sum의 위치 계산
+		if(isSortBySum != false){
+			int i=0;
+			for(tempTree=scoreTree.next[SCORE_DOWN]; tempTree!=NULL; tempTree=tempTree->next[SCORE_AFT])
+				i++;
+
+			isSortBySum = i-1;
+		}
+
+		//sOption인 경우 정렬
+		if(SortTreeByField(&scoreTree, isSortBySum, isDesc) == -1){
+			fprintf(stderr, "SortTreeByField error\n");
+			exit(1);
+		}
+	}
+
 	if(write_result_file(resDir, &scoreTree) == -1){
 		fprintf(stderr, "write_result_file error for %s\n", resDir);
 		exit(1);
 	}
+
 
 	return;
 }
@@ -119,9 +141,34 @@ int check_option(int argc, char *argv[])
 	char *extension;
 
 	//옵션을 추출한다.
-	while((c = getopt(argc, argv, "n:e:thmpc")) != -1)
+	while((c = getopt(argc, argv, "n:e:sthmpc")) != -1)
 	{
 		switch(c){
+			//s옵션이 들어왔을 경우 정렬 설정
+			case 's':
+				sOption = true;
+				i = optind;
+
+				if(i < argc && !strcmp(argv[i], "stdid")){
+					isSortBySum = false;
+				} else if(i < argc && !strcmp(argv[i], "score")){
+					isSortBySum = true;
+				} else {
+					fprintf(stderr, "-s use < stdid | score > < 1 | -1 >\n");
+					return false;
+				}
+				i++;
+				optind+=2;
+
+				if(i < argc && !strcmp(argv[i], "1")){
+					isDesc = false;
+				} else if(i < argc && !strcmp(argv[i], "-1")){
+					isDesc = true;
+				} else {
+					fprintf(stderr, "-s use < stdid | score > < 1 | -1 >\n");
+					return false;
+				}
+				break;
 			//n옵션이 들어왔을 경우 변경할 파일 명 복사
 			case 'c':
 				cOption = true;
@@ -754,7 +801,11 @@ int write_result_file(const char *resDir, struct ScoreTree* rootTree)
 		write(fd, tmp, strlen(tmp)); 
 		for(aftTree=aftTree->next[SCORE_AFT]; aftTree!=NULL; aftTree=aftTree->next[SCORE_AFT]){
 			//',점수' 꼴로 csv의 점수 필드를 채움
-			sprintf(tmp, ",%.2f", aftTree->record);
+			if(aftTree->record == 0){
+				sprintf(tmp, ",%.f", aftTree->record);
+			} else {
+				sprintf(tmp, ",%.2f", aftTree->record);
+			}
 			write(fd, tmp, strlen(tmp)); 
 		}
 		sprintf(tmp, "\n");

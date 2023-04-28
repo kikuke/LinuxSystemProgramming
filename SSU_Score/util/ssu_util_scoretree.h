@@ -1,6 +1,8 @@
 #ifndef SSU_UTIL_SCORETREE_H
 #define SSU_UTIL_SCORETREE_H
 
+#define QNUM 100
+
 enum ScoreNext {
     SCORE_BEF,
     SCORE_AFT,
@@ -34,5 +36,13 @@ struct ScoreTree* FindLastTree(struct ScoreTree *target);
 //해당 트리를 한단계 아래로 내립니다. target의 아래있던 트리는 단계가 상승합니다.
 //  성공시 target리턴, 실패시 NULL
 struct ScoreTree* DownTree(struct ScoreTree* target);
+
+//트리를 fieldIdx에 해당하는 필드 idx를 기준으로 정렬합니다.
+//  isDesc가 0이면 오름차순 아니라면 내림차순으로 정렬합니다.
+//  성공시 0 실패시 -1 리턴
+int SortTreeByField(struct ScoreTree* target, int fieldIdx, int isDesc);
+
+//해당 트리의 idx위치 
+struct ScoreTree* FindTreeByField(struct ScoreTree* target, int fieldIdx);
 
 #endif
