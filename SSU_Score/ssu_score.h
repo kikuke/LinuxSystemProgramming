@@ -3,6 +3,8 @@
 
 #include <sys/types.h>
 
+#include "util/ssu_util_scoretree.h"
+
 #ifndef true
 	#define true 1
 #endif
@@ -60,13 +62,13 @@ void print_usage();
 //	학생 평균 점수 리턴
 //	실행 파일이 있는 경우 stdout, exe파일을 만들어 직접 실행시키고 실행 결과를 stdout파일에 출력후 두 파일을 비교해서 채점한다.
 //	성공시 0 실패시 -1
-int score_students(const char* resDir);
+int score_students(struct ScoreTree* rootTree, const char* resDir);
 
 //인자로 들어론 id를 채점 후 stdin으로 출력 및 fd 파일에 이어쓰기
 //	이때 쓰기는 id, 뒤부터 쓰게됨. id,는 score_students에서 쓰기 때문
 //	부분 점수도 score_blank, score_program이 -로 나온경우 그만큼 깎아서 처리
 //	score_students에서 내부적으로 사용하는 함수
-double score_student(int fd, char *id);
+double score_student(struct ScoreTree* idTree, int fd, char *id);
 
 //score테이블을 이용해 csv의 컬럼을 구성함.
 //	,문제번호,...,sum 꼴임
@@ -108,10 +110,6 @@ double check_error_warning(char *filename);
 //인자로 들어온 두 파일이 공백과 대소문자를 고려하지 않았을 때 같은지 판별.
 //	성공시 true, 실패시 false 리턴
 int compare_resultfile(char *file1, char *file2);
-
-//인자로 받은 id의 틀린 문제를 출력한다.
-//	실패시 -1 성공시 0
-int do_pOption(char (*ids)[FILELEN]);
 
 //배점을 수정할 문제를 입력 받고 배점을 수정한 뒤 score_table.csv파일을 새로 쓰기함.
 //	실패시 -1 성공시 0

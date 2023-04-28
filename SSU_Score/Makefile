@@ -1,6 +1,6 @@
 INCLUDE = -Iutil/
 SUBDIRS = util
-UTILITY = util/ssu_util_path.o
+UTILITY = util/ssu_util_path.o util/ssu_util_scoretree.o
 SCORE = blank.o ssu_score.o
 CC = gcc -g
 

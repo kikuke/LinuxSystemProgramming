@@ -8,11 +8,12 @@
 #include <string.h>
 #include <time.h>
 
-#include "util/ssu_util_path.h"
 #include "blank.h"
 #include "ssu_score.h"
+#include "util/ssu_util_path.h"
 
 struct ssu_scoreTable score_table[QNUM];
+struct ScoreTree scoreTree;
 char id_table[SNUM][10];
 
 char stuDir[BUFLEN];
@@ -20,7 +21,6 @@ char ansDir[BUFLEN];
 char resDir[FILELEN];
 char errorDir[BUFLEN];
 char threadFiles[ARGNUM][FILELEN];
-char pIDs[ARGNUM][FILELEN];
 char cIDs[ARGNUM][FILELEN];
 
 int nOption = false;
@@ -51,15 +51,6 @@ void ssu_score(int argc, char *argv[])
 	//옵션 처리. 플래그를 키고 각 인자들을 복사한다.
 	if(!check_option(argc, argv))
 		exit(1);
-
-	//아무 옵션도 없고, 디렉토리 설정 없이 i옵션만 켜져있다면 i옵션 실행 후 종료
-	//	다른 옵션이 있어서 못했다면 밑에서 한번 더 실행하긴함.
-	if(!mOption && !eOption && !tOption && pOption 
-			&& !strcmp(stuDir, "") && !strcmp(ansDir, "")){
-		//인자로 들어온 학생들의 틀린 문제를 출력
-		do_pOption(pIDs);
-		return;
-	}
 
 	//현재 작업 경로를 가져옴
 	getcwd(saved_path, BUFLEN);
@@ -108,14 +99,10 @@ void ssu_score(int argc, char *argv[])
 	//score_student를 호출해 학생들의 채점을 한 뒤 채점 결과를 csv에 출력 하고 총점을 출력함
 	//	실행 파일이 있는 경우 stdout, exe파일을 만들어 직접 실행시키고 실행 결과를 stdout파일에 출력후 두 파일을 비교해서 채점한다.
 
-	if(score_students(resDir) == -1){
+	if(score_students(&scoreTree, resDir) == -1){
 		fprintf(stderr, "score_students error for %s\n", resDir);
 		exit(1);
 	}
-
-	//iOption이 들어왔을 경우 인자로 들어온 학생들의 틀린 문제를 출력
-	if(pOption)
-		do_pOption(pIDs);
 
 	return;
 }
@@ -126,7 +113,7 @@ int check_option(int argc, char *argv[])
 	int c;
 
 	//옵션을 추출한다.
-	while((c = getopt(argc, argv, "n:e:thmic")) != -1)
+	while((c = getopt(argc, argv, "n:e:thmpc")) != -1)
 	{
 		switch(c){
 			//n옵션이 들어왔을 경우 변경할 파일 명 복사
@@ -135,6 +122,11 @@ int check_option(int argc, char *argv[])
 				i = optind;
 				j = 0;
 
+				//이미 p옵션 등을 통해 인자가 들어왔을 경우 에러처리
+				if(**cIDs != 0 && (i < argc && argv[i][0] != '-')){
+					fprintf(stderr, "-c -p Option's Argument Ocurred Twice\n");
+					return false;
+				}
 				//t옵션 사용형태와 비슷함
 				while(i < argc && argv[i][0] != '-'){
 					if(j >= ARGNUM)
@@ -194,12 +186,17 @@ int check_option(int argc, char *argv[])
 				i = optind;
 				j = 0;
 
+				//이미 c옵션 등을 통해 인자가 들어왔을 경우 에러처리
+				if(**cIDs != 0 && (i < argc && argv[i][0] != '-')){
+					fprintf(stderr, "-c -p Option's Argument Ocurred Twice\n");
+					return false;
+				}
 				//t옵션 사용형태와 비슷함
 				while(i < argc && argv[i][0] != '-'){
 					if(j >= ARGNUM)
 						printf("Maximum Number of Argument Exceeded. :: %s\n", argv[i]);
 					else
-						strcpy(pIDs[j], argv[i]);
+						strcpy(cIDs[j], argv[i]);
 					i++;
 					j++;
 				}
@@ -213,97 +210,6 @@ int check_option(int argc, char *argv[])
 	}
 
 	return true;
-}
-
-int do_pOption(char (*ids)[FILELEN])
-{
-	FILE *fp;
-	char tmp[BUFLEN];
-	char qname[QNUM][FILELEN];
-	char savePath[BUFLEN];
-	char *p, *id;
-	int i, j;
-	char first, exist;
-	char *extension;
-
-	//csv확장자인지 검사
-	if((extension = get_file_extension(resDir)) == NULL || strcmp(extension, ".csv")){
-		fprintf(stderr, "result file extension is not csv for %s\n", resDir);
-		return -1;
-	}
-	
-	if(GetVirtualRealPath(resDir, savePath) == NULL){
-		fprintf(stderr, "GetVirtualRealPath Failed for %s\n", resDir);
-		return -1;
-	}
-
-	//Todo: 이부분 바꿔줘야함. 이 디렉토리가 아님.
-	//score.csv 파일을 오픈한다. 채점 결과 파일
-	if((fp = fopen(savePath, "r")) == NULL){
-		fprintf(stderr, "%s file doesn't exist\n", savePath);
-		return -1;
-	}
-
-	// get qnames
-	i = 0;
-	//csv의 첫 줄을 가져온다.
-	fscanf(fp, "%s\n", tmp);
-	//,단위로 분리해서 문제번호를 추출한다.
-	strcpy(qname[i++], strtok(tmp, ","));
-	//,단위로 분리해서 문제번호를 추출한다.
-	while((p = strtok(NULL, ",")) != NULL)
-		strcpy(qname[i++], p);
-
-	// print result
-	i = 0;
-	//Todo: 무조건 5번 반복됨?
-	while(i++ <= ARGNUM - 1)
-	{
-		exist = 0;
-		//파일 포인터를 초기 위치로 이동
-		fseek(fp, 0, SEEK_SET);
-		//첫 줄을 tmp로 복사
-		fscanf(fp, "%s\n", tmp);
-
-		//score파일의 학번과 점수를 한줄씩 가져옴.
-		while(fscanf(fp, "%s\n", tmp) != EOF){
-			//최초 토큰은 학번이 됨
-			id = strtok(tmp, ",");
-
-			//추출한 학번이 인자로 들어왔던 학번과 일치하다면
-			if(!strcmp(ids[i - 1], id)){
-				//일치 플래그 세팅
-				exist = 1;
-				j = 0;
-				first = 0;
-				//학번 다음은 문제 점수들임.
-				//	문제 점수를 가져옴
-				while((p = strtok(NULL, ",")) != NULL){
-					//문자 스트링을 부동 소수점으로 변환
-					if(atof(p) == 0){
-						//최초일 때만 출력
-						if(!first){
-							printf("%s's wrong answer :\n", id);
-							first = 1;
-						}
-						//해당 열이 sum이 아니라면 해당 점수 출력
-						//	따라서 틀린문제의 리스트 들을 출력하게 됨.
-						if(strcmp(qname[j], "sum"))
-							printf("%s    ", qname[j]);
-					}
-					j++;
-				}
-				printf("\n");
-			}
-		}
-
-		//해당 학번이 존재하지 않앗다면 에러 표시
-		if(!exist)
-			printf("%s doesn't exist!\n", ids[i - 1]);
-	}
-
-	fclose(fp);
-	return 0;
 }
 
 int do_mOption()
@@ -656,7 +562,7 @@ int get_create_type(const char *ansDir)
 	return num;
 }
 
-int score_students(const char* resDir)
+int score_students(struct ScoreTree* rootTree, const char* resDir)
 {
 	double score = 0;
 	int num;
@@ -665,6 +571,8 @@ int score_students(const char* resDir)
 	char tmp[BUFLEN];
 	int size = sizeof(id_table) / sizeof(id_table[0]);
 	char *extension;
+	struct ScoreTree* befTree;
+	struct ScoreTree* idTree;
 
 	//csv확장자인지 검사
 	if((extension = get_file_extension(resDir)) == NULL || strcmp(extension, ".csv")){
@@ -676,6 +584,8 @@ int score_students(const char* resDir)
 		fprintf(stderr, "GetVirtualRealPath Failed for %s\n", resDir);
 		return -1;
 	}
+
+	befTree = rootTree;
 
 	if((fd = creat(savePath, 0666)) < 0){
 		fprintf(stderr, "creat error for %s\n", savePath);
@@ -689,7 +599,11 @@ int score_students(const char* resDir)
 	{
 		//데이터가 없는 구간이 나왔다면 반복문 종료.
 		if(!strcmp(id_table[num], ""))
-			break;
+			break;   
+
+		//Todo: strtod써서 바꿔서 트리에 저장하기. 이후 로직들 쭉 작성
+		idTree = CreateScoreTree(NULL, NULL, NULL, NULL, atof(id_table[num]));
+		SetUpDownScoreTree(befTree, idTree);
 
 		//'id,' 꼴로 csv의 id 필드를 채움
 		sprintf(tmp, "%s,", id_table[num]);
@@ -698,7 +612,9 @@ int score_students(const char* resDir)
 
 		//해당 id의 학생을 채점하고 레코드를 작성해 파일에 씀
 		//해당 학생의 점수를 계산한 뒤 총점에 더함
-		score += score_student(fd, id_table[num]);
+		score += score_student(idTree, fd, id_table[num]);
+
+		befTree = idTree;
 	}
 
 	//총점 출력
@@ -711,7 +627,7 @@ int score_students(const char* resDir)
 	return 0;
 }
 
-double score_student(int fd, char *id)
+double score_student(struct ScoreTree* idTree, int fd, char *id)
 {
 	int type;
 	double result;
@@ -719,13 +635,22 @@ double score_student(int fd, char *id)
 	int i;
 	char tmp[BUFLEN+EXTRABUFLEN];
 	int size = sizeof(score_table) / sizeof(score_table[0]);
+	struct ScoreTree* befTree;
+	struct ScoreTree* nowTree;
+	int isCIDs = false;
+	int isFirst = true;
+	int num1, num2;
 
+	befTree = idTree;
 	//스코어테이블의 배열 크기만큼 순회
 	for(i = 0; i < size ; i++)
 	{
 		//데이터가 없는 부분일 경우 데이터의 끝으로 판단하고 순회 종료
 		if(score_table[i].score == 0)
 			break;
+
+		nowTree = CreateScoreTree(NULL, NULL, NULL, NULL, 0);
+		SetBefAftScoreTree(befTree, nowTree);
 
 		//학생 정답 디렉토리의 id폴더의 해당 문제 파일을 경로로 만듦
 		sprintf(tmp, "%s/%s/%s", stuDir, id, score_table[i].qname);
@@ -755,31 +680,71 @@ double score_student(int fd, char *id)
 			//맞은 경우 해당문제의 설정한 배점으로 기록
 			if(result == true){
 				//총점에 더함
-				score += score_table[i].score;
+				nowTree->record = score_table[i].score;
+				score += nowTree->record;
 				sprintf(tmp, "%.2f,", score_table[i].score);
 			}
 			//부분 정답인 경우
 			else if(result < 0){
 				//해당 점수만큼 감점
 				//총점에 더함
-				score = score + score_table[i].score + result;
+				nowTree->record = score_table[i].score + result;
+				score = score + nowTree->record;
 				sprintf(tmp, "%.2f,", score_table[i].score + result);
 			}
 			//위에서 설정된 점수, 로 파일에 쓰기
 			write(fd, tmp, strlen(tmp));
 		}
+
+		befTree = nowTree;
 	}
 
 	//해당 학생의 채점 결과 출력
+	nowTree = CreateScoreTree(NULL, NULL, NULL, NULL, score);
+	SetBefAftScoreTree(befTree, nowTree);
+
 	printf("%s is finished..", id);
-	if(cOption){
+	
+	if(cOption || pOption){
 		for(i=0; i<ARGNUM; i++){
 			if(**cIDs == 0 || !strcmp(cIDs[i], id)){
-				printf(" score : %.2f", score);
+				isCIDs = true;
 				break;
 			}
 		}
 	}
+
+	if(cOption && isCIDs){
+		printf(" score : %.2f", score);
+	}
+	if(cOption && pOption && isCIDs){
+		printf(",");
+	}
+	//틀린 문제 출력
+	if(pOption && isCIDs){
+		int i=0;
+		nowTree = FindFirstTree(nowTree);
+		printf(" wrong problem : ");
+		for(nowTree=nowTree->next[SCORE_AFT]; nowTree!=NULL; nowTree=nowTree->next[SCORE_AFT]) {
+			//틀린 문제일 경우
+			if(nowTree->record == 0 && nowTree->next[SCORE_AFT] != NULL){
+				if(!isFirst){
+					printf(", ");
+				}
+				get_qname_number(score_table[i].qname, &num1, &num2);
+				printf("%d", num1);
+				if(num2 != 0){
+					printf("-%d", num2);
+				}
+				printf("(%.2lg)", score_table[i].score);
+
+				isFirst = false;
+			}
+
+			i++;
+		}
+	}
+
 	printf("\n");
 
 	//점수 총점을 쓰고 개행
