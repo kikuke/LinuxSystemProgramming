@@ -62,13 +62,17 @@ void print_usage();
 //	학생 평균 점수 리턴
 //	실행 파일이 있는 경우 stdout, exe파일을 만들어 직접 실행시키고 실행 결과를 stdout파일에 출력후 두 파일을 비교해서 채점한다.
 //	성공시 0 실패시 -1
-int score_students(struct ScoreTree* rootTree, const char* resDir);
+int score_students(struct ScoreTree* rootTree);
 
 //인자로 들어론 id를 채점 후 stdin으로 출력 및 fd 파일에 이어쓰기
 //	이때 쓰기는 id, 뒤부터 쓰게됨. id,는 score_students에서 쓰기 때문
 //	부분 점수도 score_blank, score_program이 -로 나온경우 그만큼 깎아서 처리
 //	score_students에서 내부적으로 사용하는 함수
-double score_student(struct ScoreTree* idTree, int fd, char *id);
+double score_student(struct ScoreTree* idTree, char *id);
+
+//채점 결과 파일을 해당 경로에 쓰기합니다.
+//	성공 시 0, 실패시 -1을 리턴.
+int write_result_file(const char *resDir, struct ScoreTree* rootTree);
 
 //score테이블을 이용해 csv의 컬럼을 구성함.
 //	,문제번호,...,sum 꼴임

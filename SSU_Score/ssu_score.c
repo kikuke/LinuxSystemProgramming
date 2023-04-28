@@ -99,8 +99,13 @@ void ssu_score(int argc, char *argv[])
 	//score_student를 호출해 학생들의 채점을 한 뒤 채점 결과를 csv에 출력 하고 총점을 출력함
 	//	실행 파일이 있는 경우 stdout, exe파일을 만들어 직접 실행시키고 실행 결과를 stdout파일에 출력후 두 파일을 비교해서 채점한다.
 
-	if(score_students(&scoreTree, resDir) == -1){
-		fprintf(stderr, "score_students error for %s\n", resDir);
+	if(score_students(&scoreTree) == -1){
+		fprintf(stderr, "score_students error\n");
+		exit(1);
+	}
+
+	if(write_result_file(resDir, &scoreTree) == -1){
+		fprintf(stderr, "write_result_file error for %s\n", resDir);
 		exit(1);
 	}
 
@@ -111,6 +116,7 @@ int check_option(int argc, char *argv[])
 {
 	int i, j;
 	int c;
+	char *extension;
 
 	//옵션을 추출한다.
 	while((c = getopt(argc, argv, "n:e:thmpc")) != -1)
@@ -140,6 +146,13 @@ int check_option(int argc, char *argv[])
 			case 'n':
 				nOption = true;
 				strcpy(resDir, optarg);
+
+				//csv확장자인지 검사
+				if((extension = get_file_extension(resDir)) == NULL || strcmp(extension, ".csv")){
+					fprintf(stderr, "result file extension is not csv for %s\n", resDir);
+					return false;
+				}
+
 				break;
 			//e옵션의 경우 errorDir에 폴더경로를 복사 후
 			//	무조건 디렉토리를 새로 만든다.
@@ -562,37 +575,15 @@ int get_create_type(const char *ansDir)
 	return num;
 }
 
-int score_students(struct ScoreTree* rootTree, const char* resDir)
+int score_students(struct ScoreTree* rootTree)
 {
 	double score = 0;
 	int num;
-	int fd;
-	char savePath[BUFLEN];
-	char tmp[BUFLEN];
 	int size = sizeof(id_table) / sizeof(id_table[0]);
-	char *extension;
 	struct ScoreTree* befTree;
 	struct ScoreTree* idTree;
 
-	//csv확장자인지 검사
-	if((extension = get_file_extension(resDir)) == NULL || strcmp(extension, ".csv")){
-		fprintf(stderr, "result file extension is not csv for %s\n", resDir);
-		return -1;
-	}
-	
-	if(GetVirtualRealPath(resDir, savePath) == NULL){
-		fprintf(stderr, "GetVirtualRealPath Failed for %s\n", resDir);
-		return -1;
-	}
-
 	befTree = rootTree;
-
-	if((fd = creat(savePath, 0666)) < 0){
-		fprintf(stderr, "creat error for %s\n", savePath);
-		return -1;
-	}
-	//score테이블을 이용해 csv의 컬럼을 구성함.
-	write_first_row(fd);
 
 	//id테이블 크기만큼 반복
 	for(num = 0; num < size; num++)
@@ -605,14 +596,9 @@ int score_students(struct ScoreTree* rootTree, const char* resDir)
 		idTree = CreateScoreTree(NULL, NULL, NULL, NULL, atof(id_table[num]));
 		SetUpDownScoreTree(befTree, idTree);
 
-		//'id,' 꼴로 csv의 id 필드를 채움
-		sprintf(tmp, "%s,", id_table[num]);
-		//쓰기
-		write(fd, tmp, strlen(tmp)); 
-
 		//해당 id의 학생을 채점하고 레코드를 작성해 파일에 씀
 		//해당 학생의 점수를 계산한 뒤 총점에 더함
-		score += score_student(idTree, fd, id_table[num]);
+		score += score_student(idTree, id_table[num]);
 
 		befTree = idTree;
 	}
@@ -620,14 +606,11 @@ int score_students(struct ScoreTree* rootTree, const char* resDir)
 	//총점 출력
 	if(cOption)
 		printf("Total average : %.2f\n", score / num);
-
-	printf("result saved.. (%s)\n", savePath);
-
-	close(fd);
+		
 	return 0;
 }
 
-double score_student(struct ScoreTree* idTree, int fd, char *id)
+double score_student(struct ScoreTree* idTree, char *id)
 {
 	int type;
 	double result;
@@ -674,15 +657,12 @@ double score_student(struct ScoreTree* idTree, int fd, char *id)
 		}
 
 		//0점인 경우 0점 기록
-		if(result == false)
-			write(fd, "0,", 2);
-		else{
+		if(result != false){
 			//맞은 경우 해당문제의 설정한 배점으로 기록
 			if(result == true){
 				//총점에 더함
 				nowTree->record = score_table[i].score;
 				score += nowTree->record;
-				sprintf(tmp, "%.2f,", score_table[i].score);
 			}
 			//부분 정답인 경우
 			else if(result < 0){
@@ -690,10 +670,7 @@ double score_student(struct ScoreTree* idTree, int fd, char *id)
 				//총점에 더함
 				nowTree->record = score_table[i].score + result;
 				score = score + nowTree->record;
-				sprintf(tmp, "%.2f,", score_table[i].score + result);
 			}
-			//위에서 설정된 점수, 로 파일에 쓰기
-			write(fd, tmp, strlen(tmp));
 		}
 
 		befTree = nowTree;
@@ -744,16 +721,50 @@ double score_student(struct ScoreTree* idTree, int fd, char *id)
 			i++;
 		}
 	}
-
 	printf("\n");
-
-	//점수 총점을 쓰고 개행
-	sprintf(tmp, "%.2f\n", score);
-	//파일에 쓰기
-	write(fd, tmp, strlen(tmp));
 
 	//총 점 리턴
 	return score;
+}
+
+int write_result_file(const char *resDir, struct ScoreTree* rootTree)
+{
+	int fd;
+	char savePath[BUFLEN];
+	char tmp[BUFLEN];
+	struct ScoreTree* downTree = rootTree;
+	struct ScoreTree* aftTree;
+	
+	if(GetVirtualRealPath(resDir, savePath) == NULL){
+		fprintf(stderr, "GetVirtualRealPath Failed for %s\n", resDir);
+		return -1;
+	}
+
+	if((fd = creat(savePath, 0666)) < 0){
+		fprintf(stderr, "creat error for %s\n", savePath);
+		return -1;
+	}
+
+	//score테이블을 이용해 csv의 컬럼을 구성함.
+	write_first_row(fd);
+	for(downTree=downTree->next[SCORE_DOWN]; downTree!=NULL; downTree=downTree->next[SCORE_DOWN]){
+		aftTree = downTree;
+		//'id,' 꼴로 csv의 id 필드를 채움
+		sprintf(tmp, "%.f", aftTree->record);
+		write(fd, tmp, strlen(tmp)); 
+		for(aftTree=aftTree->next[SCORE_AFT]; aftTree!=NULL; aftTree=aftTree->next[SCORE_AFT]){
+			//',점수' 꼴로 csv의 점수 필드를 채움
+			sprintf(tmp, ",%.2f", aftTree->record);
+			write(fd, tmp, strlen(tmp)); 
+		}
+		sprintf(tmp, "\n");
+		write(fd, tmp, strlen(tmp)); 
+	}
+
+	printf("result saved.. (%s)\n", savePath);
+	close(fd);
+
+	return 0;
 }
 
 void write_first_row(int fd)
