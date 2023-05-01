@@ -192,8 +192,12 @@ int check_option(int argc, char *argv[])
 				}
 				//t옵션 사용형태와 비슷함
 				while(i < argc && argv[i][0] != '-'){
-					if(j >= ARGNUM)
-						printf("Maximum Number of Argument Exceeded. :: %s\n", argv[i]);
+					if(j >= ARGNUM){
+						if(j == ARGNUM)
+							printf("Maximum Number of Argument Exceeded. ::");
+						printf(" %s", argv[i]);
+						continue;
+					}
 					else
 						strcpy(cIDs[j], argv[i]);
 
@@ -205,6 +209,8 @@ int check_option(int argc, char *argv[])
 					i++;
 					j++;
 				}
+				if(j >= ARGNUM)
+					printf("\n");
 				break;
 			case 'n':
 				nOption = true;
@@ -246,8 +252,12 @@ int check_option(int argc, char *argv[])
 				//옵션인 경우가 나오기 전까지 반복
 				while(i < argc && argv[i][0] != '-'){
 
-					if(j >= ARGNUM)
-						printf("Maximum Number of Argument Exceeded.  :: %s\n", argv[i]);
+					if(j >= ARGNUM){
+						if(j == ARGNUM)
+							printf("Maximum Number of Argument Exceeded. ::");
+						printf(" %s", argv[i]);
+						continue;
+					}
 					else{
 						//해당 목록을 treadFiles에 복사함
 						strcpy(threadFiles[j], argv[i]);
@@ -260,6 +270,8 @@ int check_option(int argc, char *argv[])
 					i++; 
 					j++;
 				}
+				if(j >= ARGNUM)
+					printf("\n");
 				break;
 			case 'm':
 				//특정 문제 번호 배점 수정 옵션을 킴
@@ -278,8 +290,11 @@ int check_option(int argc, char *argv[])
 				}
 				//t옵션 사용형태와 비슷함
 				while(i < argc && argv[i][0] != '-'){
-					if(j >= ARGNUM)
-						printf("Maximum Number of Argument Exceeded. :: %s\n", argv[i]);
+					if(j >= ARGNUM){
+						if(j == ARGNUM)
+							printf("Maximum Number of Argument Exceeded. ::");
+						printf(" %s", argv[i]);
+					}
 					else
 						strcpy(cIDs[j], argv[i]);
 
@@ -290,6 +305,8 @@ int check_option(int argc, char *argv[])
 					i++;
 					j++;
 				}
+				if(j >= ARGNUM)
+					printf("\n");
 				break;
 
 			//에러 핸들링
@@ -337,7 +354,7 @@ int do_mOption()
 			ptr = strtok(ptr, ".");
 			//배점 변경하려는 문제이름과 일치하다면
 			if(!strcmp(ptr, modiName)){
-				printf("Current score : %.2f\n", score_table[i].score);
+				printf("Current score : %lg\n", score_table[i].score);
 				printf("New score : ");
 				//라인단위. 스코어 입력을 가져옴
 				scanf("%lf", &newScore);
