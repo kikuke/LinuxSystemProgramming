@@ -149,6 +149,7 @@ int check_option(int argc, char *argv[])
 	int c;
 	char *extension;
 	char buf[BUFLEN];
+	char buf2[BUFLEN];
 
 	//옵션을 추출한다.
 	while((c = getopt(argc, argv, "n:e:sthmpc")) != -1)
@@ -196,6 +197,8 @@ int check_option(int argc, char *argv[])
 						if(j == ARGNUM)
 							printf("Maximum Number of Argument Exceeded. ::");
 						printf(" %s", argv[i]);
+						i++;
+						j++;
 						continue;
 					}
 					else
@@ -209,7 +212,7 @@ int check_option(int argc, char *argv[])
 					i++;
 					j++;
 				}
-				if(j >= ARGNUM)
+				if(j > ARGNUM)
 					printf("\n");
 				break;
 			case 'n':
@@ -230,6 +233,16 @@ int check_option(int argc, char *argv[])
 				strcpy(buf, optarg);
 				if(GetVirtualRealPath(buf, errorDir) == NULL){
 					fprintf(stderr, "Get Virtual Real Path Failed: %s\n", buf);
+					return false;
+				}
+				GetParentPath(errorDir, buf);
+				//realpath
+				if(realpath(buf, buf2) == NULL){
+					fprintf(stderr, "Wrong Dir %s\n", errorDir);
+					return false;
+				}
+				if(strcmp(buf2, getenv("HOME")) < 0){
+					fprintf(stderr, "Wrong Dir %s\n", errorDir);
 					return false;
 				}
 
@@ -256,6 +269,8 @@ int check_option(int argc, char *argv[])
 						if(j == ARGNUM)
 							printf("Maximum Number of Argument Exceeded. ::");
 						printf(" %s", argv[i]);
+						i++;
+						j++;
 						continue;
 					}
 					else{
@@ -270,7 +285,7 @@ int check_option(int argc, char *argv[])
 					i++; 
 					j++;
 				}
-				if(j >= ARGNUM)
+				if(j > ARGNUM)
 					printf("\n");
 				break;
 			case 'm':
@@ -294,6 +309,9 @@ int check_option(int argc, char *argv[])
 						if(j == ARGNUM)
 							printf("Maximum Number of Argument Exceeded. ::");
 						printf(" %s", argv[i]);
+						i++;
+						j++;
+						continue;
 					}
 					else
 						strcpy(cIDs[j], argv[i]);
@@ -305,7 +323,7 @@ int check_option(int argc, char *argv[])
 					i++;
 					j++;
 				}
-				if(j >= ARGNUM)
+				if(j > ARGNUM)
 					printf("\n");
 				break;
 
