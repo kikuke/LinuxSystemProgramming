@@ -1492,8 +1492,8 @@ void print_usage()
 	printf("Option : \n");
 	printf(" -n <CSVFILENAME>\n");
 	printf(" -m\n");
-	printf(" -c [STUDENTIDS...]\n");
-	printf(" -p [STUDENTIDS...]\n");
+	printf(" -c [STUDENTIDS ...]\n");
+	printf(" -p [STUDENTIDS ...]\n");
 	printf(" -t [QNAMES ...]\n");
 	printf(" -s <CATEGORY> <1|-1>\n");
 	printf(" -e <DIRNAME>\n");
