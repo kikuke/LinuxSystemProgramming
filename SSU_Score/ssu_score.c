@@ -430,7 +430,7 @@ void make_scoreTable(char *ansDir)
 	int i;
 
 	//안내창 출력 후 몇번을 선택했는지 가져옴
-	num = get_create_type(ansDir);
+	num = get_create_type(DEFANSDIR);
 
 	//1번을 선택한 경우 자동으로 설정할 값들을 세팅.
 	if(num == 1)
@@ -632,11 +632,16 @@ void get_qname_number(char *qname, int *num1, int *num2)
 
 int get_create_type(const char *ansDir)
 {
+	char tmp[BUFLEN];
 	int num;
-
+	
+	if(GetVirtualRealPath(ansDir, tmp) == NULL){
+		fprintf(stderr, "GetVirtualRealPath() Failed %s\n", ansDir);
+		return -1;
+	}
 	while(1)
 	{
-		printf("score_table.csv file doesn't exist in \"%s\"!\n", ansDir);
+		printf("score_table.csv file doesn't exist in \"%s\"!\n", tmp);
 		printf("1. input blank question and program question's score. ex) 0.5 1\n");
 		printf("2. input all question's score. ex) Input value of 1-1: 0.1\n");
 		printf("select type >> ");
