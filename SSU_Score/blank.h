@@ -8,7 +8,7 @@
 	#define false 0
 #endif
 #ifndef BUFLEN
-	#define BUFLEN 1024
+	#define BUFLEN 4096
 #endif
 
 #define OPERATOR_CNT 24

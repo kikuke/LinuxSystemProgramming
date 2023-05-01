@@ -36,7 +36,7 @@
 #endif
 
 #define FILELEN 128
-#define BUFLEN 1024
+#define BUFLEN 4096
 #define EXTRABUFLEN 256
 #define SNUM 100
 #define QNUM 100
