@@ -130,6 +130,9 @@ void ssu_score(int argc, char *argv[])
 		exit(1);
 	}
 
+	if(eOption){
+		printf("error saved.. (%s/)\n", errorDir);
+	}
 
 	return;
 }
@@ -139,6 +142,7 @@ int check_option(int argc, char *argv[])
 	int i, j;
 	int c;
 	char *extension;
+	char buf[BUFLEN];
 
 	//옵션을 추출한다.
 	while((c = getopt(argc, argv, "n:e:sthmpc")) != -1)
@@ -205,7 +209,11 @@ int check_option(int argc, char *argv[])
 			//	무조건 디렉토리를 새로 만든다.
 			case 'e':
 				eOption = true;
-				strcpy(errorDir, optarg);
+				strcpy(buf, optarg);
+				if(GetVirtualRealPath(buf, errorDir) == NULL){
+					fprintf(stderr, "Get Virtual Real Path Failed: %s\n", buf);
+					return false;
+				}
 
 				if(access(errorDir, F_OK) < 0)
 					mkdir(errorDir, 0755);
@@ -1413,11 +1421,14 @@ void to_lower_case(char *c)
 
 void print_usage()
 {
-	printf("Usage : ssu_score <STUDENTDIR> <TRUEDIR> [OPTION]\n");
+	printf("Usage : ssu_score <STD_DIR> <ANS_DIR> [OPTION]\n");
 	printf("Option : \n");
-	printf(" -m                modify question's score\n");
-	printf(" -e <DIRNAME>      print error on 'DIRNAME/ID/qname_error.txt' file \n");
-	printf(" -t <QNAMES>       compile QNAME.C with -lpthread option\n");
-	printf(" -t <IDS>          print ID's wrong questions\n");
-	printf(" -h                print usage\n");
+	printf(" -n <CSVFILENAME>\n");
+	printf(" -m\n");
+	printf(" -c [STUDENTIDS...]\n");
+	printf(" -p [STUDENTIDS...]\n");
+	printf(" -t [QNAMES ...]\n");
+	printf(" -s <CATEGORY> <1|-1>\n");
+	printf(" -e <DIRNAME>\n");
+	printf(" -h\n");
 }
