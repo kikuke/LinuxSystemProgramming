@@ -190,6 +190,12 @@ int check_option(int argc, char *argv[])
 						printf("Maximum Number of Argument Exceeded. :: %s\n", argv[i]);
 					else
 						strcpy(cIDs[j], argv[i]);
+
+					if(find_file(stuDir, cIDs[j]) == -1){
+						fprintf(stderr, "%s student are not exist\n", cIDs[j]);
+						return false;
+					}
+
 					i++;
 					j++;
 				}
@@ -240,6 +246,11 @@ int check_option(int argc, char *argv[])
 						//해당 목록을 treadFiles에 복사함
 						strcpy(threadFiles[j], argv[i]);
 					}
+					if((find_file(ansDir, strcat(strcpy(buf, threadFiles[j]), ".c")) == -1) && (find_file(ansDir, strcat(strcpy(buf, threadFiles[j]), ".txt")) == -1)){
+						fprintf(stderr, "%s Problem's not exist\n", threadFiles[j]);
+						return false;
+					}
+
 					i++; 
 					j++;
 				}
@@ -265,6 +276,11 @@ int check_option(int argc, char *argv[])
 						printf("Maximum Number of Argument Exceeded. :: %s\n", argv[i]);
 					else
 						strcpy(cIDs[j], argv[i]);
+
+					if(find_file(stuDir, cIDs[j]) == -1){
+						fprintf(stderr, "%s student are not exist\n", cIDs[j]);
+						return false;
+					}
 					i++;
 					j++;
 				}
@@ -1431,4 +1447,13 @@ void print_usage()
 	printf(" -s <CATEGORY> <1|-1>\n");
 	printf(" -e <DIRNAME>\n");
 	printf(" -h\n");
+}
+
+int find_file(const char* dir, const char* file)
+{
+	char buf[BUFLEN];
+
+	strcpy(buf, dir);
+	ConcatPath(buf, file);
+	return access(buf, F_OK);
 }
