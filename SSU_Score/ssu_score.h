@@ -42,6 +42,8 @@
 #define QNUM 100
 #define ARGNUM 5
 
+#define DEFSTDDIR "./STD"
+#define DEFANSDIR "./ANS"
 #define DEFRESNAME "score.csv"
 
 struct ssu_scoreTable{

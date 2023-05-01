@@ -80,6 +80,12 @@ void ssu_score(int argc, char *argv[])
 	//다시 원래 위치로 이동
 	chdir(saved_path);
 
+	if(access(DEFSTDDIR, F_OK) < 0)
+		mkdir(DEFSTDDIR, 0755);
+
+	if(access(DEFANSDIR, F_OK) < 0)
+		mkdir(DEFANSDIR, 0755);
+
 	//scoreTable이 없다면 생성하고, 있다면 읽어들여서 스코어테이블을 값을 설정.
 	set_scoreTable(ansDir);
 	
@@ -97,7 +103,7 @@ void ssu_score(int argc, char *argv[])
 	printf("grading student's test papers..\n");
 
 	if(!nOption){
-		strcpy(resDir, ansDir);
+		strcpy(resDir, DEFANSDIR);
 		ConcatPath(resDir, DEFRESNAME);
 	}
 	//score_student를 호출해 학생들의 채점을 한 뒤 채점 결과를 csv에 출력 하고 총점을 출력함
@@ -345,7 +351,7 @@ int do_mOption()
 	}
 
 	//쓰기위한 파일이름을 생성함
-	sprintf(filename, "%s/%s", ansDir, "score_table.csv");
+	sprintf(filename, "%s/%s", DEFANSDIR, "score_table.csv");
 	//해당 파일이름으로 스코어테이블을 쓰기함.
 	write_scoreTable(filename);
 	//동적할당 메모리 해제
@@ -371,11 +377,11 @@ int is_exist(char (*src)[FILELEN], char *target)
 
 void set_scoreTable(char *ansDir)
 {
-	char filename[FILELEN];
+	char filename[BUFLEN];
 
 	//정답경로에 score_table.csv를 생성함.
 	//	이 파일은 점수를 내는 기준이 됨.
-	sprintf(filename, "%s/%s", ansDir, "score_table.csv");
+	sprintf(filename, "%s/%s", DEFANSDIR, "score_table.csv");
 
 	// check exist
 	if(access(filename, F_OK) == 0)
@@ -447,7 +453,6 @@ void make_scoreTable(char *ansDir)
 		//.과 .. 디렉토리는 제외
 		if(!strcmp(dirp->d_name, ".") || !strcmp(dirp->d_name, ".."))
 			continue;
-
 		
 		//c나 txt파일이 아닌 경우 건너뜀
 		if((type = get_file_type(dirp->d_name)) < 0)
@@ -1095,11 +1100,11 @@ double compile_program(char *id, char *filename)
 			isthread = is_thread(qname);
 		}
 	}
-
+	
 	//정답파일이 있는 경로를 tmp_f에 저장
 	sprintf(tmp_f, "%s/%s", ansDir, filename);
 	//컴파일 된 정답 실행파일이 저장될 경로를 tmp_e에 저장
-	sprintf(tmp_e, "%s/%s.exe", ansDir, qname);
+	sprintf(tmp_e, "%s/%s.exe", DEFANSDIR, qname);
 
 	//tOption이 켜져있고 스레드 컴파일 되기로 한 프로그램이라면 lpthread 추가
 	if(tOption && isthread)
@@ -1121,8 +1126,14 @@ double compile_program(char *id, char *filename)
 	if(size > 0)
 		return false;
 
+	//./STD 폴더에 id 폴더가 없다면 생성
+	strcpy(tmp_e, DEFSTDDIR);
+	ConcatPath(tmp_e, id);
+	if(access(tmp_e, F_OK) < 0)
+		mkdir(tmp_e, 0755);
+
 	sprintf(tmp_f, "%s/%s/%s", stuDir, id, filename);
-	sprintf(tmp_e, "%s/%s/%s.stdexe", stuDir, id, qname);
+	sprintf(tmp_e, "%s/%s/%s.stdexe", DEFSTDDIR, id, qname);
 
 	if(tOption && isthread)
 		sprintf(command, "gcc -o %s %s -lpthread", tmp_e, tmp_f);
@@ -1219,25 +1230,25 @@ int execute_program(char *id, char *filename)
 	memcpy(qname, filename, strlen(filename) - strlen(strrchr(filename, '.')));
 
 	//정답 답안 문제의 실행 결과 파일 경로를 ans_fname에 넣음
-	sprintf(ans_fname, "%s/%s.stdout", ansDir, qname);
+	sprintf(ans_fname, "%s/%s.stdout", DEFANSDIR, qname);
 	//해당 파일 생성
 	fd = creat(ans_fname, 0666);
 
 	//정답 답안 실행파일의 경로를 tmp에 넣음
-	sprintf(tmp, "%s/%s.exe", ansDir, qname);
+	sprintf(tmp, "%s/%s.exe", DEFANSDIR, qname);
 	//STDOUT을 파일 디스크립터로 바꿔서 출력이 나오게함.
 	//	프로그램이 실행 되고 파일이 출력되는 결과가 .stdout에 찍히게 됨.
 	redirection(tmp, fd, STDOUT);
 	close(fd);
 
 	//학생 정답 답안 문제의 실행 결과 파일 경로를 std_fname에 담음
-	sprintf(std_fname, "%s/%s/%s.stdout", stuDir, id, qname);
+	sprintf(std_fname, "%s/%s/%s.stdout", DEFSTDDIR, id, qname);
 	//해당 파일 생성
 	fd = creat(std_fname, 0666);
 
 	//학생 정답 답안 실행파일의 경로를 tmp에 넣음
 	//	학생 답안은 에러가 프린트되어 나오거나 무한루프 될 수 있으니 백그라운드로 실행되게끔 변환해서 tmp에 넣음
-	sprintf(tmp, "%s/%s/%s.stdexe &", stuDir, id, qname);
+	sprintf(tmp, "%s/%s/%s.stdexe &", DEFSTDDIR, id, qname);
 
 	//프로그램 실행시간을 측정
 	start = time(NULL);
