@@ -42,7 +42,8 @@ struct ScoreTree* DownTree(struct ScoreTree* target);
 //  성공시 0 실패시 -1 리턴
 int SortTreeByField(struct ScoreTree* target, int fieldIdx, int isDesc);
 
-//해당 트리의 idx위치 
+//해당 트리의 idx위치에 있는 노드를 찾습니다.
+//  성공시 해당 노드, 실패시 NULL
 struct ScoreTree* FindTreeByField(struct ScoreTree* target, int fieldIdx);
 
 #endif

@@ -173,7 +173,7 @@ void sort_scoreTable(int size);
 //-과. 을 기준으로 구분해 1-1.txt 1.c와 같은 문자열에서 숫자만 빼냄.
 void get_qname_number(char *qname, int *num1, int *num2);
 
-//파일이 있다면 0리턴, 없다면 -1리턴
+//인자로 들어온 경로에 파일이 있다면 0리턴, 없다면 -1리턴
 int find_file(const char* dir, const char* file);
 
 #endif
