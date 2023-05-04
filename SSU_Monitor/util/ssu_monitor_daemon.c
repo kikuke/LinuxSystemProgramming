@@ -7,7 +7,7 @@
 #include "ssu_monitor_define.h"
 #include "ssu_monitor_daemon.h"
 
-int change_daemon(const char *ident)
+int change_daemon(const char *ident, __sighandler_t hupAction)
 {
     pid_t pid;
     struct rlimit rl;
@@ -29,8 +29,8 @@ int change_daemon(const char *ident)
     }
 
     //HANGUP(터미널과 연결이 끊겼을 때 하위 프로세스들에 전달; 데몬 프로세스에서는 재시작(환경설정) 할 때 사용)
-    //  별도 설정할 것을 정하지 못했으므로 시그널이 와도 무시하게 설정한다.
-    if(signal(SIGHUP, SIG_IGN) == SIG_ERR) {
+    //  SIGHUP 시그널이 왔을 경우 해당 핸들러를 실행한다.
+    if(signal(SIGHUP, hupAction) == SIG_ERR) {
         perror("signal()");
         return -1;
     }
