@@ -1,7 +1,7 @@
 INCLUDE = -I../define
-LAYER0 =  ssu_backup_usage.o ssu_backup_path.o ssu_backup_hash.o
-LAYER1 = ssu_backup_util.o
-LAYER2 = ssu_backup_filetree_util.o
+LAYER0 =  ssu_monitor_daemon.o
+LAYER1 = 
+LAYER2 = 
 CC = gcc -g
 
 
@@ -18,20 +18,10 @@ clean:
 
 
 #Layer 0
-ssu_backup_usage.o: ssu_backup_usage.c
-	$(CC) $(INCLUDE) -c $^
-
-ssu_backup_path.o: ssu_backup_path.c
-	$(CC) $(INCLUDE) -c $^
-
-ssu_backup_hash.o: ssu_backup_hash.c
+ssu_monitor_daemon.o: ssu_monitor_daemon.c
 	$(CC) $(INCLUDE) -c $^
 
 
 #Layer 1
-ssu_backup_util.o: ssu_backup_util.c
-	$(CC) $(INCLUDE) -c $^
 
 #Layer 2
-ssu_backup_filetree_util.o: ssu_backup_filetree_util.c
-	$(CC) $(INCLUDE) -c $^

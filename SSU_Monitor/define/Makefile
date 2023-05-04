@@ -1,4 +1,4 @@
-LAYER0 =  ssu_backup_filetree.o
+LAYER0 = 
 CC = gcc -g
 
 
@@ -8,12 +8,9 @@ init: create_define
 
 #Operation
 create_define:
-	make $(LAYER0)
 
 clean: 
 	rm *.o
 
 
 #Layer 0
-ssu_backup_filetree.o: ssu_backup_filetree.c
-	$(CC) -c $^
