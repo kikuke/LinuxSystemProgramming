@@ -12,6 +12,8 @@ int change_daemon(const char *ident)
     pid_t pid;
     struct rlimit rl;
 
+    //부모 프로세스(자신)을 종료시켜 자신을 백그라운드로 실행시킨다.
+    //  이때 PPID는 1(Init 프로세스)이 된다.
     if((pid = fork()) < 0) {
         perror("fork()");
         return -1;
@@ -19,12 +21,27 @@ int change_daemon(const char *ident)
         exit(0);
     }
 
+    //새로운 세션을 만들고, 해당 세션의 리더가 된다.
+    //  터미널 그룹에서 벗어나게 된다.
     if(setsid() < 0) {
         perror("setsid()");
         return -1;
     }
 
-    //umask를 미리 설정
+    //HANGUP(터미널과 연결이 끊겼을 때 하위 프로세스들에 전달; 데몬 프로세스에서는 재시작(환경설정) 할 때 사용)
+    //  별도 설정할 것을 정하지 못했으므로 시그널이 와도 무시하게 설정한다.
+    if(signal(SIGHUP, SIG_IGN) == SIG_ERR) {
+        perror("signal()");
+        return -1;
+    }
+
+    //현재 작업 디렉토리를 루트디렉토리로 옮겨 이전의 작업디렉토리가 unmount 가능하게 함
+    if(chdir("/") < 0) {
+        perror("chdir()");
+        return -1;
+    }
+
+    //이전의 umask에 의존하지 않게 한다.
     umask(SSU_MONITOR_UMASK);
 
     //최대로 열수있는 파일 디스크립터의 수 가져옴
@@ -33,17 +50,7 @@ int change_daemon(const char *ident)
         return -1;
     }
 
-    if(signal(SIGHUP, SIG_IGN) == SIG_ERR) {
-        perror("signal()");
-        return -1;
-    }
-
-    if(chdir("/") < 0) {
-        perror("chdir()");
-        return -1;
-    }
-
-    //-1(무한대) 일경우
+    //-1(무한대) 일경우 임의 수 지정
     if(rl.rlim_max == RLIM_INFINITY) {
         rl.rlim_max = 1024;
     }
