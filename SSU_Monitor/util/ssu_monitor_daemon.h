@@ -16,7 +16,8 @@
 */
 
 //해당 프로세스가 종료되며 자식프로세스가 daemon 프로세스가 되어 대신 실행함
+//  인자로 /var/log/syslog에 로그가 생성될 때 붙는 prefix를 받는다.
 //  성공시 0, 실패시 -1이 됨.
-int change_daemon();
+int change_daemon(const char *ident);
 
 #endif
