@@ -4,6 +4,11 @@
 #define SSU_MONITOR_SHELL_BUF_SZ 16384
 #define SSU_MONITOR_SHELL_NAME "20192388>"
 
+#define SSU_MONITOR_ADD "add"
+#define SSU_MONITOR_DELETE "delete"
+#define SSU_MONITOR_TREE "tree"
+#define SSU_MONITOR_EXIT "exit"
+
 //쉘을 출력
 void ShowShell();
 

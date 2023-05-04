@@ -1,11 +1,11 @@
 #ifndef SSU_MONITOR_SYSTEM_H
 #define SSU_MONITOR_SYSTEM_H
 
-#include <sys/types.h>
+#include <signal.h>
 
 //해당 문자열이 공백인지확인.
 //  맞다면 1, 아니라면 0, 에러시 -1 리턴
-int isBlank(const char *str);
+int isBlank(char *str);
 
 //입력받은 srcStr을 parser를 기준으로 토큰화 후, destArr에 동적할당 된 배열을 넘김
 //  리턴은 배열의 크기(끝에 NULL 포함). 오류시 0 리턴

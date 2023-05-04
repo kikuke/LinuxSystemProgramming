@@ -3,26 +3,25 @@
 #include <stdlib.h>
 #include <fcntl.h>
 #include <syslog.h>
-#include <signal.h>
+#include <string.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/resource.h>
 
 #include "ssu_monitor_define.h"
 #include "ssu_monitor_system.h"
 
-int isBlank(const char *str)
+int isBlank(char *str)
 {
-    char *p_str = str;
-
     if(str == NULL)
         return -1;
 
-    while(*p_str != '\0') {
-        if(*p_str != ' ')
+    while(*str != '\0') {
+        if(*str != ' ')
             break;
-        p_str++;
+        str++;
     }
-    if(*p_str == '\0')
+    if(*str == '\0')
         return 1;
 
     return 0;
