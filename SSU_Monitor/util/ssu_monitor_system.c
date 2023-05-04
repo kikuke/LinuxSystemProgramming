@@ -5,11 +5,57 @@
 #include <syslog.h>
 #include <signal.h>
 #include <sys/stat.h>
-#include <sys/types.h>
 #include <sys/resource.h>
 
 #include "ssu_monitor_define.h"
-#include "ssu_monitor_daemon.h"
+#include "ssu_monitor_system.h"
+
+int isBlank(const char *str)
+{
+    char *p_str = str;
+
+    if(str == NULL)
+        return -1;
+
+    while(*p_str != '\0') {
+        if(*p_str != ' ')
+            break;
+        p_str++;
+    }
+    if(*p_str == '\0')
+        return 1;
+
+    return 0;
+}
+
+int StringToArgv(char *srcStr, char ***destArr, const char *parser)
+{
+	int arrSz=1;
+	char *tok_ptr = NULL;
+
+    if(srcStr == NULL) {
+        return 0;
+    }
+
+	tok_ptr = strtok(srcStr, parser);
+	while(tok_ptr != NULL) {
+		arrSz++;
+		tok_ptr = strtok(NULL, parser);
+	}
+
+	(*destArr) = (char**)malloc(sizeof(char*) * arrSz);
+	tok_ptr = srcStr;
+	for(int i=0; i < (arrSz - 1); i++){
+		(*destArr)[i] = tok_ptr;
+		while((*tok_ptr) != '\0'){
+			tok_ptr++;
+		}
+		tok_ptr++;
+	}
+	(*destArr)[arrSz-1] = NULL;
+
+	return arrSz;
+}
 
 int change_daemon(const char *ident, __sighandler_t hupAction)
 {

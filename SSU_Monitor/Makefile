@@ -1,6 +1,6 @@
 INCLUDE = -Idefine/ -Iutil/
 SUBDIRS = define util
-UTILITY =  ssu_monitor_daemon.o
+UTILITY =  ssu_monitor_system.o
 CC = gcc -g
 
 

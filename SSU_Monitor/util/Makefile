@@ -1,5 +1,5 @@
 INCLUDE = -I../define
-LAYER0 =  ssu_monitor_daemon.o
+LAYER0 =  ssu_monitor_system.o
 LAYER1 = 
 LAYER2 = 
 CC = gcc -g
@@ -18,7 +18,7 @@ clean:
 
 
 #Layer 0
-ssu_monitor_daemon.o: ssu_monitor_daemon.c
+ssu_monitor_system.o: ssu_monitor_system.c
 	$(CC) $(INCLUDE) -c $^
 
 
