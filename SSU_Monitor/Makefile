@@ -1,5 +1,5 @@
 INCLUDE = -Idefine/ -Iutil/
-SUBDIRS = define util
+SUBDIRS = util
 MODULE = ssu_monitor_add.o
 UTILITY = util/ssu_monitor_util.o util/ssu_monitor_system.o
 CC = gcc -g
