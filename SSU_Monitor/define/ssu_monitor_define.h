@@ -5,7 +5,7 @@
 #define SSU_MONITOR_MAX_FILENAME 255
 
 #define SSU_MONITOR_DAEMON_NAME "ssu_monitord"
-#define SSU_MONITOR_LOG_IDENT "smt"
+#define SSU_MONITOR_LOG_IDENT "ssu_monitord"
 
 #define SSU_MONITOR_SETTING_FILE "monitor_list.txt"
 

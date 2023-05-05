@@ -158,10 +158,7 @@ int change_daemon(const char *proc_name, const char *ident, sighandler_t hupActi
 
     //열려있는 모든 fd를 닫음
     for(int i=0; i < rl.rlim_max; i++) {
-        if(close(i) < 0) {
-            syslog(LOG_ERR, "close failed fd: %d\n", i);
-            return -1;
-        }
+        close(i);
     }
     //0,1,2 표준 입출력 fd를 /dev/null 터미널로 리다이렉션
     if(open("/dev/null", O_RDWR) < 0) {
