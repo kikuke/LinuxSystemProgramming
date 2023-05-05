@@ -1,8 +1,6 @@
 #ifndef SSU_MONITOR_SYSTEM_H
 #define SSU_MONITOR_SYSTEM_H
 
-#include <signal.h>
-
 //해당 문자열이 공백인지확인.
 //  맞다면 1, 아니라면 0, 에러시 -1 리턴
 int isBlank(char *str);
@@ -30,6 +28,11 @@ int StringToArgv(char *srcStr, char ***destArr, const char *parser);
 //  인자로 /var/log/syslog에 로그가 생성될 때 붙는 prefix를 받는다.
 //  hupAction은 SIGHUP 시그널이 왔을 경우 호출할 핸들러를 넣는다. 딱히 없다면 SIG_IGN 넣기
 //  성공시 0, 실패시 -1이 됨.
-int change_daemon(const char *ident, __sighandler_t hupAction);
+//  sighandler_t는 _GNU_SOURCE가 정의 됐을 때 사용가능하므로
+#ifndef _GNU_SOURCE
+typedef void (*sighandler_t)(int);
+#endif
+
+int change_daemon(const char *ident, sighandler_t hupAction);
 
 #endif

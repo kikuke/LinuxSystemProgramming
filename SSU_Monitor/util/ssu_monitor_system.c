@@ -4,6 +4,7 @@
 #include <fcntl.h>
 #include <syslog.h>
 #include <string.h>
+#include <signal.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/resource.h>
@@ -56,7 +57,7 @@ int StringToArgv(char *srcStr, char ***destArr, const char *parser)
 	return arrSz;
 }
 
-int change_daemon(const char *ident, __sighandler_t hupAction)
+int change_daemon(const char *ident, sighandler_t hupAction)
 {
     pid_t pid;
     struct rlimit rl;

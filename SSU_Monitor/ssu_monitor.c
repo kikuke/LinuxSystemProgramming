@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/types.h>
 
 #include "ssu_monitor_system.h"
 #include "ssu_monitor.h"
@@ -28,6 +29,7 @@ int main(void)
 
 int execute_cmd(char *cmd)
 {
+    int (*exec_proc)(int argc, char *argv[]) = NULL;
     int argc = 0;
     char **argv = NULL;
 
@@ -62,6 +64,22 @@ int execute_cmd(char *cmd)
     
     //개별 포인터는 cmd의 주소이기 때문에 투포인터만 동작할당 해제
     free(argv);
+    return 0;
+}
+
+int virtual_exec(int (*exec_proc)(int argc, char *argv[]), int argc, char *argv[])
+{
+    pid_t pid;
+
+    if((pid = fork()) == 0) {
+
+    } else if(pid > 0) {
+        
+    } else {
+        perror("fork()");
+        return -1;
+    }
+
     return 0;
 }
 

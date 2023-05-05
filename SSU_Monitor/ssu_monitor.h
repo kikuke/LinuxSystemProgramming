@@ -17,4 +17,9 @@ void ShowShell();
 //  실패시 -1, 정상 실행 시 0, 종료 신호 시 1 리턴
 int execute_cmd(char *cmd);
 
+//인자로 들어온 함수를 main함수 취급하여 exec를 실행한 것과 같은 효과를 낸다.
+//  해당 함수의 실행이 끝날 때 까지 대기한다
+//  실패시 -1, 성공시 0을 리턴한다.
+int virtual_exec(int (*exec_proc)(int argc, char *argv[]), int argc, char *argv[]);
+
 #endif
