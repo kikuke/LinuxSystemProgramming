@@ -34,6 +34,11 @@ int add_daemon(int argc, char *argv[])
         exit(1);
     }
 
+    if(GetVirtualRealPath(tmpBuf, addPath) == NULL) {
+        Usage(USAGEIDX_ADD);
+        exit(1);
+    }
+    strcpy(tmpBuf, addPath);
     if(realpath(tmpBuf, addPath) == NULL) {
         if(errno == ENOENT || errno == ENOTDIR) {
             Usage(USAGEIDX_ADD);
