@@ -1,3 +1,4 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -5,7 +6,7 @@
 
 struct monitlist *InitMonitList(const char *path, pid_t pid, struct monitlist *bef, struct monitlist *aft)
 {
-    struct monitlist *monit;
+    struct monitlist *monit = NULL;
 
     if((monit = (struct monitlist *)malloc(sizeof(struct monitlist))) == NULL)
         return NULL;
@@ -36,7 +37,7 @@ int AddMonitList(struct monitlist *source, struct monitlist *target)
 
 struct monitlist *RemoveMonitList(struct monitlist *target)
 {
-    struct monitlist *ret;
+    struct monitlist *ret = NULL;
 
     if(target == NULL)
         return NULL;
@@ -78,9 +79,58 @@ struct monitlist *SerachMonitListByPid(struct monitlist *source, pid_t pid)
     return source;
 }
 
-//해당 경로에 있는 파일을 읽어들여 monitlist로 변환한 뒤 리턴한다.
-//  실패시 NULL 리턴
-struct monitlist *MakeMonitListByPath(const char *path);
+struct monitlist *MakeMonitListByPath(const char *path)
+{
+    struct monitlist *m_list = NULL;
+    struct monitlist *new = NULL;
+
+    FILE *fp = NULL;
+
+    if(path == NULL) {
+        fprintf(stderr, "path is NULL\n");
+        return NULL;
+    }
+    
+    if((fp = fopen(path, "r")) == NULL) {
+        perror("fopen()");
+        return NULL;
+    }
+
+    while(!feof(fp)) {
+        new = InitMonitList("", -1, NULL, NULL);
+
+        if(m_list == NULL) {
+            m_list = new;
+        }
+
+        fscanf(fp, "%s %d\n", new->path, new->pid);
+
+        if(ferror(fp)) {
+            perror("ferror()");
+
+            while(m_list != NULL){
+                m_list = RemoveMonitList(m_list);
+            }
+            return NULL;
+        }
+
+        if(m_list == new)
+            continue;
+
+        AddMonitList(m_list, new);
+    }
+
+    if(fclose(fp) == EOF) {
+        perror("fclose()");
+
+        while(m_list != NULL){
+            m_list = RemoveMonitList(m_list);
+        }
+        return NULL;
+    }
+
+    return m_list;
+}
 
 //해당 monitlist를 파일로 변환해 path에 저장한다.
 //  성공시 0, 실패시 -1 리턴
