@@ -96,6 +96,8 @@ int add_daemon(int argc, char *argv[])
         syslog(LOG_ERR, "MakeMonitListByPath Error\n");
         exit(1);
     }
+
+    //Todo: 여기에 데몬이 할 일 넣기
     
     closelog();
     exit(0);
