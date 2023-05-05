@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/wait.h>
 
 #include "ssu_monitor_system.h"
 #include "ssu_monitor.h"
@@ -50,6 +51,7 @@ int execute_cmd(char *cmd)
 
     if(!strcmp(*argv, SSU_MONITOR_ADD)){
         //Todo: 함수 인자 넣기
+        virtual_exec()
     } else if(!strcmp(*argv, SSU_MONITOR_DELETE)){
         //Todo: 함수 인자 넣기
     } else if(!strcmp(*argv, SSU_MONITOR_TREE)){
@@ -69,18 +71,51 @@ int execute_cmd(char *cmd)
 
 int virtual_exec(int (*exec_proc)(int argc, char *argv[]), int argc, char *argv[])
 {
-    pid_t pid;
+    pid_t pid = 0;
+    int stat_loc = 0;
+    int ret = 0;
 
+    //자식 프로세스인 경우
     if((pid = fork()) == 0) {
-
-    } else if(pid > 0) {
-        
-    } else {
+        ret = exec_proc(argc, argv);
+        //보통 여기까지 실행될 일 없음. exec_proc에서 exit로 종료하므로.
+        //메인에서 exit 대신 return을 사용했을 경우 이걸로 exit됨.
+        exit(ret);
+    } else if(pid < 0) {
         perror("fork()");
         return -1;
     }
 
-    return 0;
+    //부모 프로세스인 경우
+    if(waitpid(pid, &stat_loc, 0) < 0){
+        perror("waitpid()");
+        return -1;
+    }
+
+    //stat_loc 값 체크
+    return check_statloc(stat_loc);
+}
+
+int check_statloc(int stat_loc)
+{
+    int ret = 0;
+
+    if(WIFEXITED(stat_loc)) {
+        if((ret = WEXITSTATUS(stat_loc)) == 0)
+            return 0;
+        
+        fprintf(stderr, "return status value is %d\n", ret);
+        return -1;
+    } else if(WIFSIGNALED(stat_loc)) {
+        fprintf(stderr, "get signal is %d\n", WTERMSIG(stat_loc));
+        return -1;
+    } else if(WIFSTOPPED(stat_loc)) {
+        fprintf(stderr, "stop signal is %d\n", WSTOPSIG(stat_loc));
+        return -1;
+    }
+
+    perror("check_statloc()");
+    return -1;
 }
 
 void ShowShell()

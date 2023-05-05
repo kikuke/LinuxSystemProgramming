@@ -22,4 +22,8 @@ int execute_cmd(char *cmd);
 //  실패시 -1, 성공시 0을 리턴한다.
 int virtual_exec(int (*exec_proc)(int argc, char *argv[]), int argc, char *argv[]);
 
+//정상 종료이고, exit인자가 0을 넘겨줬을 경우 0, 그이외에 1 리턴
+//  오류사항 표준에러로 출력
+int check_statloc(int stat_loc);
+
 #endif
