@@ -3,6 +3,8 @@
 
 #include "ssu_monitor_monitlist.h"
 
+#define SSU_MONITOR_MONITLIST_FILE_FORAMT "%s %d\n"
+
 //monitlist를 만들어 다음의 인자들로 초기화 한 뒤 리턴한다.
 struct monitlist *InitMonitList(const char *path, pid_t pid, struct monitlist *bef, struct monitlist *aft);
 

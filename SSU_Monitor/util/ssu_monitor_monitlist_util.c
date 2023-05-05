@@ -103,7 +103,7 @@ struct monitlist *MakeMonitListByPath(const char *path)
             m_list = new;
         }
 
-        fscanf(fp, "%s %d\n", new->path, new->pid);
+        fscanf(fp, SSU_MONITOR_MONITLIST_FILE_FORAMT, new->path, &(new->pid));
 
         if(ferror(fp)) {
             perror("ferror()");
@@ -128,10 +128,37 @@ struct monitlist *MakeMonitListByPath(const char *path)
         }
         return NULL;
     }
-
     return m_list;
 }
 
-//해당 monitlist를 파일로 변환해 path에 저장한다.
-//  성공시 0, 실패시 -1 리턴
-int SaveMonitListByPath(struct monitlist *source, const char *path);
+int SaveMonitListByPath(struct monitlist *source, const char *path)
+{
+    FILE *fp = NULL;
+    
+    if(source == NULL || path == NULL) {
+        fprintf(stderr, "parameter is NULL\n");
+        return -1;
+    }
+    
+    if((fp = fopen(path, "w")) == NULL) {
+        perror("fopen()");
+        return -1;
+    }
+
+    while(source != NULL){
+        fprintf(fp, SSU_MONITOR_MONITLIST_FILE_FORAMT, source->path, source->pid);
+
+        if(ferror(fp)) {
+            perror("ferror()");
+            return -1;
+        }
+
+        source = source->aft;
+    }
+
+    if(fclose(fp) == EOF) {
+        perror("fclose()");
+        return -1;
+    }
+    return 0;
+}
