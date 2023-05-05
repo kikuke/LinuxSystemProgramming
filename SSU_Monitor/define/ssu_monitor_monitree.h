@@ -1,5 +1,5 @@
-#ifndef SSU_MONITOR_TREE_H
-#define SSU_MONITOR_TREE_H
+#ifndef SSU_MONITOR_MONITREE_H
+#define SSU_MONITOR_MONITREE_H
 
 #include <sys/types.h>
 #include <time.h>
@@ -20,7 +20,7 @@ typedef struct monitree {
     //i-node 번호
     ino_t ino;
     //수정 시각
-    time_t mdtime;
+    time_t md_time;
 
     //이동할 수 있는 포인터
     struct monitree *move[4];

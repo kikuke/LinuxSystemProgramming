@@ -103,12 +103,10 @@ int add_daemon(int argc, char *argv[])
         syslog(LOG_ERR, "MakeMonitListByPath Error\n");
         exit(1);
     }
-    closelog();
 
     while(!monitor_routine(addPath))
         sleep(rTime);
     
-    openlog(SSU_MONITOR_LOG_IDENT, LOG_CONS, LOG_DAEMON);
     syslog(LOG_ERR, "monitor_routine error\n");
     closelog();
     exit(0);
