@@ -3,8 +3,11 @@
 #include <string.h>
 #include <unistd.h>
 #include <errno.h>
+#include <signal.h>
+#include <syslog.h>
 
 #include "ssu_monitor_define.h"
+#include "ssu_monitor_system.h"
 #include "ssu_monitor_usage.h"
 #include "ssu_monitor_path.h"
 #include "ssu_monitor_util.h"
@@ -54,9 +57,16 @@ int add_daemon(int argc, char *argv[])
         exit(1);
     }
 
-    //Todo: 아직 이 아래로 미완성. 다시 봐야함.
-    //Todo: 데몬 실행해서 받은 pid 값을 넣기
-    m_new = InitMonitList(addPath, 321, NULL, NULL);
+    printf("monitoring started (%s)\n", addPath);
+
+    //따로 환경설정이 없는 데몬이므로 SIG_IGN
+    //부모 프로세스는 종료되며 자식프로세스가 데몬 프로세스가 됨.
+    if(change_daemon(SSU_MONITOR_DAEMON_NAME, SSU_MONITOR_LOG_IDENT, SIG_IGN) < 0) {
+        fprintf(stderr, "change_daemon error\n");
+        exit(1);
+    }
+    
+    m_new = InitMonitList(addPath, getpid(), NULL, NULL);
 
     getcwd(settingPath, SSU_MONITOR_MAX_PATH);
     ConcatPath(settingPath, SSU_MONITOR_SETTING_FILE);

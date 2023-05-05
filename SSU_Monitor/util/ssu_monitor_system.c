@@ -5,6 +5,7 @@
 #include <syslog.h>
 #include <string.h>
 #include <signal.h>
+#include <sys/prctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
@@ -91,10 +92,11 @@ int virtual_system(int (*exec_proc)(int argc, char *argv[]), int argc, char *arg
     return check_statloc(stat_loc);
 }
 
-int change_daemon(const char *ident, sighandler_t hupAction)
+int change_daemon(const char *proc_name, const char *ident, sighandler_t hupAction)
 {
     pid_t pid;
     struct rlimit rl;
+    char name[SSU_MONITOR_MAX_FILENAME];
 
     //부모 프로세스(자신)을 종료시켜 자신을 백그라운드로 실행시킨다.
     //  이때 PPID는 1(Init 프로세스)이 된다.
@@ -103,6 +105,15 @@ int change_daemon(const char *ident, sighandler_t hupAction)
         return -1;
     } else if (pid != 0) {
         exit(0);
+    }
+
+    if(proc_name != NULL){
+        strcpy(name, proc_name);
+        name[strlen(name) + 1] = '\0';
+        if (prctl(PR_SET_NAME, name) < 0) {
+            perror("prctl - PR_SET_NAME()");
+            return -1;
+        }
     }
 
     //새로운 세션을 만들고, 해당 세션의 리더가 된다.
