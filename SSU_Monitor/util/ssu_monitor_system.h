@@ -14,10 +14,11 @@ int StringToArgv(char *srcStr, char ***argv, const char *parser);
 //인자로 들어온 함수를 main함수 취급하여 system을 실행한 것과 같은 효과를 낸다.
 //  해당 함수의 실행이 끝날 때 까지 대기한다
 //  실행이 끝난 후 check_statloc의 결과값을 리턴한다.
-//  실패시 -1, 성공시 0을 리턴한다.
+//  이상 종료 또는 실패시 -1, 성공 시 전달받은 종료값을 리턴한다(0이상)
 int virtual_system(int (*exec_proc)(int argc, char *argv[]), int argc, char *argv[]);
 
-//정상 종료이고, exit인자가 0을 넘겨줬을 경우 0, 그이외에 1 리턴
+//정상 종료 했을 경우 종료값을 리턴(0 이상)
+//  비정상 종료시 -1 리턴
 //  오류사항 표준에러로 출력
 int check_statloc(int stat_loc);
 

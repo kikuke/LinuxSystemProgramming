@@ -36,6 +36,23 @@ char* GetParentPath(const char* path, char* buf)
 	return buf;
 }
 
+int CompareIncludePath(const char* path1, const char* path2)
+{
+	char cmp[SSU_MONITOR_MAX_PATH];
+
+	if(path1 == NULL || path2 == NULL)
+		return 0;
+	//긴 것이 왼쪽에 오게
+	if (strlen(path1) < strlen(path2))
+		return CompareIncludePath(path2, path1);
+	
+	strcpy(cmp, path1);
+	while(strlen(cmp) > strlen(path2))
+		GetParentPath(cmp, cmp);
+	
+	return !strcmp(cmp, path2);
+}
+
 char* GetVirtualRealPath(const char* path, char* resolved_path)
 {
 	char* homeDir = getenv("HOME");

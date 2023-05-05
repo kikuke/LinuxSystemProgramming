@@ -18,12 +18,13 @@
 static int check_option(int argc, char *argv[]);
 
 static int tOption = 0;
-static unsigned int rTime = 1;
+static int rTime = 1;
 
 int add_daemon(int argc, char *argv[])
 {
-    struct monitlist *m_list;
-    struct monitlist *m_new;
+    struct monitlist *m_list = NULL;
+    struct monitlist *m_new = NULL;
+    struct monitlist *m_search = NULL;
     char tmpBuf[SSU_MONITOR_MAX_PATH] = {};
     char addPath[SSU_MONITOR_MAX_PATH] = {};
     char settingPath[SSU_MONITOR_MAX_PATH] = {};
@@ -66,6 +67,19 @@ int add_daemon(int argc, char *argv[])
 
     printf("monitoring started (%s)\n", addPath);
 
+    //설정 파일이 있을 경우
+    if(!access(settingPath, F_OK)) {
+        if((m_list = MakeMonitListByPath(settingPath)) == NULL) {
+            fprintf(stderr, "MakeMonitListByPath Error\n");
+            exit(1);
+        }
+        //일치하거나 상위 경로가 있는지 탐색
+        if((m_search = SerachMonitListByPath(m_list, addPath)) != NULL) {
+            fprintf(stderr, "Path is already include \"%s\" %d\n", m_search->path, m_search->pid);
+            exit(1);
+        }
+    }
+
     //따로 환경설정이 없는 데몬이므로 SIG_IGN
     //부모 프로세스는 종료되며 자식프로세스가 데몬 프로세스가 됨.
     if(change_daemon(SSU_MONITOR_DAEMON_NAME, SSU_MONITOR_LOG_IDENT, SIG_IGN) < 0) {
@@ -77,16 +91,9 @@ int add_daemon(int argc, char *argv[])
     openlog(SSU_MONITOR_LOG_IDENT, LOG_CONS, LOG_DAEMON);
 
     m_new = InitMonitList(addPath, getpid(), NULL, NULL);
-
-    //설정 파일이 없을 경우
-    if(access(settingPath, F_OK) < 0) {
+    if(m_list == NULL) {
         m_list = m_new;
     } else {
-        //설정파일이 있을 경우
-        if((m_list = MakeMonitListByPath(settingPath)) == NULL) {
-            syslog(LOG_ERR, "MakeMonitListByPath Error\n");
-            exit(1);
-        }
         if(AddMonitList(m_list, m_new) < 0) {
             syslog(LOG_ERR, "AddMonitList Error\n");
             exit(1);
@@ -116,8 +123,8 @@ static int check_option(int argc, char *argv[])
     while((c = getopt(argc, argv, "t:")) != -1) {
         switch (c) {
         case 't':
-            if((rTime = atoi(optarg)) == 0) {
-                fprintf(stderr, "Wrong time value\n");
+            if((rTime = atoi(optarg)) <= 0) {
+                fprintf(stderr, "Time must be over 0\n");
                 return -1;
             }
             break;

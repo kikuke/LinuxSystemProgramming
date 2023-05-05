@@ -45,14 +45,8 @@ int StringToArgv(char *srcStr, char ***argv, const char *parser)
 
 int check_statloc(int stat_loc)
 {
-    int ret = 0;
-
     if(WIFEXITED(stat_loc)) {
-        if((ret = WEXITSTATUS(stat_loc)) == 0)
-            return 0;
-        
-        fprintf(stderr, "get status value is %d\n", ret);
-        return -1;
+        return WEXITSTATUS(stat_loc);
     } else if(WIFSIGNALED(stat_loc)) {
         fprintf(stderr, "get signal is %d\n", WTERMSIG(stat_loc));
         return -1;

@@ -15,9 +15,13 @@ int AddMonitList(struct monitlist *source, struct monitlist *target);
 //해당 monitlist를 리스트에서 지우고, 연결관계를 재설정 후, 제거한 대상 뒤에 오는 monitlist를 리턴한다.
 struct monitlist *RemoveMonitList(struct monitlist *target);
 
-//path를 기준으로 일치하는 monitlist를 찾는다.
+//path를 기준으로 경로가 같거나 포함하거나 포함되는 monitlist를 찾는다.
 //  없다면 NULL 리턴
 struct monitlist *SerachMonitListByPath(struct monitlist *source, const char *path);
+
+//path를 기준으로 일치하는 monitlist를 찾는다.
+//  없다면 NULL 리턴
+struct monitlist *MatchMonitListByPath(struct monitlist *source, const char *path);
 
 //pid를 기준으로 일치하는 monitlist를 찾는다.
 //  없다면 NULL 리턴

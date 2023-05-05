@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include "ssu_monitor_path.h"
 #include "ssu_monitor_monitlist_util.h"
 
 struct monitlist *InitMonitList(const char *path, pid_t pid, struct monitlist *bef, struct monitlist *aft)
@@ -52,6 +53,20 @@ struct monitlist *RemoveMonitList(struct monitlist *target)
 }
 
 struct monitlist *SerachMonitListByPath(struct monitlist *source, const char *path)
+{
+    if(source == NULL || path == NULL)
+        return NULL;
+    
+    while(source != NULL) {
+        if(CompareIncludePath(source->path, path))
+            break;
+        source = source->aft;
+    }
+
+    return source;
+}
+
+struct monitlist *MatchMonitListByPath(struct monitlist *source, const char *path)
 {
     if(source == NULL || path == NULL)
         return NULL;
