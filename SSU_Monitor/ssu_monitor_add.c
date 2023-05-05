@@ -64,9 +64,6 @@ int add_daemon(int argc, char *argv[])
         exit(1);
     }
     ConcatPath(settingPath, SSU_MONITOR_SETTING_FILE);
-
-    printf("monitoring started (%s)\n", addPath);
-
     //설정 파일이 있을 경우
     if(!access(settingPath, F_OK)) {
         if((m_list = MakeMonitListByPath(settingPath)) == NULL) {
@@ -75,10 +72,12 @@ int add_daemon(int argc, char *argv[])
         }
         //일치하거나 상위 경로가 있는지 탐색
         if((m_search = SerachMonitListByPath(m_list, addPath)) != NULL) {
-            fprintf(stderr, "Path is already include \"%s\" %d\n", m_search->path, m_search->pid);
+            fprintf(stderr, "Path is already include \"%s %d\"\n", m_search->path, m_search->pid);
             exit(1);
         }
     }
+
+    printf("monitoring started (%s)\n", addPath);
 
     //따로 환경설정이 없는 데몬이므로 SIG_IGN
     //부모 프로세스는 종료되며 자식프로세스가 데몬 프로세스가 됨.
