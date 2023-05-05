@@ -1,6 +1,6 @@
 INCLUDE = -Idefine/ -Iutil/
 SUBDIRS = util
-MODULE = ssu_monitor_add.o
+MODULE = ssu_monitor_daemon.o ssu_monitor_add.o
 UTILITY = util/ssu_monitor_usage.o util/ssu_monitor_path.o util/ssu_monitor_system.o util/ssu_monitor_util.o util/ssu_monitor_monitlist_util.o
 CC = gcc -g
 
@@ -31,6 +31,9 @@ ssu_monitor: ssu_monitor.o $(MODULE) $(UTILITY)
 
 #Application
 ssu_monitor.o: ssu_monitor.c
+	$(CC) $(INCLUDE) -c $^
+
+ssu_monitor_daemon.o: ssu_monitor_daemon.c
 	$(CC) $(INCLUDE) -c $^
 
 ssu_monitor_add.o: ssu_monitor_add.c

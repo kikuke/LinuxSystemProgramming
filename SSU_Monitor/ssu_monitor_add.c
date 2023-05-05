@@ -12,6 +12,7 @@
 #include "ssu_monitor_path.h"
 #include "ssu_monitor_util.h"
 #include "ssu_monitor_monitlist_util.h"
+#include "ssu_monitor_daemon.h"
 #include "ssu_monitor_add.h"
 
 static int check_option(int argc, char *argv[]);
@@ -96,9 +97,13 @@ int add_daemon(int argc, char *argv[])
         syslog(LOG_ERR, "MakeMonitListByPath Error\n");
         exit(1);
     }
+    closelog();
 
-    //Todo: 여기에 데몬이 할 일 넣기
+    while(!monitor_routine(addPath))
+        sleep(rTime);
     
+    openlog(SSU_MONITOR_LOG_IDENT, LOG_CONS, LOG_DAEMON);
+    syslog(LOG_ERR, "monitor_routine error\n");
     closelog();
     exit(0);
 }
