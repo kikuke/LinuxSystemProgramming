@@ -72,7 +72,7 @@ int add_daemon(int argc, char *argv[])
         }
         //일치하거나 상위 경로가 있는지 탐색
         if((m_search = SerachMonitListByPath(m_list, addPath)) != NULL) {
-            fprintf(stderr, "Path is already include \"%s %d\"\n", m_search->path, m_search->pid);
+            fprintf(stderr, "\"%s\" is already include \"%s %d\"\n", addPath, m_search->path, m_search->pid);
             exit(1);
         }
     }
