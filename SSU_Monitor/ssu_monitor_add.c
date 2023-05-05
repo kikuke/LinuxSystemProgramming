@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
+#include <errno.h>
 
 #include "ssu_monitor_define.h"
 #include "ssu_monitor_util.h"
@@ -13,20 +15,28 @@ static unsigned int rTime = 1;
 
 int add_daemon(int argc, char *argv[])
 {
+    char tmpBuf[SSU_MONITOR_MAX_PATH];
     char addPath[SSU_MONITOR_MAX_PATH];
 
     if(argc < 2) {
         Usage(USAGEIDX_ADD);
         exit(1);
     }
-    strcpy(addPath, argv[1]);
+    strcpy(tmpBuf, argv[1]);
 
     if(check_option(argc, argv) < 0) {
         Usage(USAGEIDX_ADD);
         exit(1);
     }
 
-    
+    if(realpath(tmpBuf, addPath) == NULL) {
+        if(errno == ENOENT || errno == ENOTDIR) {
+            Usage(USAGEIDX_ADD);
+        } else {
+            perror("realpath()");
+        }
+        exit(1);
+    }
     
     exit(0);
 }
