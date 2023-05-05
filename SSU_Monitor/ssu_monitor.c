@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <sys/types.h>
-#include <sys/wait.h>
 
+#include "ssu_monitor_add.h"
 #include "ssu_monitor_system.h"
+#include "ssu_monitor_util.h"
 #include "ssu_monitor.h"
 
 int main(void)
@@ -50,8 +51,7 @@ int execute_cmd(char *cmd)
     }
 
     if(!strcmp(*argv, SSU_MONITOR_ADD)){
-        //Todo: 함수 인자 넣기
-        virtual_system()
+        virtual_system(add_daemon, argc, argv);
     } else if(!strcmp(*argv, SSU_MONITOR_DELETE)){
         //Todo: 함수 인자 넣기
         //Comment: 임시
@@ -63,10 +63,8 @@ int execute_cmd(char *cmd)
     } else if(!strcmp(*argv, SSU_MONITOR_EXIT)){
         return 1;
     } else {
-        //Todo: 도움말 출력
+        Usage(USAGEIDX_MAX);
     }
-
-    //Todo: wait로 함수 실행 대기하기
     
     //개별 포인터는 cmd의 주소이기 때문에 투포인터만 동작할당 해제
     free(argv);

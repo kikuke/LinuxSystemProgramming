@@ -1,6 +1,7 @@
 INCLUDE = -Idefine/ -Iutil/
 SUBDIRS = define util
-UTILITY =  util/ssu_monitor_system.o
+MODULE = ssu_monitor_add.o
+UTILITY = util/ssu_monitor_util.o util/ssu_monitor_system.o
 CC = gcc -g
 
 
@@ -24,10 +25,13 @@ clean:
 
 
 #Main File
-ssu_monitor: ssu_monitor.o $(UTILITY)
+ssu_monitor: ssu_monitor.o $(MODULE) $(UTILITY)
 	$(CC) -o $@ $^
 
 
 #Application
 ssu_monitor.o: ssu_monitor.c
+	$(CC) $(INCLUDE) -c $^
+
+ssu_monitor_add.o: ssu_monitor_add.c
 	$(CC) $(INCLUDE) -c $^
