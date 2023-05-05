@@ -5,6 +5,7 @@
 #include <sys/types.h>
 
 #include "ssu_monitor_add.h"
+#include "ssu_monitor_usage.h"
 #include "ssu_monitor_system.h"
 #include "ssu_monitor_util.h"
 #include "ssu_monitor.h"

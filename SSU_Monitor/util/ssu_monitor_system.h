@@ -6,10 +6,6 @@
 typedef void (*sighandler_t)(int);
 #endif
 
-//해당 문자열이 공백인지확인.
-//  맞다면 1, 아니라면 0, 에러시 -1 리턴
-int isBlank(char *str);
-
 //입력받은 srcStr을 parser를 기준으로 토큰화 후, argv에 동적할당 된 배열을 넘김
 //  리턴은 argc. 오류시 0 리턴. 실제 배열 크기는 argc+1이다.
 //  배열 끝엔 NULL을 채워서 줌

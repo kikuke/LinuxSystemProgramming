@@ -13,22 +13,6 @@
 #include "ssu_monitor_define.h"
 #include "ssu_monitor_system.h"
 
-int isBlank(char *str)
-{
-    if(str == NULL)
-        return -1;
-
-    while(*str != '\0') {
-        if(*str != ' ')
-            break;
-        str++;
-    }
-    if(*str == '\0')
-        return 1;
-
-    return 0;
-}
-
 int StringToArgv(char *srcStr, char ***argv, const char *parser)
 {
 	int arrSz=1;

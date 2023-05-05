@@ -2,26 +2,18 @@
 
 #include "ssu_monitor_util.h"
 
-const char* usage_message[USAGEIDX_MAX] = {
-"add  <DIRPATH> [OPTION]\n\
-    -t <TIME> : set add daemon loop time",
-"delete <DAEMON_PID>",
-"tree <DIRPATH>",
-"help",
-"exit"
-};
-
-void Usage(SSU_MONITOR_IDX idx)
+int isBlank(char *str)
 {
-	if(idx != USAGEIDX_MAX){
-		fputs("Usage : ", stdout);
-		puts(usage_message[idx]);
-		return;
-	}
+    if(str == NULL)
+        return -1;
 
-	puts("Usage:");
-	for(int i=0; i<USAGEIDX_MAX; i++){
-		fputs("  > ", stdout);
-		puts(usage_message[i]);
-	}
+    while(*str != '\0') {
+        if(*str != ' ')
+            break;
+        str++;
+    }
+    if(*str == '\0')
+        return 1;
+
+    return 0;
 }

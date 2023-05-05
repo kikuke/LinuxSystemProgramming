@@ -5,6 +5,7 @@
 #include <errno.h>
 
 #include "ssu_monitor_define.h"
+#include "ssu_monitor_usage.h"
 #include "ssu_monitor_util.h"
 #include "ssu_monitor_add.h"
 
