@@ -57,6 +57,55 @@ int StringToArgv(char *srcStr, char ***destArr, const char *parser)
 	return arrSz;
 }
 
+int check_statloc(int stat_loc)
+{
+    int ret = 0;
+
+    if(WIFEXITED(stat_loc)) {
+        if((ret = WEXITSTATUS(stat_loc)) == 0)
+            return 0;
+        
+        fprintf(stderr, "return status value is %d\n", ret);
+        return -1;
+    } else if(WIFSIGNALED(stat_loc)) {
+        fprintf(stderr, "get signal is %d\n", WTERMSIG(stat_loc));
+        return -1;
+    } else if(WIFSTOPPED(stat_loc)) {
+        fprintf(stderr, "stop signal is %d\n", WSTOPSIG(stat_loc));
+        return -1;
+    }
+
+    perror("check_statloc()");
+    return -1;
+}
+
+int virtual_system(int (*exec_proc)(int argc, char *argv[]), int argc, char *argv[])
+{
+    pid_t pid = 0;
+    int stat_loc = 0;
+    int ret = 0;
+
+    //자식 프로세스인 경우
+    if((pid = fork()) == 0) {
+        ret = exec_proc(argc, argv);
+        //보통 여기까지 실행될 일 없음. exec_proc에서 exit로 종료하므로.
+        //메인에서 exit 대신 return을 사용했을 경우 이걸로 exit됨.
+        exit(ret);
+    } else if(pid < 0) {
+        perror("fork()");
+        return -1;
+    }
+
+    //부모 프로세스인 경우
+    if(waitpid(pid, &stat_loc, 0) < 0){
+        perror("waitpid()");
+        return -1;
+    }
+
+    //stat_loc 값 체크
+    return check_statloc(stat_loc);
+}
+
 int change_daemon(const char *ident, sighandler_t hupAction)
 {
     pid_t pid;

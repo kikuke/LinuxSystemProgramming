@@ -10,6 +10,16 @@ int isBlank(char *str);
 //  배열 끝엔 NULL을 채워서 줌
 int StringToArgv(char *srcStr, char ***destArr, const char *parser);
 
+//인자로 들어온 함수를 main함수 취급하여 system을 실행한 것과 같은 효과를 낸다.
+//  해당 함수의 실행이 끝날 때 까지 대기한다
+//  실행이 끝난 후 check_statloc의 결과값을 리턴한다.
+//  실패시 -1, 성공시 0을 리턴한다.
+int virtual_system(int (*exec_proc)(int argc, char *argv[]), int argc, char *argv[]);
+
+//정상 종료이고, exit인자가 0을 넘겨줬을 경우 0, 그이외에 1 리턴
+//  오류사항 표준에러로 출력
+int check_statloc(int stat_loc);
+
 /* 데몬 프로세스의 조건
 1. init 프로세스의 자식프로세스 -> PPID가 1번(INIT)이다 -> 어떤 프로세스의 영향도 받지 않는다.
 2. 제어 터미널과 연결 해제 -> 터미널을 가지지 않는다. -> 인터페이스가 없다(표준입출력)
