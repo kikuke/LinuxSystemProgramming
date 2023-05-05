@@ -29,7 +29,7 @@ int isBlank(char *str)
     return 0;
 }
 
-int StringToArgv(char *srcStr, char ***destArr, const char *parser)
+int StringToArgv(char *srcStr, char ***argv, const char *parser)
 {
 	int arrSz=1;
 	char *tok_ptr = NULL;
@@ -44,18 +44,18 @@ int StringToArgv(char *srcStr, char ***destArr, const char *parser)
 		tok_ptr = strtok(NULL, parser);
 	}
 
-	(*destArr) = (char**)malloc(sizeof(char*) * arrSz);
+	(*argv) = (char**)malloc(sizeof(char*) * arrSz);
 	tok_ptr = srcStr;
 	for(int i=0; i < (arrSz - 1); i++){
-		(*destArr)[i] = tok_ptr;
+		(*argv)[i] = tok_ptr;
 		while((*tok_ptr) != '\0'){
 			tok_ptr++;
 		}
 		tok_ptr++;
 	}
-	(*destArr)[arrSz-1] = NULL;
+	(*argv)[arrSz-1] = NULL;
 
-	return arrSz;
+	return arrSz-1;
 }
 
 int check_statloc(int stat_loc)
@@ -66,7 +66,7 @@ int check_statloc(int stat_loc)
         if((ret = WEXITSTATUS(stat_loc)) == 0)
             return 0;
         
-        fprintf(stderr, "return status value is %d\n", ret);
+        fprintf(stderr, "get status value is %d\n", ret);
         return -1;
     } else if(WIFSIGNALED(stat_loc)) {
         fprintf(stderr, "get signal is %d\n", WTERMSIG(stat_loc));
