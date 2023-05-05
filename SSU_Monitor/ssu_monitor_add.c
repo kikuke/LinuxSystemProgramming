@@ -57,6 +57,12 @@ int add_daemon(int argc, char *argv[])
         exit(1);
     }
 
+    if(getcwd(settingPath, SSU_MONITOR_MAX_PATH) == NULL) {
+        fprintf(stderr, "getcwd error\n");
+        exit(1);
+    }
+    ConcatPath(settingPath, SSU_MONITOR_SETTING_FILE);
+
     printf("monitoring started (%s)\n", addPath);
 
     //따로 환경설정이 없는 데몬이므로 SIG_IGN
@@ -65,11 +71,9 @@ int add_daemon(int argc, char *argv[])
         fprintf(stderr, "change_daemon error\n");
         exit(1);
     }
-    
+
     m_new = InitMonitList(addPath, getpid(), NULL, NULL);
 
-    getcwd(settingPath, SSU_MONITOR_MAX_PATH);
-    ConcatPath(settingPath, SSU_MONITOR_SETTING_FILE);
     //설정 파일이 없을 경우
     if(access(settingPath, F_OK) < 0) {
         m_list = m_new;
