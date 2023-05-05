@@ -1,7 +1,7 @@
 INCLUDE = -Idefine/ -Iutil/
 SUBDIRS = util
 MODULE = ssu_monitor_add.o
-UTILITY = util/ssu_monitor_usage.o util/ssu_monitor_system.o util/ssu_monitor_util.o util/ssu_monitor_monitlist_util.o
+UTILITY = util/ssu_monitor_usage.o util/ssu_monitor_path.o util/ssu_monitor_system.o util/ssu_monitor_util.o util/ssu_monitor_monitlist_util.o
 CC = gcc -g
 
 

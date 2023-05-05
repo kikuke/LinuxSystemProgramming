@@ -17,3 +17,24 @@ int isBlank(char *str)
 
     return 0;
 }
+
+int CheckFileType(const struct stat* p_stat)
+{
+	if(S_ISREG((*p_stat).st_mode)){
+		return SSU_MONITOR_TYPE_REG;
+	} else if(S_ISDIR((*p_stat).st_mode)){
+		return SSU_MONITOR_TYPE_DIR;
+	}
+
+	return SSU_MONITOR_TYPE_OTHER;
+}
+
+int CheckFileTypeByPath(const char* path)
+{
+	struct stat f_stat;
+
+	if(lstat(path, &f_stat) == -1)
+		return SSU_MONITOR_TYPE_ERROR;
+	
+	return CheckFileType(&f_stat);
+}

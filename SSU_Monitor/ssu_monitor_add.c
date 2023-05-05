@@ -6,7 +6,9 @@
 
 #include "ssu_monitor_define.h"
 #include "ssu_monitor_usage.h"
+#include "ssu_monitor_path.h"
 #include "ssu_monitor_util.h"
+#include "ssu_monitor_monitlist_util.h"
 #include "ssu_monitor_add.h"
 
 static int check_option(int argc, char *argv[]);
@@ -16,8 +18,10 @@ static unsigned int rTime = 1;
 
 int add_daemon(int argc, char *argv[])
 {
-    char tmpBuf[SSU_MONITOR_MAX_PATH];
-    char addPath[SSU_MONITOR_MAX_PATH];
+    struct monitlist *m_list;
+    char tmpBuf[SSU_MONITOR_MAX_PATH] = {};
+    char addPath[SSU_MONITOR_MAX_PATH] = {};
+    char settingPath[SSU_MONITOR_MAX_PATH] = {};
 
     if(argc < 2) {
         Usage(USAGEIDX_ADD);
@@ -36,6 +40,31 @@ int add_daemon(int argc, char *argv[])
         } else {
             perror("realpath()");
         }
+        exit(1);
+    }
+
+    if(CheckFileTypeByPath(addPath) != SSU_MONITOR_TYPE_DIR) {
+        Usage(USAGEIDX_ADD);
+        exit(1);
+    }
+
+    getcwd(settingPath, SSU_MONITOR_MAX_PATH);
+    ConcatPath(settingPath, SSU_MONITOR_SETTING_FILE);
+    //설정 파일이 없을 경우
+    //Todo: 아직 이 아래로 미완성. 다시 봐야함.
+    if(access(settingPath, F_OK) < 0) {
+        //Todo: 데몬 실행해서 받은 pid 값을 넣기
+        m_list = InitMonitList(addPath, 123, NULL, NULL);
+
+        if(SaveMonitListByPath(m_list, settingPath) < 0) {
+            fprintf(stderr, "MakeMonitListByPath Error\n");
+            exit(1);
+        }
+        exit(0);
+    }
+    //설정 파일이 있을 경우
+    if((m_list = MakeMonitListByPath(settingPath)) == NULL) {
+        fprintf(stderr, "MakeMonitListByPath Error\n");
         exit(1);
     }
     
