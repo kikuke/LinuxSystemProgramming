@@ -5,6 +5,7 @@
 #include <sys/types.h>
 
 #include "ssu_monitor_add.h"
+#include "ssu_monitor_tree.h"
 #include "ssu_monitor_usage.h"
 #include "ssu_monitor_system.h"
 #include "ssu_monitor_util.h"
@@ -58,9 +59,7 @@ int execute_cmd(char *cmd)
         //Comment: 임시
         puts("delete");
     } else if(!strcmp(*argv, SSU_MONITOR_TREE)){
-        //Todo: 함수 인자 넣기
-        //Comment: 임시
-        puts("tree");
+        virtual_system(ssu_monitor_tree, argc, argv);
     } else if(!strcmp(*argv, SSU_MONITOR_EXIT)){
         return 1;
     } else {

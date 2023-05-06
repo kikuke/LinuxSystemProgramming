@@ -100,6 +100,10 @@ struct monitree *PathToMoniTree(const char *path, struct monitree *pTree)
         fprintf(stderr, "path is NULL\n");
         return NULL;
     }
+    if(pTree == NULL) {
+        fprintf(stderr, "pTree is NULL\n");
+        return NULL;
+    }
     //자식이 이미 있는 경우 바로 리턴
     if(pTree->move[MTREE_CHILD] != NULL){
         fprintf(stderr, "child is not NULL\n");

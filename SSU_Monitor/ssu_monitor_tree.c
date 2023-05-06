@@ -1,10 +1,12 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
 #include <errno.h>
 
 #include "ssu_monitor_define.h"
 #include "ssu_monitor_usage.h"
+#include "ssu_monitor_path.h"
 #include "ssu_monitor_monitlist_util.h"
 #include "ssu_monitor_monitree_util.h"
 #include "ssu_monitor_tree.h"
@@ -58,5 +60,35 @@ int ssu_monitor_tree(int argc, char *argv[])
         exit(1);
     }
 
-    
+    if(PrintMoniTreeByPath(treePath) < 0) {
+        fprintf(stderr, "PrintMoniTreeByPath failed in \"%s\"\n", treePath);
+        exit(1);
+    }
+
+    exit(0);
+}
+
+void PrintMoniTree(struct monitree *tree)
+{
+    //Todo: 임시 테스트용
+
+    while(tree != NULL) {
+        printf("%s\n", tree->filename);
+
+        PrintMoniTree(tree->move[MTREE_CHILD]);
+        tree = tree->move[MTREE_AFT];
+    }
+}
+
+int PrintMoniTreeByPath(const char* path)
+{
+    struct monitree *tree = InitMoniTree(0, 0, NULL, 0);
+
+    PathToMoniTree(path, tree);
+    //Todo: 가장 위에 tree도 출력하기
+
+    PrintMoniTree(tree->move[MTREE_CHILD]);
+
+    EraseMoniTree(tree);
+    return 0;
 }
