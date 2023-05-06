@@ -29,6 +29,34 @@ struct monitree *InitMoniTree(ino_t ino, int filetype, const char *filename, tim
     return tree;
 }
 
+int AddSiblingMoniTree(struct monitree *source, struct monitree *target)
+{
+    if(source == NULL || target == NULL)
+        return -1;
+    if(target->move[MTREE_BEF] != NULL)
+        return -1;
+
+    while(source->move[MTREE_AFT] != NULL)
+        source = source->move[MTREE_AFT];
+    source->move[MTREE_AFT] = target;
+    target->move[MTREE_BEF] = source;
+
+    return 0;
+}
+
+struct monitree *SetParentMoniTree(struct monitree *pTree, struct monitree *cTree)
+{
+    if(pTree == NULL || cTree == NULL)
+        return NULL;
+    if(pTree->move[MTREE_CHILD] != NULL || cTree->move[MTREE_PARENT] != NULL)
+        return NULL;
+    
+    pTree->move[MTREE_CHILD] = cTree;
+    cTree->move[MTREE_PARENT] = pTree;
+
+    return cTree;
+}
+
 int ScanDirFilter(const struct dirent* target)
 {
 	if(!strcmp(target->d_name, ".") || !strcmp(target->d_name, "..")){
@@ -39,12 +67,17 @@ int ScanDirFilter(const struct dirent* target)
 
 struct monitree *PathToMoniTree(const char *path, struct monitree *pTree)
 {
-    struct filetree *cTree = NULL;
+    struct monitree *cTree = NULL;
+    struct monitree *nTree = NULL;
     int childCount = 0;
     struct dirent **childList = NULL;
     struct stat f_stat;
     char nextPath[SSU_MONITOR_MAX_PATH] = {0};
 
+    if(path == NULL) {
+        fprintf(stderr, "path is NULL\n");
+        return NULL;
+    }
     //자식이 이미 있는 경우 바로 리턴
     if(pTree->move[MTREE_CHILD] != NULL){
         fprintf(stderr, "child is not NULL\n");
@@ -65,14 +98,21 @@ struct monitree *PathToMoniTree(const char *path, struct monitree *pTree)
             continue;
         }
 
-        cTree = InitMoniTree(f_stat.st_ino, CheckFileType(&f_stat), childList[i]->d_name, f_stat.st_mtime);
+        nTree = InitMoniTree(f_stat.st_ino, CheckFileType(&f_stat), childList[i]->d_name, f_stat.st_mtime);
 
-        //첫번째 자식인 경우 pTree아래에 저장
         if(i == 0) {
-
+            if((cTree = SetParentMoniTree(pTree, nTree)) == NULL) {
+                fprintf(stderr, "SetParentMoniTree error\n");
+                return NULL;
+            }
         } else {
-
+            AddSiblingMoniTree(cTree, nTree);
         }
+        
+        if(nTree->filetype == SSU_MONITOR_TYPE_DIR) {
+            PathToMoniTree(nextPath, nTree);
+        }
+
         free(childList[i]);
     }
     free(childList);
