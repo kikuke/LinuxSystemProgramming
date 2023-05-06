@@ -82,7 +82,8 @@ void PrintMoniTree(struct monitree *tree)
 
 int PrintMoniTreeByPath(const char* path)
 {
-    struct monitree *tree = InitMoniTree(0, 0, NULL, 0);
+    struct monitree *tree = InitMoniTree(0, 0, "", 0);
+
 
     PathToMoniTree(path, tree);
     //Todo: 가장 위에 tree도 출력하기
