@@ -137,7 +137,7 @@ int change_daemon(const char *proc_name, const char *ident, sighandler_t hupActi
         perror("signal() - SIGHUP");
         return -1;
     }
-    
+
     //이전의 umask에 의존하지 않게 한다.
     umask(0);
 
@@ -148,8 +148,8 @@ int change_daemon(const char *proc_name, const char *ident, sighandler_t hupActi
     }
 
     //열려있는 모든 fd를 닫음
-    if((maxfd = gettablesize()) < 0) {
-        perror("gettablesize()");
+    if((maxfd = getdtablesize()) < 0) {
+        perror("getdtablesize()");
         return -1;
     }
     for(int i=0; i < maxfd; i++) {

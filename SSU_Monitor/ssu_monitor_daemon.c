@@ -37,4 +37,5 @@ int monitor_routine(const char *m_path)
 int CompareMoniTreeAndWriteInPath(struct monitree *oldTree, struct monitree *newTree, const char *path)
 {
     
+    return 0;
 }
