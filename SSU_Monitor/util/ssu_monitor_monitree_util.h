@@ -16,7 +16,8 @@ int AddSiblingMoniTree(struct monitree *source, struct monitree *target);
 //  성공시 자식트리를 리턴, 실패시 NULL 리턴
 struct monitree *SetParentMoniTree(struct monitree *pTree, struct monitree *cTree);
 
-//Todo: 전체 제거 함수 만들기
+//해당 트리 아래와 형제로 연결된 모든 트리를 삭제합니다.
+void EraseMoniTree(struct monitree *target);
 
 //scandir을 사용시 .이나 ..을 걸러줍니다.
 int ScanDirFilter(const struct dirent* target);

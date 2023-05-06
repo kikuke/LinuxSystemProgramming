@@ -57,6 +57,28 @@ struct monitree *SetParentMoniTree(struct monitree *pTree, struct monitree *cTre
     return cTree;
 }
 
+void EraseMoniTree(struct monitree *target)
+{
+    struct monitree *aft;
+    while(target != NULL) {
+        if(target->move[MTREE_PARENT] != NULL) {
+            target->move[MTREE_PARENT]->move[MTREE_CHILD] = NULL;
+        }
+        EraseMoniTree(target->move[MTREE_CHILD]);
+        target->move[MTREE_CHILD] = NULL;
+
+        aft = target->move[MTREE_AFT];
+        target->move[MTREE_AFT] = NULL;
+        if(aft != NULL) {
+            aft->move[MTREE_BEF] = NULL;
+        }
+        
+        free(target);
+
+        target = aft;
+    }
+}
+
 int ScanDirFilter(const struct dirent* target)
 {
 	if(!strcmp(target->d_name, ".") || !strcmp(target->d_name, "..")){
@@ -108,7 +130,7 @@ struct monitree *PathToMoniTree(const char *path, struct monitree *pTree)
         } else {
             AddSiblingMoniTree(cTree, nTree);
         }
-        
+
         if(nTree->filetype == SSU_MONITOR_TYPE_DIR) {
             PathToMoniTree(nextPath, nTree);
         }
