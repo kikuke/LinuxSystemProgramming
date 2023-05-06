@@ -132,6 +132,7 @@ int FindCreateFileByMoniTreeAndWriteInFp(struct monitree *oldTree, struct monitr
         nextPath[strlen(path)] = '\0';
         ConcatPath(nextPath, newTree->filename);
 
+        //Todo: 깊이 2이상에서 create가 탐지되지 않는 현상 수정하기
         //Test: 잘 돌아가는지 시험.
         syslog(LOG_ERR, "nextPath: \"%s\"\n", nextPath);
         syslog(LOG_ERR, "fileName: \"%s\"\n", newTree->filename);
