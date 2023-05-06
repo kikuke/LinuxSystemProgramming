@@ -13,6 +13,7 @@ int monitor_routine(const char *m_path)
 {
     static struct monitree *oldTree = NULL;
     static struct monitree *newTree = NULL;
+    char logPath[SSU_MONITOR_MAX_PATH] = {0};
     FILE *fp = NULL;
 
     //최초 실행 시 초기화
@@ -26,11 +27,13 @@ int monitor_routine(const char *m_path)
     newTree = InitMoniTree(0, 0, "", 0);
     PathToMoniTree(m_path, newTree);
 
-    if((fp = fopen(m_path, "a")) == NULL) {
-        syslog(LOG_ERR, "fopen failed in \"%s\": %s\n", m_path, strerror(errno));
+    strcpy(logPath, m_path);
+    ConcatPath(logPath, SSU_MONITOR_LOG_FILE);
+    if((fp = fopen(logPath, "a")) == NULL) {
+        syslog(LOG_ERR, "fopen failed in \"%s\": %s\n", logPath, strerror(errno));
         return -1;
     }
-    if(CompareMoniTreeAndWriteInFp(oldTree, newTree, m_path, fp) < 0) {
+    if(CompareMoniTreeAndWriteInFp(oldTree->move[MTREE_CHILD], newTree->move[MTREE_CHILD], m_path, fp) < 0) {
         syslog(LOG_ERR, "CompareMoniTreeAndWriteInPath failed in \"%s\": %s\n", m_path, strerror(errno));
         return -1;
     }
@@ -74,6 +77,11 @@ int FindRemoveOrModifyFileByMoniTreeAndWriteInFp(struct monitree *oldTree, struc
     for(; oldTree != NULL; oldTree = oldTree->move[MTREE_AFT]) {
         nextPath[strlen(path)] = '\0';
         ConcatPath(nextPath, oldTree->filename);
+
+        //Test: 잘 돌아가는지 시험. 지금 여기서 안넘어가지고 있음.
+        syslog(LOG_ERR, "nextPath: \"%s\"\n", nextPath);
+        syslog(LOG_ERR, "fileName: \"%s\"\n", oldTree->filename);
+
         //디렉토리인 경우 재귀호출
         if(oldTree->filetype == SSU_MONITOR_TYPE_DIR) {
             cTree = oldTree->move[MTREE_CHILD];

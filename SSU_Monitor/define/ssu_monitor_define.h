@@ -8,5 +8,6 @@
 #define SSU_MONITOR_LOG_IDENT "ssu_monitord"
 
 #define SSU_MONITOR_SETTING_FILE "monitor_list.txt"
+#define SSU_MONITOR_LOG_FILE "log.txt"
 
 #endif
