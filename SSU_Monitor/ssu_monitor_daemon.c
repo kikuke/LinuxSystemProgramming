@@ -9,11 +9,12 @@
 #include "ssu_monitor_monitree_util.h"
 #include "ssu_monitor_daemon.h"
 
+static char logPath[SSU_MONITOR_MAX_PATH];
+
 int monitor_routine(const char *m_path)
 {
     static struct monitree *oldTree = NULL;
     static struct monitree *newTree = NULL;
-    char logPath[SSU_MONITOR_MAX_PATH] = {0};
     FILE *fp = NULL;
 
     //최초 실행 시 초기화
@@ -52,19 +53,21 @@ int monitor_routine(const char *m_path)
 
 int CompareMoniTreeAndWriteInFp(struct monitree *oldTree, struct monitree *newTree, const char *path, FILE *fp)
 {
+    if(FindCreateFileByMoniTreeAndWriteInFp(oldTree, newTree, path, fp) < 0) {
+        syslog(LOG_ERR, "FindCreateFileByMoniTreeAndWriteInFp failed in \"%s\"\n", path);
+        return -1;
+    }
+
     if(FindRemoveOrModifyFileByMoniTreeAndWriteInFp(oldTree, newTree, path, fp) < 0) {
         syslog(LOG_ERR, "FindRemoveOrModifyFileByMoniTreeAndWriteInFp failed in \"%s\"\n", path);
         return -1;
     }
-
-    //Todo: 생성 찾기 함수도 넣기
 
     return 0;
 }
 
 int FindRemoveOrModifyFileByMoniTreeAndWriteInFp(struct monitree *oldTree, struct monitree *newTree, const char *path, FILE *fp)
 {
-    struct monitree *cTree = NULL;
     struct monitree *searchTree = NULL;
     struct monitree *cSearchTree = NULL;
     time_t nowTime = 0;
@@ -78,26 +81,22 @@ int FindRemoveOrModifyFileByMoniTreeAndWriteInFp(struct monitree *oldTree, struc
         nextPath[strlen(path)] = '\0';
         ConcatPath(nextPath, oldTree->filename);
 
-        //Test: 잘 돌아가는지 시험. 지금 여기서 안넘어가지고 있음.
-        syslog(LOG_ERR, "nextPath: \"%s\"\n", nextPath);
-        syslog(LOG_ERR, "fileName: \"%s\"\n", oldTree->filename);
-
         //디렉토리인 경우 재귀호출
         if(oldTree->filetype == SSU_MONITOR_TYPE_DIR) {
-            cTree = oldTree->move[MTREE_CHILD];
             cSearchTree = NULL;
             if((searchTree = SearchSiblingMoniTreeByInode(newTree, oldTree->ino)) != NULL) {
                 cSearchTree = searchTree->move[MTREE_CHILD];
             }
-            for(; cTree != NULL; cTree = cTree->move[MTREE_AFT]) {
-                if(FindRemoveOrModifyFileByMoniTreeAndWriteInFp(cTree, cSearchTree, nextPath, fp) < 0)
-                    return -1;
-            }
+            if(FindRemoveOrModifyFileByMoniTreeAndWriteInFp(oldTree->move[MTREE_CHILD], cSearchTree, nextPath, fp) < 0)
+                return -1;
 
             continue;
         }
         //레귤러인 경우 비교
         if(oldTree->filetype == SSU_MONITOR_TYPE_REG) {
+            //로그파일인 경우 건너뛰기
+            if(!strcmp(nextPath, logPath))
+                continue;
             //파일이 삭제된 경우
             if((searchTree = SearchSiblingMoniTreeByInode(newTree, oldTree->ino)) == NULL) {
                 if(WriteLogFile(fp, nowTime, SSU_MONITOR_LOG_STATUS_REMOVE, nextPath) < 0) {
@@ -122,21 +121,49 @@ int FindRemoveOrModifyFileByMoniTreeAndWriteInFp(struct monitree *oldTree, struc
 
 int FindCreateFileByMoniTreeAndWriteInFp(struct monitree *oldTree, struct monitree *newTree, const char *path, FILE *fp)
 {
+    struct monitree *searchTree = NULL;
+    struct monitree *cSearchTree = NULL;
     char nextPath[SSU_MONITOR_MAX_PATH] = {0};
 
     strcpy(nextPath, path);
-    //없다면 파일이 새로 생긴 것.
+    //없다면 파일이 삭제된 것.
+    //  변경 시간 파악
     for(; newTree != NULL; newTree = newTree->move[MTREE_AFT]) {
+        nextPath[strlen(path)] = '\0';
+        ConcatPath(nextPath, newTree->filename);
+
+        //Test: 잘 돌아가는지 시험.
+        syslog(LOG_ERR, "nextPath: \"%s\"\n", nextPath);
+        syslog(LOG_ERR, "fileName: \"%s\"\n", newTree->filename);
+
+        //디렉토리인 경우 재귀호출
         if(newTree->filetype == SSU_MONITOR_TYPE_DIR) {
-            nextPath[strlen(path)] = '\0';
-            ConcatPath(nextPath, oldTree->filename);
+            cSearchTree = NULL;
+            if((searchTree = SearchSiblingMoniTreeByInode(oldTree, newTree->ino)) != NULL) {
+                cSearchTree = searchTree->move[MTREE_CHILD];
+            }
+            if(FindCreateFileByMoniTreeAndWriteInFp(newTree->move[MTREE_CHILD], cSearchTree, nextPath, fp) < 0)
+                return -1;
 
             continue;
         }
+        //레귤러인 경우 비교
         if(newTree->filetype == SSU_MONITOR_TYPE_REG) {
-            
+            //로그파일인 경우 건너뛰기
+            if(!strcmp(nextPath, logPath))
+                continue;
+            //파일이 생성된 경우
+            if((searchTree = SearchSiblingMoniTreeByInode(oldTree, newTree->ino)) == NULL) {
+                if(WriteLogFile(fp, newTree->md_time, SSU_MONITOR_LOG_STATUS_CREATE, nextPath) < 0) {
+                    syslog(LOG_ERR, "WriteLogFile failed in \"%s\"\n", path);
+                    return -1;
+                }
+                continue;
+            }
         }
     }
+
+    return 0;
 }
 
 int WriteLogFile(FILE *fp, time_t time, const char *status, const char *path)
