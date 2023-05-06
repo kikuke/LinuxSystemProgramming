@@ -10,6 +10,18 @@
 #include "ssu_monitor_util.h"
 #include "ssu_monitor_monitree_util.h"
 
+struct monitree *SearchSiblingMoniTreeByInode(struct monitree *target, ino_t ino)
+{
+    while(target != NULL) {
+        if(target->ino == ino)
+            break;
+            
+        target = target->move[MTREE_AFT];
+    }
+
+    return target;
+}
+
 struct monitree *InitMoniTree(ino_t ino, int filetype, const char *filename, time_t md_time)
 {
     struct monitree *tree = NULL;

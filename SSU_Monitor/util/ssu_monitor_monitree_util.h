@@ -5,6 +5,10 @@
 
 #include "ssu_monitor_monitree.h"
 
+//형제 노드중에서 해당 inode와 일치하는 monitree를 찾습니다.
+//  없거나 실패시 NULL을, 성공시 일치하는 노드를 리턴합니다.
+struct monitree *SearchSiblingMoniTreeByInode(struct monitree *target, ino_t ino);
+
 //해당 값으로 초기화된 monitree를 동적할당해 리턴합니다. 이 외에 값들은 NULL 입니다.
 struct monitree *InitMoniTree(ino_t ino, int filetype, const char *filename, time_t md_time);
 
