@@ -121,7 +121,10 @@ static int check_option(int argc, char *argv[])
         switch (c) {
         case 't':
             if((rTime = atoi(optarg)) <= 0) {
-                fprintf(stderr, "Time must be over 0\n");
+                if(!strcmp(optarg, "0"))
+                    break;
+
+                fprintf(stderr, "Time must be more than 0\n");
                 return -1;
             }
             break;
