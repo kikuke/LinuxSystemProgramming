@@ -9,6 +9,4 @@
 
 #define SSU_MONITOR_SETTING_FILE "monitor_list.txt"
 
-#define SSU_MONITOR_UMASK 0
-
 #endif

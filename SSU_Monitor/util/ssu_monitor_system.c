@@ -9,7 +9,6 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/wait.h>
-#include <sys/resource.h>
 
 #include "ssu_monitor_define.h"
 #include "ssu_monitor_system.h"
@@ -88,9 +87,9 @@ int virtual_system(int (*exec_proc)(int argc, char *argv[]), int argc, char *arg
 
 int change_daemon(const char *proc_name, const char *ident, sighandler_t hupAction)
 {
-    pid_t pid;
-    struct rlimit rl;
-    char name[SSU_MONITOR_MAX_FILENAME];
+    pid_t pid = 0;
+    int maxfd = 0;
+    char name[SSU_MONITOR_MAX_FILENAME] = {};
 
     //부모 프로세스(자신)을 종료시켜 자신을 백그라운드로 실행시킨다.
     //  이때 PPID는 1(Init 프로세스)이 된다.
@@ -117,12 +116,30 @@ int change_daemon(const char *proc_name, const char *ident, sighandler_t hupActi
         return -1;
     }
 
+    //터미널 입력 시그널 무시
+    if(signal(SIGTTIN, SIG_IGN) == SIG_ERR) {
+        perror("signal() - SIGTTIN");
+        return -1;
+    }
+    //터미널 출력 시그널 무시
+    if(signal(SIGTTOU, SIG_IGN) == SIG_ERR) {
+        perror("signal() - SIGTTOU");
+        return -1;
+    }
+    //대기 시그널 무시
+    if(signal(SIGTSTP, SIG_IGN) == SIG_ERR) {
+        perror("signal() - SIGTSTP");
+        return -1;
+    }
     //HANGUP(터미널과 연결이 끊겼을 때 하위 프로세스들에 전달; 데몬 프로세스에서는 재시작(환경설정) 할 때 사용)
     //  SIGHUP 시그널이 왔을 경우 해당 핸들러를 실행한다.
     if(signal(SIGHUP, hupAction) == SIG_ERR) {
-        perror("signal()");
+        perror("signal() - SIGHUP");
         return -1;
     }
+    
+    //이전의 umask에 의존하지 않게 한다.
+    umask(0);
 
     //현재 작업 디렉토리를 루트디렉토리로 옮겨 이전의 작업디렉토리가 unmount 가능하게 함
     if(chdir("/") < 0) {
@@ -130,18 +147,13 @@ int change_daemon(const char *proc_name, const char *ident, sighandler_t hupActi
         return -1;
     }
 
-    //이전의 umask에 의존하지 않게 한다.
-    umask(SSU_MONITOR_UMASK);
-
-    //최대로 열수있는 파일 디스크립터의 수 가져옴
-    if(getrlimit(RLIMIT_NOFILE, &rl) < 0) {
-        perror("getrlimit()");
+    //열려있는 모든 fd를 닫음
+    if((maxfd = gettablesize()) < 0) {
+        perror("gettablesize()");
         return -1;
     }
-
-    //-1(무한대) 일경우 임의 수 지정
-    if(rl.rlim_max == RLIM_INFINITY) {
-        rl.rlim_max = 1024;
+    for(int i=0; i < maxfd; i++) {
+        close(i);
     }
 
     //로그를 연다. 표준입출력과 터미널이 닫힌상태이므로 syslog 이용.
@@ -150,10 +162,6 @@ int change_daemon(const char *proc_name, const char *ident, sighandler_t hupActi
     //LOG_DAEMON: 별도 기능 값이 없는 데몬 유형
     openlog(ident, LOG_CONS, LOG_DAEMON);
 
-    //열려있는 모든 fd를 닫음
-    for(int i=0; i < rl.rlim_max; i++) {
-        close(i);
-    }
     //0,1,2 표준 입출력 fd를 /dev/null 터미널로 리다이렉션
     if(open("/dev/null", O_RDWR) < 0) {
         syslog(LOG_ERR, "open fd0 /dev/null failed\n");
