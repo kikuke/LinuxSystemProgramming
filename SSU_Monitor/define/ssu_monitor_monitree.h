@@ -10,15 +10,18 @@ enum MtreeNext {
     MTREE_PARENT,
     MTREE_CHILD,
     MTREE_BEF,
-    MTREE_AFT
+    MTREE_AFT,
+    MTREE_MAX
 };
 
 typedef struct monitree {
-    //파일 이름
-    char filename[SSU_MONITOR_MAX_FILENAME+1];
     //Todo: 파일이름과 ino, mdtime을 모두 비교해 같은 파일인지 체크.
     //i-node 번호
     ino_t ino;
+    //파일 타입
+    int filetype;
+    //파일 이름
+    char filename[SSU_MONITOR_MAX_FILENAME+1];
     //수정 시각
     time_t md_time;
 

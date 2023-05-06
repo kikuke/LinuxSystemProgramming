@@ -1,9 +1,19 @@
 #ifndef SSU_MONITOR_MONITREE_UTIL_H
 #define SSU_MONITOR_MONITREE_UTIL_H
 
+#include <dirent.h>
+
 #include "ssu_monitor_monitree.h"
 
-struct monitree *InitMonitree(const char *filename, ino_t ino, time_t md_time, struct monitree *parent, struct monitree *child, struct monitree *bef, struct monitree *aft);
+//해당 값으로 초기화된 monitree를 동적할당해 리턴합니다. 이 외에 값들은 NULL 입니다.
+struct monitree *InitMoniTree(ino_t ino, int filetype, const char *filename, time_t md_time);
 
+//Todo: 전체 제거 함수 만들기
+
+//scandir을 사용시 .이나 ..을 걸러줍니다.
+int ScanDirFilter(const struct dirent* target);
+
+//첫번째 자식을 리턴
+struct monitree *PathToMoniTree(const char *path, struct monitree *pTree);
 
 #endif

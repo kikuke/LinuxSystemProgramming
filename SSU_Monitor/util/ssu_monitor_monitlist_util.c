@@ -5,7 +5,7 @@
 #include "ssu_monitor_path.h"
 #include "ssu_monitor_monitlist_util.h"
 
-struct monitlist *InitMonitList(const char *path, pid_t pid, struct monitlist *bef, struct monitlist *aft)
+struct monitlist *InitMonitList(const char *path, pid_t pid)
 {
     struct monitlist *monit = NULL;
 
@@ -15,8 +15,8 @@ struct monitlist *InitMonitList(const char *path, pid_t pid, struct monitlist *b
     strcpy(monit->path, path);
     monit->pid = pid;
 
-    monit->bef = bef;
-    monit->aft = aft;
+    monit->bef = NULL;
+    monit->aft = NULL;
 
     return monit;
 }
@@ -112,7 +112,7 @@ struct monitlist *MakeMonitListByPath(const char *path)
     }
 
     while(!feof(fp)) {
-        new = InitMonitList("", -1, NULL, NULL);
+        new = InitMonitList("", -1);
 
         if(m_list == NULL) {
             m_list = new;

@@ -89,7 +89,7 @@ int add_daemon(int argc, char *argv[])
     }
     openlog(SSU_MONITOR_LOG_IDENT, LOG_CONS, LOG_DAEMON);
 
-    m_new = InitMonitList(addPath, getpid(), NULL, NULL);
+    m_new = InitMonitList(addPath, getpid());
     if(m_list == NULL) {
         m_list = m_new;
     } else {

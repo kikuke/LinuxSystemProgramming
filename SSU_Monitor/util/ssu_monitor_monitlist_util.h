@@ -6,7 +6,7 @@
 #define SSU_MONITOR_MONITLIST_FILE_FORAMT "%s %d\n"
 
 //monitlist를 만들어 다음의 인자들로 초기화 한 뒤 리턴한다.
-struct monitlist *InitMonitList(const char *path, pid_t pid, struct monitlist *bef, struct monitlist *aft);
+struct monitlist *InitMonitList(const char *path, pid_t pid);
 
 //source의 가장 뒤에 target을 추가한다.
 //  성공 시 0, 실패 시 -1 리턴
