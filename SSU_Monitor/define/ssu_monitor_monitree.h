@@ -15,7 +15,6 @@ enum MtreeNext {
 };
 
 typedef struct monitree {
-    //Todo: 파일이름과 ino, mdtime을 모두 비교해 같은 파일인지 체크.
     //i-node 번호
     ino_t ino;
     //파일 타입
