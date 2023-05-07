@@ -34,7 +34,7 @@ int ssu_monitor_delete(int argc, char *argv[])
     }
     ConcatPath(settingPath, SSU_MONITOR_SETTING_FILE);
     //설정 파일이 없을 경우
-    if(!access(settingPath, F_OK) < 0) {
+    if(access(settingPath, F_OK) < 0) {
         fprintf(stderr, "No list of Monitoring Pid - %d\n", killPid);
         exit(1);
     }
@@ -66,6 +66,14 @@ int ssu_monitor_delete(int argc, char *argv[])
     if(SaveMonitListByPath(m_list, settingPath) < 0) {
         perror("SaveMonitListByPath failed");
         exit(1);
+    }
+
+    //빈 파일이 됐을 경우 삭제
+    if(m_list == NULL) {
+        if(unlink(settingPath) < 0) {
+            perror("unlink failed");
+            exit(1);
+        }
     }
 
     exit(0);
