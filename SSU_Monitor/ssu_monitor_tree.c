@@ -60,7 +60,7 @@ int ssu_monitor_tree(int argc, char *argv[])
         exit(1);
     }
 
-    if(PrintMoniTreeByPath(treePath) < 0) {
+    if(PrintMoniTreeByPath(argv[1], treePath) < 0) {
         fprintf(stderr, "PrintMoniTreeByPath failed in \"%s\"\n", treePath);
         exit(1);
     }
@@ -68,19 +68,32 @@ int ssu_monitor_tree(int argc, char *argv[])
     exit(0);
 }
 
-void PrintMoniTree(struct monitree *tree)
+void PrintMoniTree(struct monitree *tree, int hierarchy)
 {
     //Todo: 임시 테스트용
 
     while(tree != NULL) {
-        printf("%s\n", tree->filename);
+        //건너뛰는 부분
+        for(int i=0; i<hierarchy; i++) {
+            printf("|  ");
+        }
+        //맨앞 막대 결정
+        if(tree->move[MTREE_AFT] != NULL) {
+            //오른쪽 노드가 있는 경우
+            printf("|");
+        } else {
+            printf("`");
+        }
 
-        PrintMoniTree(tree->move[MTREE_CHILD]);
+        //파일 이름 부분
+        printf("-- %s\n", tree->filename);
+
+        PrintMoniTree(tree->move[MTREE_CHILD], hierarchy + 1);
         tree = tree->move[MTREE_AFT];
     }
 }
 
-int PrintMoniTreeByPath(const char* path)
+int PrintMoniTreeByPath(const char *argv1, const char *path)
 {
     struct monitree *tree = InitMoniTree(0, 0, "", 0);
 
@@ -88,7 +101,8 @@ int PrintMoniTreeByPath(const char* path)
     PathToMoniTree(path, tree);
     //Todo: 가장 위에 tree도 출력하기
 
-    PrintMoniTree(tree->move[MTREE_CHILD]);
+    printf("%s\n", argv1);
+    PrintMoniTree(tree->move[MTREE_CHILD], 0);
 
     EraseMoniTree(tree);
     return 0;
