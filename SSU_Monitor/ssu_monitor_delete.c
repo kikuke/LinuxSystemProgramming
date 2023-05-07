@@ -52,7 +52,7 @@ int ssu_monitor_delete(int argc, char *argv[])
     if(kill(killPid, SSU_MONITOR_KILL_SIGNAL) < 0) {
         perror("kill failed");
         //해당 pid가 존재하지만, 시그널을 보내는데 실패했을 경우
-        if(errno != EINVAL || errno != ESRCH)
+        if(errno != EINVAL && errno != ESRCH)
             exit(1);
     }
 
