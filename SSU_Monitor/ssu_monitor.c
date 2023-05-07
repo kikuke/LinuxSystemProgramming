@@ -5,6 +5,7 @@
 #include <sys/types.h>
 
 #include "ssu_monitor_add.h"
+#include "ssu_monitor_delete.h"
 #include "ssu_monitor_tree.h"
 #include "ssu_monitor_usage.h"
 #include "ssu_monitor_system.h"
@@ -55,9 +56,7 @@ int execute_cmd(char *cmd)
     if(!strcmp(*argv, SSU_MONITOR_ADD)){
         virtual_system(add_daemon, argc, argv);
     } else if(!strcmp(*argv, SSU_MONITOR_DELETE)){
-        //Todo: 함수 인자 넣기
-        //Comment: 임시
-        puts("delete");
+        virtual_system(ssu_monitor_delete, argc, argv);
     } else if(!strcmp(*argv, SSU_MONITOR_TREE)){
         virtual_system(ssu_monitor_tree, argc, argv);
     } else if(!strcmp(*argv, SSU_MONITOR_EXIT)){
