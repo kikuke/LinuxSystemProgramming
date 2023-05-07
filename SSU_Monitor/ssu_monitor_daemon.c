@@ -132,18 +132,13 @@ int FindCreateFileByMoniTreeAndWriteInFp(struct monitree *oldTree, struct monitr
         nextPath[strlen(path)] = '\0';
         ConcatPath(nextPath, newTree->filename);
 
-        //Todo: 깊이 2이상에서 create가 탐지되지 않는 현상 수정하기
-        //Test: 잘 돌아가는지 시험.
-        syslog(LOG_ERR, "nextPath: \"%s\"\n", nextPath);
-        syslog(LOG_ERR, "fileName: \"%s\"\n", newTree->filename);
-
         //디렉토리인 경우 재귀호출
         if(newTree->filetype == SSU_MONITOR_TYPE_DIR) {
             cSearchTree = NULL;
             if((searchTree = SearchSiblingMoniTreeByInode(oldTree, newTree->ino)) != NULL) {
                 cSearchTree = searchTree->move[MTREE_CHILD];
             }
-            if(FindCreateFileByMoniTreeAndWriteInFp(newTree->move[MTREE_CHILD], cSearchTree, nextPath, fp) < 0)
+            if(FindCreateFileByMoniTreeAndWriteInFp(cSearchTree, newTree->move[MTREE_CHILD], nextPath, fp) < 0)
                 return -1;
 
             continue;
