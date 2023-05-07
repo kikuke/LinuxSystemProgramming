@@ -50,7 +50,7 @@ int ssu_monitor_tree(int argc, char *argv[])
         exit(1);
     }
     if((m_list = MakeMonitListByPath(settingPath)) == NULL) {
-        fprintf(stderr, "MakeMonitListByPath Error\n");
+        perror("MakeMonitListByPath Error");
         exit(1);
     }
 

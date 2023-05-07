@@ -44,6 +44,9 @@ struct monitlist *RemoveMonitList(struct monitlist *target)
         return NULL;
     
     ret = target->aft;
+    if(ret != NULL) {
+        ret->bef = target->bef;
+    }
     if(target->bef != NULL) {
         target->bef->aft = ret;
     }
@@ -80,7 +83,7 @@ struct monitlist *MatchMonitListByPath(struct monitlist *source, const char *pat
     return source;
 }
 
-struct monitlist *SerachMonitListByPid(struct monitlist *source, pid_t pid)
+struct monitlist *MatchMonitListByPid(struct monitlist *source, pid_t pid)
 {
     if(source == NULL)
         return NULL;
@@ -150,7 +153,7 @@ int SaveMonitListByPath(struct monitlist *source, const char *path)
 {
     FILE *fp = NULL;
     
-    if(source == NULL || path == NULL) {
+    if(path == NULL) {
         fprintf(stderr, "parameter is NULL\n");
         return -1;
     }

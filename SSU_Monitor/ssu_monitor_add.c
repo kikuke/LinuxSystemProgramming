@@ -60,14 +60,14 @@ int add_daemon(int argc, char *argv[])
     }
 
     if(getcwd(settingPath, SSU_MONITOR_MAX_PATH) == NULL) {
-        fprintf(stderr, "getcwd error\n");
+        perror("getcwd error");
         exit(1);
     }
     ConcatPath(settingPath, SSU_MONITOR_SETTING_FILE);
     //설정 파일이 있을 경우
     if(!access(settingPath, F_OK)) {
         if((m_list = MakeMonitListByPath(settingPath)) == NULL) {
-            fprintf(stderr, "MakeMonitListByPath Error\n");
+            perror("MakeMonitListByPath Error");
             exit(1);
         }
         //일치하거나 상위 경로가 있는지 탐색

@@ -25,7 +25,7 @@ struct monitlist *MatchMonitListByPath(struct monitlist *source, const char *pat
 
 //pid를 기준으로 일치하는 monitlist를 찾는다.
 //  없다면 NULL 리턴
-struct monitlist *SerachMonitListByPid(struct monitlist *source, pid_t pid);
+struct monitlist *MatchMonitListByPid(struct monitlist *source, pid_t pid);
 
 //해당 경로에 있는 파일을 읽어들여 monitlist로 변환한 뒤 리턴한다.
 //  실패시 NULL 리턴
