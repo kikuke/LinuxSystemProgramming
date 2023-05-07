@@ -83,11 +83,15 @@ int add_daemon(int argc, char *argv[])
     //부모 프로세스는 종료되며 자식프로세스가 데몬 프로세스가 됨.
     if(change_daemon(SSU_MONITOR_DAEMON_NAME, SSU_MONITOR_LOG_IDENT, SIG_IGN) < 0) {
         openlog(SSU_MONITOR_LOG_IDENT, LOG_CONS, LOG_DAEMON);
-        syslog(LOG_ERR, "change_daemon error\n");
+        syslog(LOG_ERR, "change_daemon Error\n");
         closelog();
         exit(1);
     }
     openlog(SSU_MONITOR_LOG_IDENT, LOG_CONS, LOG_DAEMON);
+    if(signal(SSU_MONITOR_KILL_SIGNAL, SSUMonitorKillSignalHandler) == SIG_ERR) {
+        syslog(LOG_ERR, "signal Error\n");
+        exit(1);
+    }
 
     m_new = InitMonitList(addPath, getpid());
     if(m_list == NULL) {

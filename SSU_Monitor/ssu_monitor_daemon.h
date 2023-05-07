@@ -16,6 +16,9 @@
 //  성공시 0, 실패시 -1 리턴
 int monitor_routine(const char *m_path);
 
+//시그널 핸들러 이거 받으면 죽음
+void SSUMonitorKillSignalHandler(int signo);
+
 //두 트리를 비교한 뒤 그 결과를 path에 작성한다.
 //  성공시 0, 실패시 -1 리턴
 int CompareMoniTreeAndWriteInFp(struct monitree *oldTree, struct monitree *newTree, const char *path, FILE *fp);

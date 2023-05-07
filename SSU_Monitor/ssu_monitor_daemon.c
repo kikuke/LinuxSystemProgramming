@@ -1,3 +1,4 @@
+#include <stdlib.h>
 #include <string.h>
 #include <time.h>
 #include <syslog.h>
@@ -49,6 +50,11 @@ int monitor_routine(const char *m_path)
     newTree = NULL;
 
     return 0;
+}
+
+void SSUMonitorKillSignalHandler(int signo)
+{
+    exit(0);
 }
 
 int CompareMoniTreeAndWriteInFp(struct monitree *oldTree, struct monitree *newTree, const char *path, FILE *fp)
