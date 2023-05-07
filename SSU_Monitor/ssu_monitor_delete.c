@@ -2,7 +2,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#include <signal.h>
 #include <sys/types.h>
+#include <errno.h>
 
 #include "ssu_monitor_define.h"
 #include "ssu_monitor_usage.h"
@@ -47,7 +49,12 @@ int ssu_monitor_delete(int argc, char *argv[])
         exit(1);
     }
 
-    //Todo: 시그널 만들어서 프로세스 죽이는 기능 넣기
+    if(kill(killPid, SSU_MONITOR_KILL_SIGNAL) < 0) {
+        perror("kill failed");
+        //해당 pid가 존재하지만, 시그널을 보내는데 실패했을 경우
+        if(errno != EINVAL || errno != ESRCH)
+            exit(1);
+    }
 
     printf("monitoring ended (%s)\n", m_search->path);
 

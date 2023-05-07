@@ -10,4 +10,6 @@
 #define SSU_MONITOR_SETTING_FILE "monitor_list.txt"
 #define SSU_MONITOR_LOG_FILE "log.txt"
 
+#define SSU_MONITOR_KILL_SIGNAL SIGUSR1
+
 #endif
