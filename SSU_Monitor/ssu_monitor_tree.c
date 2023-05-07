@@ -70,8 +70,6 @@ int ssu_monitor_tree(int argc, char *argv[])
 
 void PrintMoniTree(struct monitree *tree, int hierarchy)
 {
-    //Todo: 임시 테스트용
-
     while(tree != NULL) {
         //건너뛰는 부분
         for(int i=0; i<hierarchy; i++) {
@@ -97,9 +95,7 @@ int PrintMoniTreeByPath(const char *argv1, const char *path)
 {
     struct monitree *tree = InitMoniTree(0, 0, "", 0);
 
-
     PathToMoniTree(path, tree);
-    //Todo: 가장 위에 tree도 출력하기
 
     printf("%s\n", argv1);
     PrintMoniTree(tree->move[MTREE_CHILD], 0);
